@@ -13,8 +13,8 @@ const axiosService = (method, url, payload) => {
             "Content-Type": "application/json",
             Authorization: token ? `Bearer ${token}` : "",
         },
+        withCredentials: true, // Ensure credentials like cookies are sent if needed
     };
-
     return new Promise((resolve, reject) => {
         switch (method) {
             case "POST":
