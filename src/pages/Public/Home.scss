@@ -1,0 +1,285 @@
+/* navbar  */
+.bg-light {
+    opacity: 0.9 !important;
+}
+
+.navbar-custom {
+    padding: 0 !important;
+}
+
+.img-custom {
+    width: 100px !important;
+}
+
+.btnnavbar {
+    background-color: #f5676d;
+}
+
+.btnnavbar:hover {
+    background-color: #f5676d;
+}
+
+
+/* herosection  */
+.hero-section {
+    background: url("../../assets/images/team/bg-1.jpg") no-repeat center center;
+    background-size: cover;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: white;
+}
+
+.hero-section::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.text-center {
+    position: relative;
+    z-index: 5;
+}
+
+.btnhero {
+    background-color: #f5676d;
+}
+
+.btnhero:hover {
+    background-color: rgb(222, 222, 0);
+}
+
+/* service section  */
+.servicesection {
+    padding: 120px 0;
+}
+
+.servicesecontain h6 {
+    color: #f5676d;
+}
+
+.servicesecontain h2 {
+    color: #444444;
+}
+
+.servicesecontain p {
+    color: #9d9d9d;
+}
+
+.servicecard .card {
+    background-color: #fff3f1;
+    border: none;
+    border-radius: 10px;
+    z-index: 9;
+    padding: 5px;
+    margin: 6px;
+}
+
+.servicecard .cardheding {
+    color: #444;
+}
+
+.servicecard .text {
+    color: #888;
+}
+
+.servicecard .card:hover {
+    border: 2px solid #f5676d;
+}
+
+/* about section  */
+
+.aboutsection .about1 {
+    background-color: #fff3f1;
+    padding: 120px 0;
+}
+
+.aboutsection .about1 h6 {
+    color: #f5676d;
+}
+
+.aboutsection .about1 h2 {
+    color: #444444;
+}
+
+.aboutsection .about1 p {
+    color: #9d9d9d;
+}
+
+.aboutsection .about1-image {
+    border-radius: 10px;
+    max-width: 100%;
+}
+
+.aboutsection .icon span {
+    border-radius: 50%;
+    background-color: #f5676d;
+    padding: 18px;
+    width: 55px;
+    height: 55px;
+}
+
+.aboutsection .icon span i {
+    font-size: 1.5rem;
+    color: #fff;
+}
+
+.aboutsection .icon span:hover {
+    background-color: #feec1b;
+}
+
+.aboutsection .iconcontain {
+    margin-top: -10px;
+}
+
+@media (max-width: 576px) {
+    .aboutsection .icon {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .aboutsection .icon span {
+        width: 50px;
+        height: 50px;
+        padding: 15px;
+    }
+
+    .aboutsection .iconcontain {
+        margin-top: 0;
+    }
+}
+
+.aboutsection .about2 {
+    background-color: #151515;
+    padding: 65px 0;
+}
+
+.aboutsection .about2 h6 {
+    color: #f5676d;
+}
+
+.aboutsection .about2 p {
+    color: #9d9d9d;
+}
+
+.aboutsection .about2-image {
+    border-radius: 10px;
+    max-width: 100%;
+}
+
+/* team section  */
+.teamsection .team {
+    background-color: #fff3f1;
+    padding: 120px 0;
+}
+
+.teamsection .team h6 {
+    color: #f5676d;
+}
+
+.teamsection .team h2 {
+    color: #444444;
+}
+
+.teamsection .team p {
+    color: #9d9d9d;
+}
+
+.teamsection .team img {
+    max-width: 100%;
+    border-radius: 10px;
+    z-index: 9;
+}
+
+.teamsection .team h5 {
+    color: #444;
+}
+
+.teamsection .team span {
+    color: #f6676d;
+}
+
+.teamsection .lets-talk {
+    background-color: #f6676d;
+    padding: 85px 0;
+}
+
+.teamsection .ourclients {
+    background-color: #fff3f1;
+    padding: 90px 0;
+}
+
+.teamsection .ourclients h6 {
+    color: #f5676d;
+}
+
+.teamsection .ourclients h2 {
+    color: #444444;
+}
+
+/* accordionsection */
+.accordionsection {
+    background-color: #f6676d;
+    padding: 120px 0;
+}
+
+/* contactus */
+.contactus {
+    padding: 120px 0;
+}
+
+.contactus h6 {
+    color: #f5676d;
+}
+
+.contactus h2 {
+    color: #444444;
+}
+
+.contactus p {
+    color: #9d9d9d;
+}
+
+.contactus .bgplaceholder {
+    background-color: #fff3f1;
+    border-radius: 35px;
+}
+
+.contactus .btnform {
+    background-color: #f5676d;
+}
+
+.contactus .btnform:hover {
+    background-color: #f8d92a;
+}
+
+/* footer */
+.footer {
+    background-color: #151515;
+    padding: 50px 0;
+}
+
+.social-media-footer .nav-link {
+    font-size: 20px;
+    color: #fff;
+    background: #007bff;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    margin: 0 10px;
+    transition: 0.3s ease;
+}
+
+.social-media-footer .nav-link:hover {
+    background: #0056b3;
+    color: #fff;
+}

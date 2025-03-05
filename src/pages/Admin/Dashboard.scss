@@ -1,0 +1,210 @@
+.dashboard-mainappication {
+    background-color: #F3F5F9;
+
+    .px-custome {
+        padding: .5rem 30px 1.5rem 30px;
+    }
+
+    .gm-john-title {
+        font-weight: 500;
+        font-size: 32px;
+        line-height: 40px;
+        letter-spacing: -0.01em;
+        margin-top: 12px;
+        margin-bottom: 12px;
+        color: #333333;
+    }
+
+    .card-wraper-main {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .card-left-dark {
+        // background: #1a538e;
+        background: #d5a522;
+        border: 0.5px solid #9AAAB5;
+        border-radius: 16px;
+        padding: 1.6rem 2.5rem;
+        margin: 0.5rem 2rem 0 0;
+    }
+
+    .loan-review-title {
+        font-weight: 600;
+        font-size: 40px;
+        letter-spacing: -0.01em;
+        color: #E3E3E3;
+        margin-bottom: 0;
+    }
+
+    .proerties-title {
+        font-weight: 600;
+        font-size: 20px;
+        letter-spacing: -0.01em;
+        color: #E3E3E3;
+        margin-bottom: 0;
+        color: #333333;
+    }
+
+    .overview-paragraph {
+        font-weight: 300;
+        font-size: 20px;
+        line-height: 26px;
+        letter-spacing: -0.01em;
+        color: #ecf6ff;
+    }
+
+    .border-bottom-hr {
+        opacity: 0.4;
+        border: 0.3px solid #FFFFFF;
+        margin: 1rem auto 1.5rem;
+    }
+
+    .left-side-boxes {
+        display: flex;
+        margin: .5rem auto;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+
+    .left-side-boxiteam {
+        padding: 22px 24px;
+        width: 48%;
+        // background: #163a51;
+        background: #9f421a;
+        border-radius: 16px;
+    }
+
+    .all-loans-title {
+        font-weight: 400;
+        font-size: 20px;
+        color: #9FA4A8;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        display: -webkit-box;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .loans-digitnumber {
+        font-weight: 600;
+        font-size: 40px;
+        color: #E3E3E3;
+    }
+
+    .chart-text-digit {
+        font-weight: 600;
+        font-size: 40px;
+        color: #E3E3E3;
+    }
+
+    .view-content {
+        font-weight: 500;
+        font-size: 16px;
+        line-height: 20px;
+        letter-spacing: -0.01em;
+        color: #598FFF;
+    }
+
+    .textdanger-downtext {
+        color: #F52C5C;
+    }
+
+    .card-right-one {
+        background: #FFFFFF;
+        border: 0.5px solid #B0BBC4;
+        border-radius: 16px;
+        padding: 1.5rem 2.4rem;
+        margin-bottom: 10px;
+    }
+
+    .bashboard-rightbbottom {
+        border: 0.3px solid #646464;
+        margin: 1rem auto;
+    }
+
+    .box-number-content {
+        display: flex;
+    }
+
+    .border-right-one {
+        border-right: 0.3px solid #646464;
+    }
+
+    .boxnumber-contentiteam {
+        padding: 0 20px;
+        width: auto;
+        margin: 1rem auto;
+    }
+
+    .number-box-title {
+        font-weight: 600;
+        font-size: 40px;
+        line-height: 1;
+        word-break: break-all;
+        color: #333333;
+    }
+
+    .boxes-body-text {
+        font-weight: 600;
+        font-size: 20px;
+        color: #141550;
+        margin-bottom: 0;
+    }
+
+    .view-content-textclr {
+        color: #213E7A;
+    }
+
+    .card-right-two {
+        background: #EBF2F8;
+        border: 0.5px solid #B0BBC4;
+        border-radius: 16px;
+        padding: 2.5rem 2.4rem;
+        margin-top: 2rem;
+        max-width: 100%;
+    }
+
+    .clr-orange {
+        color: #11B26D;
+    }
+
+    .clr-pink {
+        color: #246897;
+    }
+
+    @media only screen and (max-width: 1256px) {
+        .card-left-dark {
+            margin: 0.5rem auto;
+        }
+
+        .card-right-oneintwowrap {
+            margin: .5rem auto;
+        }
+    }
+
+    @media only screen and (max-width: 880px) {
+        .card-wraper-main {
+            justify-content: center;
+        }
+    }
+
+    @media only screen and (max-width: 650px) {
+        .boxnumber-contentiteam {
+            border-right: 0;
+        }
+    }
+
+    @media only screen and (max-width: 1587px) {
+        .left-side-boxes {
+            justify-content: center;
+        }
+    }
+
+    @media only screen and (max-width: 576px) {
+        .left-side-boxiteam {
+            width: 100%;
+        }
+    }
+
+}

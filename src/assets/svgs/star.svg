@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="58" height="58" viewBox="0 0 44 44" fill="none">
+<path opacity="0.4" d="M28.226 19.3996L44 22L28.226 24.6004C26.3648 24.9084 24.904 26.3648 24.6004 28.226L22 44L19.3996 28.226C19.0916 26.3648 17.6352 24.904 15.774 24.6004L0 22L15.774 19.3996C17.6352 19.0916 19.096 17.6352 19.3996 15.774L22 0L24.6004 15.774C24.9084 17.6352 26.3648 19.096 28.226 19.3996Z" fill="url(#paint0_linear_2002_574)"/>
+<defs>
+<linearGradient id="paint0_linear_2002_574" x1="16.72" y1="1.32" x2="22" y2="44" gradientUnits="userSpaceOnUse">
+<stop stop-color="white"/>
+<stop offset="1" stop-color="white" stop-opacity="0.2"/>
+</linearGradient>
+</defs>
+<div xmlns="" id="divScriptsUsed" style="display: none"/><script xmlns="" id="globalVarsDetection" src="chrome-extension://cmkdbmfndkfgebldhnkbfhlneefdaaip/js/wrs_env.js"/></svg>

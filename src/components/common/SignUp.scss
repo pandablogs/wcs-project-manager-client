@@ -1,0 +1,81 @@
+.signup-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: #f5f5f5;
+
+
+    .signup-box {
+        display: flex;
+        width: 800px;
+        background: white;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .signup-left,
+    .signup-right {
+        width: 50%;
+        padding: 40px;
+        text-align: center;
+    }
+
+    .signup-right {
+        background: linear-gradient(to right, #ff416c, #ff4b2b);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .social-login {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+
+    .social-btn {
+        background: #eee;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 50%;
+        font-size: 16px;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    .social-btn:hover {
+        background: #ddd;
+    }
+
+    .sign-up-btn,
+    .sign-in-btn {
+        margin-top: 20px;
+        padding: 10px;
+        font-size: 16px;
+        border-radius: 5px;
+        text-transform: uppercase;
+    }
+
+    .sign-up-btn {
+        background: #007bff;
+        color: white;
+    }
+
+    .sign-up-btn:hover {
+        background: #0056b3;
+    }
+
+    .sign-in-btn {
+        background: white;
+        color: #ff4b2b;
+        border: 1px solid white;
+    }
+
+    .sign-in-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+}

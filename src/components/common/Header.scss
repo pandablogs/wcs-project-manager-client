@@ -1,0 +1,211 @@
+.user-layout-header {
+    .navbar-bg-dark {
+        background-color: #1a1a1a;
+
+        .w-nav-link {
+            color: #d5a522;
+        }
+    }
+
+    .navcontainer-customewidth {
+        max-width: 90%;
+    }
+
+    .navbar-toggler {
+        color: #fff;
+    }
+
+    .navbar-toggler:focus {
+        box-shadow: none !important;
+    }
+
+    .nav_element {
+        position: relative;
+        left: 0;
+        top: 0;
+        right: 0;
+        bottom: auto;
+        height: 6rem;
+        background: white;
+    }
+
+    .nav_spacer {
+        height: 5rem;
+    }
+
+    .nav_container {
+        display: -webkit-box;
+        display: -webkit-flex;
+        display: -ms-flexbox;
+        display: flex;
+        width: 100%;
+        height: 6rem;
+        max-width: 120rem;
+        margin-right: auto;
+        margin-left: auto;
+        // padding-right: 2.5rem;
+        // padding-left: 2.5rem;
+        -webkit-box-pack: justify;
+        -webkit-justify-content: space-between;
+        -ms-flex-pack: justify;
+        justify-content: space-between;
+        -webkit-box-align: center;
+        -webkit-align-items: center;
+        -ms-flex-align: center;
+        align-items: center;
+        color: #fff;
+    }
+
+    .nav_menu {
+        background-color: transparent;
+    }
+
+    .nav_link {
+        padding: 0.32rem .75rem;
+        -webkit-transition: color .2s;
+        transition: color .2s;
+        font-weight: 600;
+    }
+
+    .nav_link:hover {
+        color: #fff;
+    }
+
+    .nav_button-row {
+        display: -webkit-box;
+        display: -webkit-flex;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-align: center;
+        -webkit-align-items: center;
+        -ms-flex-align: center;
+        align-items: center;
+        // grid-column-gap: 0.75rem;
+    }
+
+    .nav_link-list {
+        display: -webkit-box;
+        display: -webkit-flex;
+        display: -ms-flexbox;
+        display: flex;
+        // grid-column-gap: 0.5rem;
+    }
+
+    .nav_menu-icon {
+        display: -webkit-box;
+        display: -webkit-flex;
+        display: -ms-flexbox;
+        display: flex;
+        max-height: 100%;
+        -webkit-box-pack: center;
+        -webkit-justify-content: center;
+        -ms-flex-pack: center;
+        justify-content: center;
+        -webkit-box-align: center;
+        -webkit-align-items: center;
+        -ms-flex-align: center;
+        align-items: center;
+    }
+
+    .nav_menu-content {
+        display: flex;
+        align-items: start;
+        // grid-column-gap: 1rem;
+    }
+
+    .nav_dropdown {
+        display: -webkit-box;
+        display: -webkit-flex;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-pack: center;
+        -webkit-justify-content: center;
+        -ms-flex-pack: center;
+        justify-content: center;
+    }
+
+    .nav_dropdown-link {
+        margin-right: 0;
+        margin-left: 0;
+        padding: .25rem 0;
+        -webkit-transition: color .2s;
+        transition: color .2s;
+        color: #252523;
+        font-size: .875rem;
+        line-height: 1.1666666666666667;
+        font-weight: 600;
+    }
+
+    .nav-active {
+        background-color: #d9b451;
+        border: 1px solid #d9b451;
+        border-radius: 4px;
+    }
+}
+
+.nav_link-list {
+    ul {
+        position: absolute;
+        background-color: #1a1a1a;
+        display: none;
+    }
+
+    .user-type:hover ul {
+        display: block;
+    }
+
+    ul li {
+        padding: 10px 20px 10px 0px;
+        text-transform: capitalize;
+        display: block;
+        color: #fff;
+    }
+
+    ul {
+        margin-top: 5px;
+        padding-bottom: 10px;
+        margin-left: -25px;
+        border-bottom-left-radius: 10px;
+        border-bottom-right-radius: 10px;
+    }
+
+    ul a {
+        color: #fff;
+    }
+}
+
+@media screen and (max-width:991px) {
+    #collapsibleNavbar {
+        display: none;
+    }
+
+    #userLayoutNav {
+        overflow: auto;
+        margin-top: 0px !important;
+        border-top: 1px solid #d5d0cf;
+        background-color: #ffffff;
+        border-radius: 8px;
+    }
+
+    .nav_menu-content .nav_link-list {
+        display: flex;
+        flex-direction: column;
+    }
+
+    #userLayoutNav .nav_link-list {
+        margin-top: 10px !important;
+    }
+
+    #userLayoutNav .nav_link-list .nav_link {
+        margin: 10px !important;
+        text-align: start;
+    }
+
+    .nav_menu-content .nav_link-list .nav_link:hover {
+        color: #d5a522;
+    }
+
+    .mobile_nav {
+        height: 100vh;
+    }
+}
