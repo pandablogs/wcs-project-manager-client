@@ -300,11 +300,7 @@ const MaterialPage = () => {
                     loaderColor="#fff"
                 />
             )}
-            {/* 
-            <Typography variant="h5" className="header text-start  main-title">
-                Material Management
-            </Typography> */}
-            {/* <hr className="mb-0" /> */}
+
             <div
                 className="header-container text-white p-2"
                 style={{
@@ -312,179 +308,198 @@ const MaterialPage = () => {
                     alignItems: "center",
                     justifyContent: "space-between",
                     background: "#d9b451",
+                    marginBottom: "20px",
                 }}
             >
                 {/* Left: Title */}
-                <Typography variant="h5" fontWeight={700}>
+                <Typography
+                    variant="h5"
+                    fontWeight={700}
+                    sx={{ margin: "0px 0px 0px 60px" }}
+                >
                     Material Management
                 </Typography>
 
-                {/* Center: Tabs */}
-                {/* <Tabs
-          value={roomTypes.indexOf(selectedRoom)}
-          onChange={(event, newValue) => {
-            setSelectedRoom(roomTypes[newValue]);
-          }}
-          variant="scrollable"
-          scrollButtons="auto"
-          className="tabs-container"
-          style={{ flexGrow: 1, display: "flex", justifyContent: "center" }}
-        >
-          {roomTypes.map((room, index) => (
-            <Tab key={index} label={room.name} className="custom-tab" />
-          ))}
-        </Tabs> */}
-
-                {/* Right: Button */}
-                {/* <div className="" style={{ paddingLeft: "215px" }}>
-          <Button
-            style={{
-              boxShadow: "none",
-              padding: "7px 20px",
-              border: "none",
-              color: "white",
-            }}
-            variant="outlined"
-            onClick={() => setOpenRoomListDialog(true)}
-            startIcon={<AiFillSetting />}
-          />
-        </div> */}
             </div>
 
             {/* badge section here */}
-
             <div
                 style={{
-                    margin: "40px",
-                    padding: "20px",
-                    backgroundColor: "#fff",
-                    borderRadius: "8px",
-                    border: "1px solid #e0e0e0",
+                    flex: 1,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
+                    margin: "20px 40px 20px 44px",
                 }}
             >
-                {/* Tabs */}
-                <Tabs
-                    value={roomTypes.indexOf(selectedRoom)}
-                    onChange={(event, newValue) => {
-                        setSelectedRoom(roomTypes[newValue]);
-                    }}
-                    variant="scrollable"
-                    scrollButtons="auto"
+                {/* Tabs and Settings Button */}
+                <div
                     style={{
-                        height: "50px", // Adjust tab container height
-                        flexGrow: 1,
-                        backgroundColor: "#fff",
-                        borderRadius: "6px",
-                        padding: "5px", // Adjust padding for smaller height
+                        display: "flex",
+
                     }}
                 >
-                    {roomTypes.map((room, index) => (
-                        <Tab
-                            className="new_custom_tabs"
-                            key={index}
-                            label={room.name}
-                            style={{
-                                color: "#333",
-                                backgroundColor: "#fff",
-                                border: "1px solid black",
-                                borderRadius: "4px",
-                                margin: "0 5px",
-                                fontWeight: "bold",
-                                height: "30px", // Reduce individual tab height
-                                minHeight: "unset", // Override Material-UI's default minHeight
-                                lineHeight: "1.5", // Adjust text alignment
-                                padding: "0 10px", // Reduce padding inside the tab
-                            }}
-                        />
-                    ))}
-                </Tabs>
+                    {/* Tabs */}
+                    <Tabs
+                        value={roomTypes.indexOf(selectedRoom)}
+                        onChange={(event, newValue) => {
+                            setSelectedRoom(roomTypes[newValue]);
+                        }}
+                        variant="scrollable"
+                        scrollButtons="auto"
+                        style={{
+                            flex: 1,
+                            height: "50px",
+                            display: "flex",
+                            alignItems: "center",
+                            backgroundColor: "rgb(255, 255, 255)",
+                            borderRadius: "8px",
+                            paddingLeft: "10px",
+                        }}
+                    >
+                        {roomTypes.map((room, index) => (
+                            <Tab
+                                className="new_custom_tabs"
+                                key={index}
+                                label={room.name}
+                                style={{
+                                    color: "#333",
+                                    backgroundColor: "#fff",
+                                    border: "1px solid black",
+                                    borderRadius: "4px",
+                                    margin: "0 5px",
+                                    fontWeight: "bold",
+                                    height: "28px",
+                                    lineHeight: "1.2",
+                                    padding: "0 8px",
+                                    minHeight: "unset",
+                                }}
+                            />
+                        ))}
+                    </Tabs>
 
-                {/* Button */}
+                    {/* Settings Button */}
+                    <Button
+                        variant="contained"
+                        style={{
+                            margin: "5px 0px 5px 0px",
+                            backgroundColor: "white",
+                            color: "rgb(217, 180, 81)",
+                            boxShadow: "none",
+                            height: "40px",
+                        }}
+                        onClick={() => setOpenRoomListDialog(true)}
+                    >
+                        <AiFillSetting size={24} />
+                    </Button>
+                </div>
+
+                {/* Add Material Button */}
                 <Button
                     variant="contained"
+                    color="warning"
+                    onClick={() => handleOpenMaterialForm()}
                     style={{
-                        marginLeft: "20px",
-                        padding: "7px",
-                        minWidth: "auto",
-                        backgroundColor: "white",
-                        color: "rgb(217, 180, 81)",
+                        margin: "5px 33px 5px 0px",
                         boxShadow: "none",
+                        padding: "4px",
                     }}
-                    onClick={() => setOpenRoomListDialog(true)}
                 >
-                    <AiFillSetting size={24} />
+                    <AiOutlinePlus />
+                    &nbsp;Add Material
                 </Button>
             </div>
 
-
-            <div style={{
-                margin: "40px", borderRadius: "8px",
-                border: "1px solid #e0e0e0"
-            }}>
+            <div
+                style={{
+                    margin: "20px 20px 20px 62px",
+                    borderRadius: "2px",
+                    border: "1px solid #e0e0e0",
+                    width: "90%",
+                }}
+            >
                 <div
-                    className=" container-fluid "
-                    style={{ padding: "20px", marginBottom: "30px" }}
+                    className="container-fluid"
+                    style={{
+                        padding: "0px 30px",
+                    }}
                 >
-                    <Box sx={{ paddingLeft: "30px" }}>
-                        <div className="text-center d-flex justify-content-between">
-                            <h3 className="fw-bold text-warning text-center mb-4">
-                                Material List
-                            </h3>
-                            <div style={{ paddingRight: "30px" }}>
-                                <Button
-                                    variant="contained"
-                                    color="warning"
-                                    onClick={() => handleOpenMaterialForm()}
-                                    style={{
-                                        boxShadow: "none",
-                                        padding: "7px 20px",
-                                        float: "right",
-                                        marginBottom: "24px",
-                                    }}
-                                >
-                                    <AiOutlinePlus />
-                                    &nbsp;Add
-                                </Button>
-                            </div>
-                        </div>
-                    </Box>
 
-                    <Box sx={{ padding: "30px" }}>
-                        <Table className="material-table overflow-auto">
+
+                    {/* Table Container */}
+                    <Box
+                        sx={{
+                            width: "100%",
+                            marginTop: "10px",
+                            marginBottom: "10px",
+                            background: "#f9f9f9",
+                            borderRadius: "5px",
+                        }}
+                    >
+                        <Table
+                            className="material-table overflow-auto"
+                            style={{ width: "100%" }}
+                        >
                             <TableHead>
                                 <TableRow>
-                                    <TableCell style={{ width: "10%" }}>Expanded</TableCell>
-                                    <TableCell style={{ width: "65%" }}>Name</TableCell>
-                                    <TableCell style={{ width: "25%" }}>Action</TableCell>
+                                    <TableCell
+                                        align="center"
+                                        style={{ width: "10%", fontWeight: "bold" }}
+                                    >
+                                        Expanded
+                                    </TableCell>
+                                    <TableCell
+                                        align="left"
+                                        style={{ width: "65%", fontWeight: "bold" }}
+                                    >
+                                        Name
+                                    </TableCell>
+                                    <TableCell
+                                        align="center"
+                                        style={{ width: "25%", fontWeight: "bold" }}
+                                    >
+                                        Action
+                                    </TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {materials.filter((material) => material.roomId?._id === selectedRoom?._id).length === 0 ? (
+                                {materials.filter(
+                                    (material) => material.roomId?._id === selectedRoom?._id
+                                ).length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={3} style={{ textAlign: "center", padding: "20px" }}>
+                                        <TableCell
+                                            colSpan={3}
+                                            style={{
+                                                textAlign: "center",
+                                                padding: "20px",
+                                            }}
+                                        >
                                             No data available
                                         </TableCell>
                                     </TableRow>
                                 ) : (
                                     materials
-                                        .filter((material) => material.roomId?._id === selectedRoom?._id)
+                                        .filter(
+                                            (material) => material.roomId?._id === selectedRoom?._id
+                                        )
                                         .map((material) => (
                                             <React.Fragment key={material?._id}>
                                                 {/* Material Row */}
                                                 <TableRow>
-                                                    <TableCell>
+                                                    <TableCell align="center">
                                                         <IconButton
                                                             className="icon-btn"
                                                             onClick={() => toggleExpand(material._id)}
                                                         >
-                                                            {expandedRows[material._id] ? <FaChevronUp /> : <FaChevronDown />}
+                                                            {expandedRows[material._id] ? (
+                                                                <FaChevronUp />
+                                                            ) : (
+                                                                <FaChevronDown />
+                                                            )}
                                                         </IconButton>
                                                     </TableCell>
                                                     <TableCell>{material.name}</TableCell>
-                                                    <TableCell>
+                                                    <TableCell align="center">
                                                         <IconButton
                                                             className="icon-btn"
                                                             color="primary"
@@ -495,7 +510,9 @@ const MaterialPage = () => {
                                                         <IconButton
                                                             className="icon-btn"
                                                             color="error"
-                                                            onClick={() => handleDelete("material", material._id)}
+                                                            onClick={() =>
+                                                                handleDelete("material", material._id)
+                                                            }
                                                         >
                                                             <FaTrash />
                                                         </IconButton>
@@ -503,7 +520,9 @@ const MaterialPage = () => {
                                                             className="icon-btn"
                                                             title="Add Sub-Material"
                                                             color="warning"
-                                                            onClick={() => handleOpenSubMaterialForm(material._id)}
+                                                            onClick={() =>
+                                                                handleOpenSubMaterialForm(material._id)
+                                                            }
                                                         >
                                                             <AiOutlinePlus />
                                                         </IconButton>
@@ -512,19 +531,51 @@ const MaterialPage = () => {
 
                                                 {/* Sub-Material Rows (Hidden until expanded) */}
                                                 <TableRow>
-                                                    <TableCell colSpan={5} style={{ padding: 0 }}>
+                                                    <TableCell colSpan={3} style={{ padding: 0 }}>
                                                         <Collapse
                                                             in={expandedRows[material._id]}
                                                             timeout="auto"
                                                             unmountOnExit
                                                         >
-                                                            <Table size="small" className="sub-material-table">
+                                                            <Table
+                                                                size="small"
+                                                                className="sub-material-table"
+                                                                style={{ margin: "10px" }}
+                                                            >
                                                                 <TableHead>
                                                                     <TableRow>
-                                                                        <TableCell style={{ width: "25%" }}>Name</TableCell>
-                                                                        <TableCell style={{ width: "25%" }}>Price ($)</TableCell>
-                                                                        <TableCell style={{ width: "25%" }}>Supplier</TableCell>
-                                                                        <TableCell style={{ width: "25%" }}>Actions</TableCell>
+                                                                        <TableCell
+                                                                            style={{
+                                                                                width: "25%",
+                                                                                fontWeight: "bold",
+                                                                            }}
+                                                                        >
+                                                                            Name
+                                                                        </TableCell>
+                                                                        <TableCell
+                                                                            style={{
+                                                                                width: "25%",
+                                                                                fontWeight: "bold",
+                                                                            }}
+                                                                        >
+                                                                            Price ($)
+                                                                        </TableCell>
+                                                                        <TableCell
+                                                                            style={{
+                                                                                width: "25%",
+                                                                                fontWeight: "bold",
+                                                                            }}
+                                                                        >
+                                                                            Supplier
+                                                                        </TableCell>
+                                                                        <TableCell
+                                                                            style={{
+                                                                                width: "25%",
+                                                                                fontWeight: "bold",
+                                                                            }}
+                                                                        >
+                                                                            Actions
+                                                                        </TableCell>
                                                                     </TableRow>
                                                                 </TableHead>
                                                                 <TableBody>
@@ -544,7 +595,10 @@ const MaterialPage = () => {
                                                                                         className="icon-btn"
                                                                                         color="primary"
                                                                                         onClick={() =>
-                                                                                            handleOpenSubMaterialForm(material._id, sub)
+                                                                                            handleOpenSubMaterialForm(
+                                                                                                material._id,
+                                                                                                sub
+                                                                                            )
                                                                                         }
                                                                                     >
                                                                                         <FaEdit />
@@ -553,7 +607,12 @@ const MaterialPage = () => {
                                                                                         className="icon-btn"
                                                                                         color="error"
                                                                                         onClick={() =>
-                                                                                            handleDelete("subMaterial", null, sub._id, null)
+                                                                                            handleDelete(
+                                                                                                "subMaterial",
+                                                                                                null,
+                                                                                                sub._id,
+                                                                                                null
+                                                                                            )
                                                                                         }
                                                                                     >
                                                                                         <FaTrash />
@@ -571,7 +630,6 @@ const MaterialPage = () => {
                                 )}
                             </TableBody>
                         </Table>
-
                     </Box>
                 </div>
             </div>
