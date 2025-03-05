@@ -10,11 +10,11 @@ const axiosService = (method, url, payload) => {
     const config = {
         timeout: 1000 * 60, // 1-minute timeout
         headers: {
-            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
             Authorization: token ? `Bearer ${token}` : "",
         },
-        withCredentials: true, // Ensure credentials like cookies are sent if needed
     };
+
     return new Promise((resolve, reject) => {
         switch (method) {
             case "POST":
