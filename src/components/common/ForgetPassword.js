@@ -1,55 +1,36 @@
-import React, { useState, useEffect } from "react";
 import { Box, Button, TextField, Typography } from "@mui/material";
+import React from "react";
 import { Link } from "react-router-dom";
-import { toast } from "react-toastify";
-import Loading from "react-fullscreen-loading";
-import authServices from "../../services/authServices";
-
-import "./Login.scss";
 
 const ForgetPassword = () => {
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [role, setRole] = useState("");
-
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const roleParam = urlParams.get('role');
-    if (roleParam) {
-      setRole(roleParam);
-    }
-  }, []);
-
-  const validateEmail = (email) => {
-    return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateEmail(email)) {
-      toast.error("Invalid email format");
-      return;
-    }
-    setLoading(true);
-    try {
-      const response = await authServices.forgotPassword({ email, role });
-      toast.success(response.message);
-    } catch (error) {
-      toast.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
-    <div className="forget-password-main">
-      {loading && <Loading loading background="#00000080" loaderColor="#ffffff" />}
-      <Box className="forget-password-container">
-        <Box className="forget-password-box my-auto">
-          <Typography variant="h5" className="forget-password-title">
+    <>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100vh",
+          backgroundColor: "#f9f9f9",
+          px: 2,
+        }}
+      >
+        <Box
+          sx={{
+            width: "100%",
+            maxWidth: 400,
+            backgroundColor: "#fff",
+            p: 4,
+            borderRadius: 2,
+            boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
+            textAlign: "center",
+          }}
+        >
+          <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>
             Reset Your Password
           </Typography>
-          <Typography variant="body2" className="forget-password-text">
+          <Typography variant="body2" sx={{ color: "gray", mb: 4 }}>
             Enter the email associated with your account and we’ll send you
             password reset instructions.
           </Typography>
@@ -57,31 +38,27 @@ const ForgetPassword = () => {
             fullWidth
             label="Your Email"
             variant="outlined"
-            className="mb-3"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            sx={{ mb: 3 }}
           />
           <Button
             fullWidth
             variant="contained"
-            className="forget-password-button mb-2"
-            onClick={handleSubmit}
+            color="primary"
+            sx={{
+              textTransform: "none",
+              backgroundColor: "rgb(217, 180, 81)",
+              // ':hover': { backgroundColor: '#6936d6' },
+              mb: 2,
+            }}
           >
             Send Reset Instructions
           </Button>
-          <Link to="/login" className="forget-password-link">
+          <Link href="#" variant="body2" sx={{ color: "#7c4dff" }}>
             Return to Sign In
           </Link>
         </Box>
-        <Typography
-          variant="body2"
-          className="login-footer"
-          sx={{ textAlign: "center", marginBlockStart: "auto", fontSize: "12px", color: "#666" }}
-        >
-          © Project Manager 2025
-        </Typography>
       </Box>
-    </div>
+    </>
   );
 };
 

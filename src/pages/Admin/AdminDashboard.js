@@ -4,6 +4,7 @@ import moment from 'moment'
 import Loading from "react-fullscreen-loading";
 import './Dashboard.scss'
 import Highcharts from "highcharts";
+import { useSelector } from "react-redux";
 import HighchartsReact from "highcharts-react-official";
 
 const AdminDashboard = () => {
@@ -12,6 +13,7 @@ const AdminDashboard = () => {
     const [greet, setGreet] = useState('Hello')
     const [isLoading, setIsLoading] = useState(false)
     const [dashboardAnalytics, setDashboardAnalytics] = useState()
+    const stats = useSelector((state) => state.user.stats || { totalAdmins: 0, amountInvested: 0 });
 
     useEffect(() => {
         if (hrs < 12) {
@@ -22,6 +24,7 @@ const AdminDashboard = () => {
             setGreet('Good Evening')
         }
     }, [])
+    console.log(stats)
 
     const chartOptions = {
         chart: {
@@ -154,8 +157,9 @@ const AdminDashboard = () => {
                                             <div className="col-lg-6 text-start border-right-one">
                                                 <div className="boxnumber-contentiteam">
                                                     <div>
-                                                        <h3 className="number-box-title">777</h3>
-                                                        <p className="boxes-body-text">Total Loans</p>
+                                                        
+                                                        <h3 className="number-box-title">{stats.totalAdmins}</h3>
+                                                        <p className="boxes-body-text">Total Admin</p>
                                                     </div>
                                                 </div>
                                             </div>

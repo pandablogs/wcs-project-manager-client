@@ -150,7 +150,7 @@ const ProjectManagerList = () => {
                         style={{ marginBottom: '24px', marginInline: '10px' }}
                     />
                     <Button variant="contained" color="warning" onClick={handleAdd} style={{ boxShadow: 'none', padding: '7px 20px', float: 'right', marginBottom: '24px' }}>
-                        <AiOutlinePlus /> 	&nbsp;  Add Project Manager
+                        <AiOutlinePlus /> 	&nbsp;  Add
                     </Button>
                 </div>
             </div>

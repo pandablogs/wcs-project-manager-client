@@ -2,7 +2,6 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Provider } from "react-redux";
 import { CssBaseline, Container } from "@mui/material";
-import "bootstrap/dist/css/bootstrap.min.css";
 import store from "./redux/store";
 import AuthRouteMiddleware from "./middleware/AuthRouteMiddleware";
 import NonAuthRouteMiddleware from "./middleware/NonAuthRouteMiddleware";
@@ -20,21 +19,20 @@ import AdminDashboard from "./pages/Admin/AdminDashboard";
 import LogoutPage from "./components/LogoutPage";
 import Profile from "./pages/Authenticated/Profile";
 import ProjectManagerList from "./pages/Admin/ProjectManagerList";
-import './App.css'
 import ProjectList from "./pages/Admin/ProjectList";
 import MaterialPage from "./pages/Admin/MaterialPage";
 import Estimater from "./pages/Authenticated/Estimater";
 import ForgetPassword from "./components/common/ForgetPassword";
-import { ResetPassword } from "./components/common/ResetPassword";
 
+import "bootstrap/dist/css/bootstrap.min.css";
+import './App.css'
 const nonAuthRoutes = [
   { path: "/login", element: <Login /> },
   { path: "/project-manager-login", element: <StaffLogin /> },
   { path: "/admin-login", element: <AdminLogin /> },
   { path: "/signup", element: <SignUp /> },
   { path: "/logout", element: <LogoutPage /> },
-  { path: "/forget-password", element: <ForgetPassword /> },
-  { path: "/reset-password/:token", element: <ResetPassword /> }
+  { path: "/forget-password", element: <ForgetPassword /> }
 ];
 
 const authRoutes = [

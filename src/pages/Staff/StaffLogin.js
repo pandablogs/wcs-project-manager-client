@@ -57,7 +57,7 @@ const Login = () => {
 
     return (
         <div className="login-page">
-            <div className="login-left">
+            {/* <div className="login-left">
                 <img className=' position-absolute star-svg' src={starSVG}></img>
                 <div className="d-flex">
                     <img src={logov1} alt="Professional" className="login-image" />
@@ -97,7 +97,7 @@ const Login = () => {
                         delivering impactful advertising experiences.
                     </Typography>
                 </div>
-            </div>
+            </div> */}
 
 
             <div className="login-right">
@@ -142,7 +142,7 @@ const Login = () => {
                     </form>
 
                     {/* <p className="signup-link mt-4 fw-semibold text-center ">Don't have an account yet? <a href='/signup' onClick={() => navigate("/signup")}>Sign up now</a></p> */}
-                    <p className="signup-link mt-4 fw-semibold text-center">Forget password?<a href={`/forget-password?role=${role}`} onClick={(e) => { e.preventDefault(); navigate(`/forget-password?role=${role}`); }}> Reset now </a></p>
+                    {/* <p className="signup-link mt-4 fw-semibold text-center ">Forget password? <a href='/forget-password' onClick={() => navigate("/forget-password")}>Reset now</a></p> */}
                 </Box>
 
                 <Typography variant="body2" className="login-footer" sx={{ textAlign: "center", marginTop: "20px", fontSize: "12px", color: "#666" }}>

@@ -8,7 +8,9 @@ const axiosService = (method, url, payload) => {
     const token = localStorage.getItem("_token") || "";
 
     const config = {
+        timeout: 1000 * 60, // 1-minute timeout
         headers: {
+            "Access-Control-Allow-Origin": "*",
             "Content-Type": "application/json",
             Authorization: token ? `Bearer ${token}` : "",
         },

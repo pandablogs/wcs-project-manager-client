@@ -60,7 +60,7 @@ const Login = () => {
 
     return (
         <div className="login-page">
-            <div className="login-left">
+            {/* <div className="login-left">
                 <img className=' position-absolute star-svg' src={starSVG}></img>
                 <div className="d-flex">
                     <img src={logov1} alt="Professional" className="login-image" />
@@ -100,15 +100,15 @@ const Login = () => {
                         delivering impactful advertising experiences.
                     </Typography>
                 </div>
-            </div>
+            </div> */}
 
 
             <div className="login-right">
-                <Box className="login-container" sx={{ maxWidth: "500px", margin: "84px auto", padding: "30px", borderRadius: "10px", backgroundColor: "#fff" }}>
+                <Box className="login-container" sx={{ maxWidth: "500px", margin: "40px auto", padding: "30px", borderRadius: "10px", backgroundColor: "#fff" }}>
                     <h1 className="login-header text-left" >
-                        Login to User
+                        Login to Project Manager
                     </h1>
-                    <p className="login-subtitle text-left mb-5">
+                    <p className="login-subtitle text-left mb-4">
                         Welcome back! Please enter your details.
                     </p>
 
@@ -116,7 +116,7 @@ const Login = () => {
                     {error && <Typography color="error" sx={{ marginBottom: "20px", textAlign: "center" }}>{error}</Typography>}
                     {/* <hr className="mt-5 mb-5 divied-line"></hr> */}
 
-                    <form className="login-form mt-0" onSubmit={handleSubmit}>
+                    <form className="login-form" onSubmit={handleSubmit}>
 
                         <TextField
                             fullWidth
@@ -144,13 +144,16 @@ const Login = () => {
                         </button>
                     </form>
 
-                    <p className="signup-link mt-4 fw-semibold text-center ">Don't have an account yet? <a href='/signup' onClick={() => navigate("/signup")}>Sign up now</a></p>
-                    <p className="signup-link mt-4 fw-semibold text-center">Forget password?<a href={`/forget-password?role=${role}`} onClick={(e) => { e.preventDefault(); navigate(`/forget-password?role=${role}`); }}> Reset now </a></p>
-                </Box>
-
-                <Typography variant="body2" className="login-footer" sx={{ textAlign: "center", marginTop: "20px", fontSize: "12px", color: "#666" }}>
+                     <p className="signup-link mt-4 fw-semibold text-center ">Don't have an account yet? <a href='/signup' onClick={() => navigate("/signup")}>Sign up now</a></p> 
+                    {/* <p className="signup-link mt-4 fw-semibold text-center ">Forget password? <a href='/forget-password' onClick={() => navigate("/forget-password")}>Reset now</a></p> */}
+                    <Typography variant="body2" className="login-footer" sx={{ textAlign: "center", fontSize: "12px", color: "#666" }}>
                     © Project Manager 2025
                 </Typography>
+                </Box>
+
+                {/* <Typography variant="body2" className="login-footer" sx={{ textAlign: "center", fontSize: "12px", color: "#666" }}>
+                    © Project Manager 2025
+                </Typography> */}
             </div>
             {isLoading && <Loading loading={true} loaderColor="#f18271" />}
         </div>

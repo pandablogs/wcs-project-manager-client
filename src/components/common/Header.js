@@ -62,7 +62,7 @@ const Header = () => {
                                                     {/* <RouterLink to={'/admin/lenders-list'}><li>Lender</li></RouterLink> */}
                                                 </ul>
                                             </RouterLink>
-                                            <RouterLink to={'/'} className="nav_link w-nav-link text-decoration-none" >Landing Page CMS</RouterLink>
+                                            {/* <RouterLink to={'/'} className="nav_link w-nav-link text-decoration-none" >Landing Page CMS</RouterLink> */}
                                             <RouterLink to={'/profile'} className="nav_link w-nav-link text-decoration-none" >Profile</RouterLink>
                                             <RouterLink to={'#'} className="nav_link w-nav-link text-decoration-none" onClick={handleLogout}>Logout</RouterLink>
                                         </>

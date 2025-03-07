@@ -60,7 +60,7 @@ const AdminLogin = () => {
 
     return (
         <div className="login-page">
-            <div className="login-left">
+            {/* <div className="login-left">
                 <img className=' position-absolute star-svg' src={starSVG}></img>
                 <div className="d-flex">
                     <img src={logov1} alt="Professional" className="login-image" />
@@ -100,13 +100,13 @@ const AdminLogin = () => {
                         delivering impactful advertising experiences.
                     </Typography>
                 </div>
-            </div>
+            </div> */}
 
 
             <div className="login-right">
                 <Box className="login-container" sx={{ maxWidth: "500px", margin: "84px auto", padding: "30px", borderRadius: "10px", backgroundColor: "#fff" }}>
                     <h1 className="login-header text-left" >
-                        Login to Admin
+                        Login to Project Manager
                     </h1>
                     <p className="login-subtitle text-left mb-5">
                         Welcome back! Please enter your details.
@@ -145,7 +145,7 @@ const AdminLogin = () => {
                     </form>
 
                     {/* <p className="signup-link mt-4 fw-semibold text-center ">Don't have an account yet? <a href='/signup' onClick={() => navigate("/signup")}>Sign up now</a></p> */}
-                    <p className="signup-link mt-4 fw-semibold text-center">Forget password?<a href={`/forget-password?role=${role}`} onClick={(e) => { e.preventDefault(); navigate(`/forget-password?role=${role}`); }}> Reset now </a></p>
+                    {/* <p className="signup-link mt-4 fw-semibold text-center ">Forget password? <a href='/forget-password' onClick={() => navigate("/forget-password")}>Reset now</a></p> */}
                 </Box>
 
                 <Typography variant="body2" className="login-footer" sx={{ textAlign: "center", marginTop: "20px", fontSize: "12px", color: "#666" }}>
