@@ -144,11 +144,11 @@ const Login = () => {
                         </button>
                     </form>
 
-                     <p className="signup-link mt-4 fw-semibold text-center ">Don't have an account yet? <a href='/signup' onClick={() => navigate("/signup")}>Sign up now</a></p> 
+                    <p className="signup-link mt-4 fw-semibold text-center ">Don't have an account yet? <a onClick={() => navigate("/signup")}>Sign up now</a></p>
                     {/* <p className="signup-link mt-4 fw-semibold text-center ">Forget password? <a href='/forget-password' onClick={() => navigate("/forget-password")}>Reset now</a></p> */}
                     <Typography variant="body2" className="login-footer" sx={{ textAlign: "center", fontSize: "12px", color: "#666" }}>
-                    © Project Manager 2025
-                </Typography>
+                        © Project Manager 2025
+                    </Typography>
                 </Box>
 
                 {/* <Typography variant="body2" className="login-footer" sx={{ textAlign: "center", fontSize: "12px", color: "#666" }}>

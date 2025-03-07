@@ -69,7 +69,7 @@ const Home = () => {
             </Button>
             <Button
               className="btnnavbar ms-3 fw-bold rounded-pill px-4 border-0"
-              onClick={() => navigate("/login")}
+              onClick={() => navigate("/admin-login")}
             >
               Login
             </Button>
