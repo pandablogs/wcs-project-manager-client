@@ -52,8 +52,8 @@ const Header = () => {
                                     {(localStorage.getItem('role_type') === "admin") ?
                                         <>
                                             <RouterLink to={'/admin/dashboard'} className={"nav_link w-nav-link text-decoration-none"} >Dashboard</RouterLink>
-                                            {/* <RouterLink to={'/admin/moneytracker'} className="nav_link w-nav-link text-decoration-none" >Money Tracker</RouterLink> */}
-                                            <RouterLink to={'/materials'} className="nav_link w-nav-link text-decoration-none" >Materials</RouterLink>
+                                            <RouterLink to={'/project-estimater'} className="nav_link w-nav-link text-decoration-none" >Project Cost Estimate</RouterLink>
+                                            <RouterLink to={'/project-list'} className="nav_link w-nav-link text-decoration-none" >Project List</RouterLink>                                            <RouterLink to={'/materials'} className="nav_link w-nav-link text-decoration-none" >Materials</RouterLink>
                                             <RouterLink to={'/admin/project-manager-list'} className="nav_link w-nav-link text-decoration-none user-type" >
                                                 Users
                                                 <ul>

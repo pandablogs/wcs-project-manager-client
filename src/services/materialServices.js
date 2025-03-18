@@ -17,7 +17,14 @@ const materialService = {
     addSubMaterial: (data) => axiosService.apis("POST", "/api/sub-materials/add", data),  // Use correct endpoint
     getSubMaterial: (queryParams) => axiosService.apis("GET", "/api/sub-materials", { queryParams }),  // Use correct endpoint
     updateSubMaterial: (id, data) => axiosService.apis("PUT", `/api/sub-materials/update/${id}`, data),
-    deleteSubMaterial: (id) => axiosService.apis("DELETE", `/api/sub-materials/delete/${id}`)
+    deleteSubMaterial: (id) => axiosService.apis("DELETE", `/api/sub-materials/delete/${id}`),
+
+    //project
+    addProject: (data) => axiosService.apis("POST", "/api/projects/create", data),
+    getProjects: () => axiosService.apis("GET", "/api/projects"),
+    getProjectById: (id) => axiosService.apis("GET", `/api/projects/${id}`),
+    updateProject: (id, data) => axiosService.apis("PUT", `/api/projects/${id}`, data),
+    deleteProject: (id) => axiosService.apis("DELETE", `/api/projects/${id}`)
 };
 
 export default materialService;
