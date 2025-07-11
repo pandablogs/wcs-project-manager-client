@@ -3,7 +3,11 @@ import axiosService from "./axiosService";
 const materialService = {
     //room
     addMaterialRoom: (data) => axiosService.apis("POST", "/api/material-room/add", data),
-    getMaterialRoom: () => axiosService.apis("GET", `/api/material-room`),
+    // getMaterialRoom: () => axiosService.apis("GET", `/api/material-room`),
+    getMaterialRoom: (queryParams) => {
+        const queryString = new URLSearchParams(queryParams).toString();
+        return axiosService.apis("GET", `/api/material-room?${queryString}`);
+    },
     updateMaterialRoom: (id, data) => axiosService.apis("PUT", `/api/materials-room/update/${id}`, data),
     deleteMaterialRoom: (id) => axiosService.apis("DELETE", `/api/materials-room/delete/${id}`),
 
