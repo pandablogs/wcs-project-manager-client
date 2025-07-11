@@ -26,6 +26,8 @@ import {
   List,
   ListItem,
   ListItemText,
+  Switch,
+  FormControlLabel
 } from "@mui/material";
 
 import materialService from "../../services/materialServices";
@@ -87,7 +89,7 @@ const MaterialPage = () => {
   const [showSubMaterialForm, setShowSubMaterialForm] = useState(false);
   const [openRoomListDialog, setOpenRoomListDialog] = useState(false);
   const [openRoomFormDialog, setOpenRoomFormDialog] = useState(false);
-  const [roomFormData, setRoomFormData] = useState({ name: "" });
+  const [roomFormData, setRoomFormData] = useState({ name: "", percentageType: false, });
   const [editingRoomId, setEditingRoomId] = useState(null);
   const [localLoading, setLocalLoading] = useState(false); // Loader state
 
@@ -237,13 +239,14 @@ const MaterialPage = () => {
       if (editingRoomId) {
         await materialService.updateMaterialRoom(editingRoomId, {
           name: roomFormData.name,
+          percentageType: roomFormData.percentageType || false,
         });
         toast.success("Room updated successfully");
       } else {
-        await materialService.addMaterialRoom({ name: roomFormData.name });
+        await materialService.addMaterialRoom({ name: roomFormData.name, percentageType: roomFormData.percentageType || false });
         toast.success("Room added successfully");
       }
-      setRoomFormData({ name: "" });
+      setRoomFormData({ name: "", percentageType: false, });
       setEditingRoomId(null);
       fetchRooms();
       setOpenRoomFormDialog(false);
@@ -281,12 +284,12 @@ const MaterialPage = () => {
   };
 
   const handleRoomEdit = (room) => {
-    setRoomFormData({ name: room.name });
+    setRoomFormData({ name: room.name, percentageType: room.percentageType || false, });
     setEditingRoomId(room._id);
     setOpenRoomFormDialog(true);
   };
   const handleOpenAddRoomDialog = () => {
-    setRoomFormData({ name: "" });
+    setRoomFormData({ name: "", percentageType: false, });
     setEditingRoomId(null);
     setOpenRoomFormDialog(true);
   };
@@ -300,7 +303,7 @@ const MaterialPage = () => {
           loaderColor="#fff"
         />
       )}
-  
+
       <div
         className="header-container text-white p-2"
         style={{
@@ -325,10 +328,10 @@ const MaterialPage = () => {
       {/* badge section here */}
       <div
         style={{
-          flex: 1, 
+          flex: 1,
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between", 
+          justifyContent: "space-between",
           margin: "20px 40px 20px 44px",
         }}
       >
@@ -336,7 +339,7 @@ const MaterialPage = () => {
         <div
           style={{
             display: "flex",
-           
+
           }}
         >
           {/* Tabs */}
@@ -348,13 +351,13 @@ const MaterialPage = () => {
             variant="scrollable"
             scrollButtons="auto"
             style={{
-              flex: 1, 
+              flex: 1,
               height: "50px",
               display: "flex",
               alignItems: "center",
               backgroundColor: "rgb(255, 255, 255)",
               borderRadius: "8px",
-              paddingLeft: "10px", 
+              paddingLeft: "10px",
             }}
           >
             {roomTypes.map((room, index) => (
@@ -370,9 +373,9 @@ const MaterialPage = () => {
                   margin: "0 5px",
                   fontWeight: "bold",
                   height: "28px",
-                  lineHeight: "1.2", 
-                  padding: "0 8px", 
-                  minHeight: "unset", 
+                  lineHeight: "1.2",
+                  padding: "0 8px",
+                  minHeight: "unset",
                 }}
               />
             ))}
@@ -382,7 +385,7 @@ const MaterialPage = () => {
           <Button
             variant="contained"
             style={{
-              margin: "5px 0px 5px 0px", 
+              margin: "5px 0px 5px 0px",
               backgroundColor: "white",
               color: "rgb(217, 180, 81)",
               boxShadow: "none",
@@ -400,7 +403,7 @@ const MaterialPage = () => {
           color="warning"
           onClick={() => handleOpenMaterialForm()}
           style={{
-            margin: "5px 33px 5px 0px", 
+            margin: "5px 33px 5px 0px",
             boxShadow: "none",
             padding: "4px",
           }}
@@ -412,7 +415,7 @@ const MaterialPage = () => {
 
       <div
         style={{
-          margin: "20px 20px 20px 62px", 
+          margin: "20px 20px 20px 62px",
           borderRadius: "2px",
           border: "1px solid #e0e0e0",
           width: "90%",
@@ -421,10 +424,10 @@ const MaterialPage = () => {
         <div
           className="container-fluid"
           style={{
-            padding: "0px 30px", 
+            padding: "0px 30px",
           }}
         >
-         
+
 
           {/* Table Container */}
           <Box
@@ -432,7 +435,7 @@ const MaterialPage = () => {
               width: "100%",
               marginTop: "10px",
               marginBottom: "10px",
-              background: "#f9f9f9", 
+              background: "#f9f9f9",
               borderRadius: "5px",
             }}
           >
@@ -471,7 +474,7 @@ const MaterialPage = () => {
                       colSpan={3}
                       style={{
                         textAlign: "center",
-                        padding: "20px", 
+                        padding: "20px",
                       }}
                     >
                       No data available
@@ -558,7 +561,7 @@ const MaterialPage = () => {
                                         fontWeight: "bold",
                                       }}
                                     >
-                                      Price ($)
+                                      {selectedRoom?.percentageType ? "Percentage (%)" : "Price ($)"}
                                     </TableCell>
                                     <TableCell
                                       style={{
@@ -568,6 +571,7 @@ const MaterialPage = () => {
                                     >
                                       Supplier
                                     </TableCell>
+
                                     <TableCell
                                       style={{
                                         width: "25%",
@@ -683,9 +687,19 @@ const MaterialPage = () => {
           />
           <TextField
             fullWidth
-            label="Price"
+            label={selectedRoom?.percentageType ? "Percentage (%)" : "Price"}
             type="number"
             margin="normal"
+            placeholder={
+              selectedRoom?.percentageType
+                ? "Enter percentage value"
+                : "Enter price"
+            }
+            helperText={
+              selectedRoom?.percentageType
+                ? "This value is in percentage"
+                : "This value is in currency"
+            }
             value={subMaterialForm.price}
             onChange={(e) =>
               setSubMaterialForm({ ...subMaterialForm, price: e.target.value })
@@ -783,6 +797,22 @@ const MaterialPage = () => {
             margin="dense"
             value={roomFormData.name}
             onChange={(e) => setRoomFormData({ name: e.target.value })}
+          />
+          <FormControlLabel
+            control={
+              <Switch
+                checked={roomFormData.percentageType}
+                onChange={(e) =>
+                  setRoomFormData((prev) => ({
+                    ...prev,
+                    percentageType: e.target.checked,
+                  }))
+                }
+                color="primary"
+              />
+            }
+            label="Enable Percentage Type"
+            className="mt-2"
           />
         </DialogContent>
         <DialogActions>

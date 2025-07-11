@@ -41,9 +41,10 @@ const authRoutes = [
   { path: "/admin/dashboard", element: <AdminDashboard />, roles: ["admin"] },
   { path: "/profile", element: <Profile />, roles: ["user", "project_manager", "admin"] },
   { path: "/admin/project-manager-list", element: <ProjectManagerList />, roles: ["admin"] },
-  { path: "/materials", element: <MaterialPage />, roles: ["admin"] },
+  { path: "/materials", element: <MaterialPage />, roles: ["admin", "user"] },
   { path: "/project-estimater", element: <Estimater />, roles: ["admin", "project_manager", "user"] },
-  { path: "/project-list", element: <ProjectList />, roles: ["admin", "project_manager"] }
+  { path: "/project-estimater/:id", element: <Estimater />, roles: ["admin", "project_manager", "user"] },
+  { path: "/project-list", element: <ProjectList />, roles: ["admin", "project_manager", "user"] }
 ];
 const App = () => {
 

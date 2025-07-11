@@ -3,6 +3,7 @@
 // };
 
 export const environment = {
-    API_URL: "https://wcs-project-manager-server.onrender.com"
+    API_URL: "http://localhost:5000"
+    // API_URL: "https://wcs-project-manager-server.onrender.com"
 };
 
