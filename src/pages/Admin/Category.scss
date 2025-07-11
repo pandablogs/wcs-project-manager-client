@@ -1,0 +1,93 @@
+.material-page {
+
+    .table-custom {
+        width: 100%;
+        background: #fff;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+        overflow: hidden;
+
+        thead {
+            background: #f8f9fa;
+
+            th {
+                padding: 12px;
+                font-weight: 600;
+                color: #495057;
+                border-bottom: 1px solid #dee2e6;
+            }
+        }
+
+        tbody {
+            tr {
+                td {
+                    padding: 12px;
+                    vertical-align: middle;
+                    border-top: 1px solid #dee2e6;
+
+                    .name-block {
+                        strong {
+                            display: block;
+                        }
+
+                        .small {
+                            color: #6c757d;
+                            font-size: 0.875rem;
+                        }
+                    }
+
+                    .status-pill {
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 6px;
+                        padding: 4px 10px;
+                        border-radius: 20px;
+                        font-size: 0.85rem;
+                        font-weight: 500;
+
+                        &.active {
+                            background-color: #d3f9d8;
+                            color: #37b24d;
+                        }
+
+                        &::before {
+                            content: '';
+                            width: 8px;
+                            height: 8px;
+                            background: #37b24d;
+                            border-radius: 50%;
+                            display: inline-block;
+                        }
+                    }
+
+                    .action-icons {
+                        display: flex;
+                        gap: 10px;
+
+                        .icon {
+                            cursor: pointer;
+                            font-size: 1.2rem;
+                            transition: 0.2s;
+
+                            &.edit {
+                                color: #228be6;
+
+                                &:hover {
+                                    color: #1864ab;
+                                }
+                            }
+
+                            &.delete {
+                                color: #fa5252;
+
+                                &:hover {
+                                    color: #c92a2a;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

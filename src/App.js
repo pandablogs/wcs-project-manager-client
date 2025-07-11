@@ -26,6 +26,7 @@ import ForgetPassword from "./components/common/ForgetPassword";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import './App.css'
+import Category from "./pages/Admin/Category";
 const nonAuthRoutes = [
   { path: "/login", element: <Login /> },
   { path: "/project-manager-login", element: <StaffLogin /> },
@@ -42,6 +43,7 @@ const authRoutes = [
   { path: "/profile", element: <Profile />, roles: ["user", "project_manager", "admin"] },
   { path: "/admin/project-manager-list", element: <ProjectManagerList />, roles: ["admin"] },
   { path: "/materials", element: <MaterialPage />, roles: ["admin", "user"] },
+  { path: "/category", element: <Category />, roles: ["admin", "user"] },
   { path: "/project-estimater", element: <Estimater />, roles: ["admin", "project_manager", "user"] },
   { path: "/project-estimater/:id", element: <Estimater />, roles: ["admin", "project_manager", "user"] },
   { path: "/project-list", element: <ProjectList />, roles: ["admin", "project_manager", "user"] }
