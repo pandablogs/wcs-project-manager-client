@@ -21,7 +21,10 @@ const materialService = {
 
     //project
     addProject: (data) => axiosService.apis("POST", "/api/projects/create", data),
-    getProjects: () => axiosService.apis("GET", "/api/projects"),
+    getProjects: (queryParams) => {
+        const queryString = new URLSearchParams(queryParams).toString();
+        return axiosService.apis("GET", `/api/projects?${queryString}`);
+    },
     getProjectById: (id) => axiosService.apis("GET", `/api/projects/${id}`),
     updateProject: (id, data) => axiosService.apis("PUT", `/api/projects/${id}`, data),
     deleteProject: (id) => axiosService.apis("DELETE", `/api/projects/${id}`)

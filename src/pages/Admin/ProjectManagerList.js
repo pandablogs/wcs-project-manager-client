@@ -9,6 +9,7 @@ import {
 import { AiOutlinePlus } from "react-icons/ai";
 import Loading from "react-fullscreen-loading";
 import { toast } from "react-toastify";
+import { FiEdit, FiTrash2 } from "react-icons/fi";
 
 const ProjectManagerList = () => {
     const dispatch = useDispatch();
@@ -202,7 +203,7 @@ const ProjectManagerList = () => {
                                     <TableCell>{project_manager.lastName}</TableCell>
                                     <TableCell>{project_manager.phone}</TableCell>
                                     <TableCell>{project_manager.email}</TableCell>
-                                    <TableCell >
+                                    {/* <TableCell >
                                         <button className=" border-0 bg-transparent" onClick={() => handleEdit(project_manager)}>
                                             <i className="fa fa-edit mr-1 fa-iconclredit mx-2 edit-btn"></i>
                                         </button>
@@ -210,6 +211,20 @@ const ProjectManagerList = () => {
                                         <button className=" border-0 bg-transparent" onClick={() => handleDeleteConfirm(project_manager)}>
                                             <i className="fa fa-trash fa-iconclrtrace mx-2 delate-btn"></i>
                                         </button>
+                                    </TableCell> */}
+                                    <TableCell>
+                                        <FiEdit
+                                            className="icon edit me-2"
+                                            onClick={() => handleEdit(project_manager)}
+                                            style={{ cursor: 'pointer', marginRight: 8 }}
+                                        />
+                                        <FiTrash2
+                                            className="icon delete"
+                                            onClick={() => handleDeleteConfirm(project_manager)}
+                                            style={{
+                                                cursor: 'pointer'
+                                            }}
+                                        />
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -224,6 +239,7 @@ const ProjectManagerList = () => {
                 rowsPerPage={queryParams.limit}
                 onPageChange={handleChangePage}
                 onRowsPerPageChange={handleChangeRowsPerPage}
+                rowsPerPageOptions={[5, 10, 25, 50]}
                 sx={{
                     "& .MuiTablePagination-toolbar": {
                         backgroundColor: "#f3f4f6",
