@@ -20,17 +20,22 @@ const Header = () => {
     }
 
     const openNav = () => {
-        let navbar = document.getElementById('collapsibleNavbar');
-        if (navbar.style.display === 'none') {
-            navbar.style.display = 'block';
-            navbar.classList.add('mobile_nav');
-            setIcon('fa fa-times');
-        } else {
-            navbar.style.display = 'none';
-            navbar.classList.remove('mobile_nav');
+        const navbar = document.getElementById('collapsibleNavbar');
+        const isOpen = navbar.classList.contains('show');
+
+        if (isOpen) {
+            navbar.classList.remove('show');
             setIcon('fa fa-bars');
+        } else {
+            navbar.classList.add('show');
+            setIcon('fa fa-times');
         }
-    }
+    };
+    // const openNav = () => {
+    //     const navbar = document.getElementById('collapsibleNavbar');
+    //     navbar.classList.remove('show');
+    //     setIcon('fa fa-bars');
+    // }
 
     return (
         <div className="user-layout-header" style={{ minHeight: '60px' }}>
@@ -41,7 +46,7 @@ const Header = () => {
                             src={logo} alt="WCS-PM" title="WCS-PM"
                             style={{ "maxWidth": "100px" }} /></RouterLink>
                     </a>
-                    <div className="mx-3 d-lg-none d-md-none">
+                    <div className="mx-3 d-lg-none toogle-btn">
                         <button className="navbar-toggler" onClick={openNav}><i className={iconChange}></i></button>
                     </div>
                     <div className="collapse navbar-collapse text-start justify-content-end" id="collapsibleNavbar">
@@ -51,10 +56,11 @@ const Header = () => {
                                 <div className="nav_link-list text-left">
                                     {(localStorage.getItem('role_type') === "admin") ?
                                         <>
-                                            <RouterLink to={'/admin/dashboard'} className={"nav_link w-nav-link text-decoration-none"} >Dashboard</RouterLink>
-                                            <RouterLink to={'/project-estimater'} className="nav_link w-nav-link text-decoration-none" >Project Cost Estimate</RouterLink>
-                                            <RouterLink to={'/project-list'} className="nav_link w-nav-link text-decoration-none" >Project List</RouterLink>                                            <RouterLink to={'/materials'} className="nav_link w-nav-link text-decoration-none" >Materials</RouterLink>
-                                            <RouterLink to={'/category'} className="nav_link w-nav-link text-decoration-none" >Category</RouterLink>                                            <RouterLink to={'/materials'} className="nav_link w-nav-link text-decoration-none" >Materials</RouterLink>
+                                            <RouterLink to={'/admin/dashboard'} className="nav_link w-nav-link text-decoration-none" onClick={openNav} >Dashboard</RouterLink>
+                                            <RouterLink to={'/project-estimater'} className="nav_link w-nav-link text-decoration-none" onClick={openNav} >Project Cost Estimate</RouterLink>
+                                            <RouterLink to={'/project-list'} className="nav_link w-nav-link text-decoration-none" onClick={openNav} >Project List</RouterLink>
+                                            {/* <RouterLink to={'/materials'} className="nav_link w-nav-link text-decoration-none" onClick={openNav} >Materials</RouterLink> */}
+                                            <RouterLink to={'/category'} className="nav_link w-nav-link text-decoration-none" onClick={openNav} >Category</RouterLink>
                                             <RouterLink to={'/admin/project-manager-list'} className="nav_link w-nav-link text-decoration-none user-type" >
                                                 Users
                                                 <ul>
@@ -63,17 +69,17 @@ const Header = () => {
                                                     {/* <RouterLink to={'/admin/lenders-list'}><li>Lender</li></RouterLink> */}
                                                 </ul>
                                             </RouterLink>
-                                            {/* <RouterLink to={'/'} className="nav_link w-nav-link text-decoration-none" >Landing Page CMS</RouterLink> */}
-                                            <RouterLink to={'/profile'} className="nav_link w-nav-link text-decoration-none" >Profile</RouterLink>
+                                            {/* <RouterLink to={'/'} className="nav_link w-nav-link text-decoration-none" onClick={openNav} >Landing Page CMS</RouterLink> */}
+                                            <RouterLink to={'/profile'} className="nav_link w-nav-link text-decoration-none" onClick={openNav} >Profile</RouterLink>
                                             <RouterLink to={'#'} className="nav_link w-nav-link text-decoration-none" onClick={handleLogout}>Logout</RouterLink>
                                         </>
                                         :
                                         <>
-                                            <RouterLink to={'/projectManager/dashboard'} className="nav_link w-nav-link text-decoration-none" >Dashboard</RouterLink>
-                                            <RouterLink to={'/project-list'} className="nav_link w-nav-link text-decoration-none" >Projects</RouterLink>
-                                            {/* <RouterLink to={'/my-loans'} className="nav_link w-nav-link text-decoration-none" >My Loans</RouterLink> */}
-                                            {/* <RouterLink to={'/property-opportunities'} className="nav_link w-nav-link text-decoration-none" >Investment Opportunities</RouterLink> */}
-                                            <RouterLink to={'/profile'} className="nav_link w-nav-link text-decoration-none" >Profile</RouterLink>
+                                            <RouterLink to={'/projectManager/dashboard'} className="nav_link w-nav-link text-decoration-none" onClick={openNav} >Dashboard</RouterLink>
+                                            <RouterLink to={'/project-list'} className="nav_link w-nav-link text-decoration-none" onClick={openNav} >Projects List</RouterLink>
+                                            {/* <RouterLink to={'/my-loans'} className="nav_link w-nav-link text-decoration-none" onClick={openNav} >My Loans</RouterLink> */}
+                                            {/* <RouterLink to={'/property-opportunities'} className="nav_link w-nav-link text-decoration-none" onClick={openNav} >Investment Opportunities</RouterLink> */}
+                                            <RouterLink to={'/profile'} className="nav_link w-nav-link text-decoration-none" onClick={openNav} >Profile</RouterLink>
                                             <RouterLink to={'#'} className="nav_link w-nav-link text-decoration-none" onClick={handleLogout}>Logout</RouterLink>
                                         </>
                                     }

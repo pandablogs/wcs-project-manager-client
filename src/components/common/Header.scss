@@ -1,4 +1,6 @@
 .user-layout-header {
+
+
     .navbar-bg-dark {
         background-color: #1a1a1a;
 
@@ -163,8 +165,9 @@
 
     ul {
         margin-top: 5px;
-        padding-bottom: 10px;
-        margin-left: -25px;
+        padding-bottom: 0px !important;
+        margin-bottom: -18px;
+        margin-left: 25px;
         border-bottom-left-radius: 10px;
         border-bottom-right-radius: 10px;
     }
@@ -174,38 +177,42 @@
     }
 }
 
-@media screen and (max-width:991px) {
+@media screen and (max-width: 991px) {
     #collapsibleNavbar {
-        display: none;
-    }
-
-    #userLayoutNav {
-        overflow: auto;
-        margin-top: 0px !important;
-        border-top: 1px solid #d5d0cf;
-        background-color: #ffffff;
-        border-radius: 8px;
+        background: #1a1a1a;
+        padding: 20px;
+        position: absolute;
+        top: 60px;
+        left: 0;
+        width: 100%;
+        z-index: 999;
+        border-bottom-left-radius: 8px;
+        border-bottom-right-radius: 8px;
     }
 
     .nav_menu-content .nav_link-list {
-        display: flex;
         flex-direction: column;
-    }
-
-    #userLayoutNav .nav_link-list {
-        margin-top: 10px !important;
+        align-items: flex-start;
+        gap: 10px;
     }
 
     #userLayoutNav .nav_link-list .nav_link {
-        margin: 10px !important;
-        text-align: start;
+        margin: 10px 0;
+        color: #fff;
     }
 
-    .nav_menu-content .nav_link-list .nav_link:hover {
-        color: #d5a522;
+    .nav_link:hover {
+        color: #d5a522 !important;
     }
 
-    .mobile_nav {
-        height: 100vh;
+    .user-type:hover ul {
+        position: static;
+        display: block;
+        background: none;
+        padding: 0;
+    }
+
+    .user-type ul {
+        background: none;
     }
 }
