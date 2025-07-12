@@ -114,7 +114,7 @@ const MaterialPage = () => {
   const fetchRooms = async () => {
     setLocalLoading(true);
     try {
-      const response = await materialService.getMaterialRoom();
+      const response = await materialService.getMaterialRoomAll();
       let rooms = response.data;
       setRoomTypes(rooms);
       if (rooms.length > 0) {
@@ -133,7 +133,7 @@ const MaterialPage = () => {
     try {
       if (!selectedRoom || !selectedRoom._id) return;
       let queryParams = { roomId: selectedRoom._id };
-      const response = await materialService.getMaterial(queryParams);
+      const response = await materialService.getMaterialAll(queryParams);
       setMaterials(response.data);
     } catch (err) {
       console.error("Error fetching materials", err);
@@ -148,7 +148,7 @@ const MaterialPage = () => {
     try {
       if (!selectedRoom || !selectedRoom._id) return;
       let queryParams = { roomId: selectedRoom._id };
-      const response = await materialService.getSubMaterial(queryParams);
+      const response = await materialService.getSubMaterialAll(queryParams);
       setSubMaterials(response.data);
     } catch (err) {
       console.error("Error fetching sub-materials", err);
@@ -344,7 +344,7 @@ const MaterialPage = () => {
         >
           {/* Tabs */}
           <Tabs
-            value={roomTypes.indexOf(selectedRoom)}
+            value={roomTypes?.indexOf(selectedRoom)}
             onChange={(event, newValue) => {
               setSelectedRoom(roomTypes[newValue]);
             }}
@@ -466,7 +466,7 @@ const MaterialPage = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {materials.filter(
+                {materials?.filter(
                   (material) => material.roomId?._id === selectedRoom?._id
                 ).length === 0 ? (
                   <TableRow>

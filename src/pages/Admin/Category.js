@@ -10,6 +10,8 @@ import Loading from "react-fullscreen-loading";
 import { toast } from "react-toastify";
 import { Modal } from "react-bootstrap";
 import materialService from "../../services/materialServices";
+import { RiShareForward2Fill } from "react-icons/ri";
+import { useNavigate } from "react-router-dom";
 
 const Category = () => {
     const [roomTypes, setRoomTypes] = useState([]);
@@ -18,7 +20,7 @@ const Category = () => {
     const [error, setError] = useState('');
     const [totalPages, setTotalPages] = useState(1);
     const [totalDocs, setTotalDocs] = useState(0);
-
+    const navigate = useNavigate();
     const [queryParams, setQueryParams] = useState({
         page: 1,
         limit: 5,
@@ -129,6 +131,10 @@ const Category = () => {
         }
     };
 
+    const categoryDetails = (room) => {
+        navigate(`/material/${room?._id}`);
+    }
+
     return (
         <Paper sx={{ padding: 2, boxShadow: 'none' }}>
             {localLoading && (
@@ -196,8 +202,13 @@ const Category = () => {
                                                 onClick={() => handleRoomEdit(room)}
                                             />
                                             <FiTrash2
+                                                className="me-3"
                                                 style={{ cursor: 'pointer', opacity: deletingId === room._id ? 0.5 : 1 }}
                                                 onClick={() => confirmDelete(room._id)}
+                                            />
+                                            <RiShareForward2Fill
+                                                style={{ cursor: 'pointer' }}
+                                                onClick={() => categoryDetails(room)}
                                             />
                                         </TableCell>
                                     </TableRow>

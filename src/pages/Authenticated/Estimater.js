@@ -57,7 +57,7 @@ const Estimater = () => {
     const fetchRooms = async () => {
         setLocalLoading(true);
         try {
-            const response = await materialService.getMaterialRoom();
+            const response = await materialService.getMaterialRoomAll();
             setRoomTypes(response.data);
         } catch (err) {
             console.error("Error fetching rooms", err);
@@ -70,7 +70,7 @@ const Estimater = () => {
     const fetchMaterials = async () => {
         setLocalLoading(true);
         try {
-            const response = await materialService.getMaterial({});
+            const response = await materialService.getMaterialAll({});
             setMaterials(response.data);
         } catch (err) {
             console.error("Error fetching materials", err);
@@ -83,7 +83,7 @@ const Estimater = () => {
     const fetchSubMaterials = async () => {
         setLocalLoading(true);
         try {
-            const response = await materialService.getSubMaterial({});
+            const response = await materialService.getSubMaterialAll({});
             setSubMaterials(response.data);
         } catch (err) {
             console.error("Error fetching sub-materials", err);
