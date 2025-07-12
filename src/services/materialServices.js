@@ -19,6 +19,8 @@ const materialService = {
         const queryString = new URLSearchParams(queryParams).toString();
         return axiosService.apis("GET", `/api/materials?${queryString}`);
     },
+    getMaterialById: (id) => axiosService.apis("GET", `/api/materials/${id}`),
+
     updateMaterial: (id, data) => axiosService.apis("PUT", `/api/materials/update/${id}`, data),
     deleteMaterial: (id) => axiosService.apis("DELETE", `/api/materials/delete/${id}`),
 

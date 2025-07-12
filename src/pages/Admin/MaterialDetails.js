@@ -35,6 +35,8 @@ const MaterialDetails = () => {
     const [openMertialFormDialog, setopenMertialFormDialog] = useState(false);
     const [editingmaterialId, seteditingmaterialId] = useState(null);
     const [materialFormData, setmaterialFormData] = useState({ name: "" });
+    const [selectedRoom, setselectedRoom] = useState({})
+
     const navigate = useNavigate();
 
     const fetchMaterial = async () => {
@@ -55,7 +57,22 @@ const MaterialDetails = () => {
 
     useEffect(() => {
         fetchMaterial();
+        fetchRoomById(id);
     }, [queryParams]);
+
+    const fetchRoomById = async (id) => {
+        setLoading(true);
+        try {
+            const res = await materialService.getMaterialRoomById(id); // Must support pagination server-side
+            const data = res.data || {};
+            setselectedRoom(data);
+        } catch (err) {
+            console.error(err);
+            setError("Failed to fetch Room Data");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleChangePage = (_, newPage) => {
         setQueryParams(prev => ({ ...prev, page: newPage + 1 }));
@@ -149,6 +166,7 @@ const MaterialDetails = () => {
 
                 <div className="text-center d-flex justify-content-between mb-4">
                     <h3 className="fw-bold text-warning">Material Categories</h3>
+
                     <div>
                         <TextField
                             label="Search"
@@ -172,7 +190,7 @@ const MaterialDetails = () => {
                         </Button>
                     </div>
                 </div>
-
+                <h5 className="fw-bolder text-muted">Room: {selectedRoom?.name || '-'}</h5>
                 {loading ? (
                     <Loading loading={true} loaderColor="#f18271" />
                 ) : error ? (

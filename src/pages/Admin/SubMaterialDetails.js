@@ -41,6 +41,7 @@ const SubMaterialDetails = () => {
     });
     const [editingSubMaterialId, seteditingSubMaterialId] = useState(null);
     const [selectedRoom, setselectedRoom] = useState({})
+    const [selectedMaterial, setselectedMaterial] = useState({})
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteTargetId, setDeleteTargetId] = useState(null);
     const [deletingId, setDeletingId] = useState(null);
@@ -48,6 +49,7 @@ const SubMaterialDetails = () => {
     useEffect(() => {
         fetchSubMaterial();
         fetchRoomById(id)
+        fetchMaterialById(matId)
     }, [queryParams, id, matId]);
 
     const fetchSubMaterial = async () => {
@@ -72,6 +74,20 @@ const SubMaterialDetails = () => {
             const res = await materialService.getMaterialRoomById(id); // Must support pagination server-side
             const data = res.data || {};
             setselectedRoom(data);
+        } catch (err) {
+            console.error(err);
+            setError("Failed to fetch Room Data");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchMaterialById = async (id) => {
+        setLoading(true);
+        try {
+            const res = await materialService.getMaterialById(id); // Must support pagination server-side
+            const data = res.data || {};
+            setselectedMaterial(data);
         } catch (err) {
             console.error(err);
             setError("Failed to fetch Room Data");
@@ -168,6 +184,8 @@ const SubMaterialDetails = () => {
 
                 <div className="text-center d-flex justify-content-between mb-4">
                     <h3 className="fw-bold text-warning">SubMaterial Categories</h3>
+
+
                     <div>
                         <TextField
                             label="Search"
@@ -191,7 +209,10 @@ const SubMaterialDetails = () => {
                         </Button>
                     </div>
                 </div>
-
+                <div>
+                    <h5 className="fw-bolder text-muted">Room: {selectedRoom?.name || '-'}</h5>
+                    <h5 className="fw-bolder text-muted">Material: {selectedMaterial?.name || '-'}</h5>
+                </div>
                 {loading ? (
                     <Loading loading={true} loaderColor="#f18271" />
                 ) : error ? (
