@@ -492,17 +492,17 @@ const Estimater = () => {
 
                         {/* Selected Materials and Sub-Materials */}
                         {(selectedMaterials[room._id] || []).map((matId) => {
-                            const mat = materials.find((m) => m._id === matId);
-                            const availableSubs = subMaterials.filter((s) => s.materialId?._id === mat._id);
-                            const selectedSubs = selectedSubMaterials[mat._id] || [];
+                            const mat = materials.find((m) => m?._id === matId);
+                            const availableSubs = subMaterials.filter((s) => s.materialId?._id === mat?._id);
+                            const selectedSubs = selectedSubMaterials[mat?._id] || [];
 
                             return (
-                                <div key={mat._id} className="mb-4 border-start ps-4 border-3 border-primary">
+                                <div key={mat?._id} className="mb-4 border-start ps-4 border-3 border-primary">
                                     <div className="d-flex justify-content-between align-items-center mb-3">
-                                        <h5 className="fw-semibold text-dark mb-0">{mat.name}</h5>
+                                        <h5 className="fw-semibold text-dark mb-0">{mat?.name}</h5>
                                         <button
                                             className="btn btn-sm btn-outline-danger"
-                                            onClick={() => removeMaterial(room._id, mat._id)}
+                                            onClick={() => removeMaterial(room._id, mat?._id)}
                                         >
                                             🗑
                                         </button>
