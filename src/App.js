@@ -29,6 +29,8 @@ import './App.css'
 import Category from "./pages/Admin/Category";
 import MaterialDetails from "./pages/Admin/MaterialDetails";
 import SubMaterialDetails from "./pages/Admin/SubMaterialDetails.js";
+import MaterialList from "./pages/Admin/MaterialList";
+import RehabGroups from "./pages/Admin/RehabGroups";
 
 const nonAuthRoutes = [
   { path: "/login", element: <Login /> },
@@ -46,6 +48,8 @@ const authRoutes = [
   { path: "/profile", element: <Profile />, roles: ["user", "project_manager", "admin"] },
   { path: "/admin/project-manager-list", element: <ProjectManagerList />, roles: ["admin"] },
   { path: "/materials", element: <MaterialPage />, roles: ["admin", "user"] },
+  { path: "/material-list", element: <MaterialList />, roles: ["admin", "user", "project_manager"] },
+  { path: "/rehab-groups", element: <RehabGroups />, roles: ["admin", "user"] },
   { path: "/category", element: <Category />, roles: ["admin", "user"] },
   { path: "/material/:id", element: <MaterialDetails />, roles: ["admin", "user"] },
   { path: "/material/:id/:matId", element: <SubMaterialDetails />, roles: ["admin", "user"] },

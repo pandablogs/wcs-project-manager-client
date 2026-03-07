@@ -61,6 +61,8 @@ const Header = () => {
                                             <RouterLink to={'/project-list'} className="nav_link w-nav-link text-decoration-none" onClick={openNav} >Project List</RouterLink>
                                             {/* <RouterLink to={'/materials'} className="nav_link w-nav-link text-decoration-none" onClick={openNav} >Materials</RouterLink> */}
                                             <RouterLink to={'/category'} className="nav_link w-nav-link text-decoration-none" onClick={openNav} >Category</RouterLink>
+                                            <RouterLink to={'/material-list'} className="nav_link w-nav-link text-decoration-none" onClick={openNav} >Material List</RouterLink>
+                                            <RouterLink to={'/rehab-groups'} className="nav_link w-nav-link text-decoration-none" onClick={openNav} >Rehab Groups</RouterLink>
                                             <RouterLink to={'/admin/project-manager-list'} className="nav_link w-nav-link text-decoration-none user-type" >
                                                 Users
                                                 <ul>
@@ -77,6 +79,8 @@ const Header = () => {
                                         <>
                                             <RouterLink to={'/projectManager/dashboard'} className="nav_link w-nav-link text-decoration-none" onClick={openNav} >Dashboard</RouterLink>
                                             <RouterLink to={'/project-list'} className="nav_link w-nav-link text-decoration-none" onClick={openNav} >Projects List</RouterLink>
+                                            <RouterLink to={'/material-list'} className="nav_link w-nav-link text-decoration-none" onClick={openNav} >Material List</RouterLink>
+                                            <RouterLink to={'/rehab-groups'} className="nav_link w-nav-link text-decoration-none" onClick={openNav} >Rehab Groups</RouterLink>
                                             {/* <RouterLink to={'/my-loans'} className="nav_link w-nav-link text-decoration-none" onClick={openNav} >My Loans</RouterLink> */}
                                             {/* <RouterLink to={'/property-opportunities'} className="nav_link w-nav-link text-decoration-none" onClick={openNav} >Investment Opportunities</RouterLink> */}
                                             <RouterLink to={'/profile'} className="nav_link w-nav-link text-decoration-none" onClick={openNav} >Profile</RouterLink>

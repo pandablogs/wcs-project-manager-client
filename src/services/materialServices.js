@@ -20,6 +20,7 @@ const materialService = {
         return axiosService.apis("GET", `/api/materials?${queryString}`);
     },
     getMaterialById: (id) => axiosService.apis("GET", `/api/materials/${id}`),
+    importMaterialList: (rows) => axiosService.apis("POST", "/api/materials/import", { rows }),
 
     updateMaterial: (id, data) => axiosService.apis("PUT", `/api/materials/update/${id}`, data),
     deleteMaterial: (id) => axiosService.apis("DELETE", `/api/materials/delete/${id}`),

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import materialService from "../../services/materialServices";
 import userServices from "../../services/userServices";
+import rehabGroupService from "../../services/rehabGroupServices";
 import Loading from "react-fullscreen-loading";
 import { toast } from "react-toastify";
 import { Table, Container, Form } from "react-bootstrap";
@@ -23,8 +24,14 @@ const Estimater = () => {
     const [isEditMode, setIsEditMode] = useState(false);
     const [selectedSubMaterials, setSelectedSubMaterials] = useState({});
     const [selectedMaterials, setSelectedMaterials] = useState([]);
+    const [rehabGroups, setRehabGroups] = useState([]);
+    const [selectedRehabGroupId, setSelectedRehabGroupId] = useState("");
+    const [markupPercent, setMarkupPercent] = useState(0);
+    const [markupBySubMaterial, setMarkupBySubMaterial] = useState({});
 
     const { id } = useParams(); // get :id from URL
+
+    const getLineMarkupPercent = (subId) => markupBySubMaterial[subId] ?? markupPercent ?? 0;
 
 
     useEffect(() => {
@@ -32,12 +39,22 @@ const Estimater = () => {
         fetchMaterials();
         fetchSubMaterials();
         fetchProfile();
+        fetchRehabGroups();
         if (id) {
             setIsEditMode(true);
             setProjectId(id);
             fetchProjectData(id); // fetch and bind project
         }
     }, []);
+
+    const fetchRehabGroups = async () => {
+        try {
+            const res = await rehabGroupService.getAll();
+            setRehabGroups(res.data || []);
+        } catch (err) {
+            console.error("Error fetching rehab groups", err);
+        }
+    };
 
     const fetchProfile = async () => {
         try {
@@ -105,6 +122,7 @@ const Estimater = () => {
                 const qtyMap = {};
                 const selectedSubMap = {};
                 const selectedMatMap = {};
+                const markupMap = {};
 
                 project.rooms.forEach((room) => {
                     const roomId = room.roomId?._id;
@@ -119,6 +137,7 @@ const Estimater = () => {
                             const qty = sub.quantity || 0;
                             if (qty > 0) {
                                 qtyMap[subId] = qty;
+                                if (sub.markupPercent != null) markupMap[subId] = sub.markupPercent;
                                 subSelected.push(subId);
                             }
                         });
@@ -135,6 +154,8 @@ const Estimater = () => {
                 setQuantities(qtyMap);
                 setSelectedSubMaterials(selectedSubMap);
                 setSelectedMaterials(selectedMatMap);
+                setMarkupPercent(project.markupPercent ?? 0);
+                setMarkupBySubMaterial(markupMap);
             } else {
                 toast.error("Failed to load project.");
             }
@@ -154,34 +175,12 @@ const Estimater = () => {
         }));
     };
 
-    // const calculateTotal = () => {
-    //     return subMaterials.reduce((total, sub) => {
-    //         const qty = quantities[sub._id] || 0;
-    //         return total + qty * sub.price;
-    //     }, 0);
-    // };
-    // const calculateTotal = () => {
-    //     return rooms.reduce((roomTotal, room) => {
-    //         const roomMaterials = materials.filter(mat => mat.roomId?._id === room._id);
-
-    //         const materialTotal = roomMaterials.reduce((matTotal, mat) => {
-    //             const subMaterialIds = selectedSubMaterials[mat._id] || [];
-    //             const subTotal = subMaterialIds.reduce((subAcc, subId) => {
-    //                 const sub = subMaterials.find(s => s._id === subId);
-    //                 const qty = quantities[subId] || 0;
-    //                 return subAcc + qty * (sub?.price || 0);
-    //             }, 0);
-
-    //             return matTotal + subTotal;
-    //         }, 0);
-
-    //         return roomTotal + materialTotal;
-    //     }, 0);
-    // };
     const calculateTotal = () => {
         let actualTotal = 0;
+        let totalWithMarkup = 0;
         let percentageMarkup = 0;
         let percentageItems = [];
+        const markupPercentVal = markupPercent || 0;
 
         rooms.forEach((room) => {
             const roomMaterials = materials.filter((mat) => mat.roomId?._id === room._id);
@@ -199,19 +198,34 @@ const Estimater = () => {
                             percentageItems.push(`${sub.name} (${sub.price}%)`);
                         }
                     } else {
-                        actualTotal += qty * (sub?.price || 0);
+                        const amount = qty * (sub?.price || 0);
+                        actualTotal += amount;
+                        totalWithMarkup += getLineAmountWithMarkup(amount, subId);
                     }
                 });
             });
         });
 
-        const finalTotal = actualTotal + (actualTotal * percentageMarkup / 100);
+        const markupAmount = totalWithMarkup - actualTotal;
+        const subtotalBeforePct = totalWithMarkup;
+        const percentageAddAmount = subtotalBeforePct * (percentageMarkup / 100);
+        const finalTotal = subtotalBeforePct + percentageAddAmount;
         return {
             actualTotal,
+            totalWithMarkup,
             percentageMarkup,
             percentageItems,
+            percentageAddAmount,
+            markupPercent: markupPercentVal,
+            markupAmount,
+            subtotalBeforeMarkup: subtotalBeforePct,
             finalTotal
         };
+    };
+
+    const getLineAmountWithMarkup = (amount, subId) => {
+        const m = subId != null ? getLineMarkupPercent(subId) : (markupPercent || 0);
+        return amount + amount * (m / 100);
     };
 
 
@@ -223,7 +237,8 @@ const Estimater = () => {
             const subTotal = subIds.reduce((acc, subId) => {
                 const sub = subMaterials.find(s => s._id === subId);
                 const qty = quantities[subId] || 0;
-                return acc + qty * (sub?.price || 0);
+                const amount = qty * (sub?.price || 0);
+                return acc + getLineAmountWithMarkup(amount, subId);
             }, 0);
             return matTotal + subTotal;
         }, 0);
@@ -246,10 +261,12 @@ const Estimater = () => {
                             const quantity = room.percentageType ? 1 : (quantities[subId] || 0);
 
                             if (quantity > 0) {
+                                const lineMarkup = getLineMarkupPercent(subId);
                                 return {
                                     subMaterialId: subId,
                                     quantity,
                                     price: sub?.price || 0,
+                                    markupPercent: lineMarkup,
                                 };
                             }
 
@@ -275,6 +292,7 @@ const Estimater = () => {
             }),
 
             totalBudget: totals.finalTotal,
+            markupPercent: markupPercent ?? 0,
             createdBy: createdBy || {},
         };
 
@@ -297,45 +315,6 @@ const Estimater = () => {
         }
     };
 
-
-
-
-    // const handleExportToExcel = () => {
-    //     const sheetData = [];
-
-    //     rooms.forEach((room) => {
-    //         sheetData.push([room.name]); // Room Name
-    //         sheetData.push(["Material", "Sub-Material", "Price", "Quantity", "Amount"]); // Header
-
-    //         materials
-    //             .filter((mat) => mat.roomId?._id === room._id)
-    //             .forEach((mat) => {
-    //                 subMaterials
-    //                     .filter((sub) => sub.materialId?._id === mat._id)
-    //                     .forEach((sub) => {
-    //                         const qty = quantities[sub._id] || 0;
-    //                         sheetData.push([
-    //                             mat.name,
-    //                             sub.name,
-    //                             `$${sub.price.toFixed(2)}`,
-    //                             qty,
-    //                             `$${(qty * sub.price).toFixed(2)}`,
-    //                         ]);
-    //                     });
-    //             });
-
-    //         sheetData.push([]); // Empty row for spacing
-    //     });
-
-    //     sheetData.push(["Total Budget", "", "", "", `$${calculateTotal().toFixed(2)}`]);
-
-    //     const ws = XLSX.utils.aoa_to_sheet(sheetData);
-    //     const wb = XLSX.utils.book_new();
-    //     XLSX.utils.book_append_sheet(wb, ws, "Estimate");
-
-    //     // Save the file
-    //     XLSX.writeFile(wb, "Estimate.xlsx");
-    // };
     const handleExportToExcel = () => {
         const sheetData = [];
 
@@ -346,7 +325,7 @@ const Estimater = () => {
             let roomHasData = false;
 
             const roomRows = [];
-            roomRows.push(["Material", "Sub-Material", "Price", "Quantity", "Amount"]);
+            roomRows.push(["Material", "Sub-Material", "Price", "Quantity", "Amount", "Markup", "Total"]);
 
             selectedMaterialIds.forEach((matId) => {
                 const mat = materials.find((m) => m._id === matId);
@@ -361,12 +340,17 @@ const Estimater = () => {
                         const amount = qty * price;
                         roomHasData = true;
 
+                        const lineMarkupPct = getLineMarkupPercent(subId);
+                        const lineMarkupAmt = amount * (lineMarkupPct / 100);
+                        const lineTotalVal = amount + lineMarkupAmt;
                         roomRows.push([
                             mat?.name || "",
                             sub?.name || "",
                             `$${price.toFixed(2)}`,
                             qty,
-                            `$${amount.toFixed(2)}`
+                            `$${amount.toFixed(2)}`,
+                            lineMarkupPct > 0 ? `+ $${lineMarkupAmt.toFixed(2)} (${lineMarkupPct}%)` : "",
+                            `$${lineTotalVal.toFixed(2)}`
                         ]);
                     }
                 });
@@ -382,23 +366,21 @@ const Estimater = () => {
         const totals = calculateTotal();
 
         // Add totals
-        sheetData.push(["Actual Total", "", "", "", `$${totals.actualTotal.toFixed(2)}`]);
+        const totalRow = (label, value) => [label, "", "", "", "", "", value];
+        sheetData.push(totalRow("Actual Total", `$${totals.actualTotal.toFixed(2)}`));
 
         if (totals.percentageMarkup && totals.percentageMarkup > 0) {
-            sheetData.push([
+            sheetData.push(totalRow(
                 `Added Percentage (${totals.percentageMarkup}%)`,
-                "",
-                "",
-                "",
-                `+ $${(totals.finalTotal - totals.actualTotal).toFixed(2)}`
-            ]);
+                `+ $${totals.percentageAddAmount.toFixed(2)}`
+            ));
 
             if (totals.percentageItems?.length > 0) {
                 sheetData.push([`From: ${totals.percentageItems.join(", ")}`]);
             }
         }
 
-        sheetData.push(["Final Total", "", "", "", `$${totals.finalTotal.toFixed(2)}`]);
+        sheetData.push(["Final Total", "", "", "", "", "", `$${totals.finalTotal.toFixed(2)}`]);
 
         const ws = XLSX.utils.aoa_to_sheet(sheetData);
         const wb = XLSX.utils.book_new();
@@ -428,6 +410,57 @@ const Estimater = () => {
         });
     };
 
+    const applyRehabGroup = (group) => {
+        if (!group?.items?.length) {
+            toast.warning("This group has no materials.");
+            return;
+        }
+        setSelectedMaterials((prev) => {
+            const next = { ...prev };
+            group.items.forEach((item) => {
+                const roomId = item.roomId?._id || item.roomId;
+                const materialId = item.materialId?._id || item.materialId;
+                const subMaterialId = item.subMaterialId?._id || item.subMaterialId;
+                const qty = item.defaultQuantity ?? 1;
+                if (!roomId || !materialId || !subMaterialId) return;
+                if (!next[roomId]) next[roomId] = [];
+                if (!next[roomId].includes(materialId)) next[roomId].push(materialId);
+            });
+            return next;
+        });
+        setSelectedSubMaterials((prev) => {
+            const next = { ...prev };
+            group.items.forEach((item) => {
+                const materialId = item.materialId?._id || item.materialId;
+                const subMaterialId = item.subMaterialId?._id || item.subMaterialId;
+                if (!materialId || !subMaterialId) return;
+                if (!next[materialId]) next[materialId] = [];
+                if (!next[materialId].includes(subMaterialId)) next[materialId].push(subMaterialId);
+            });
+            return next;
+        });
+        setQuantities((prev) => {
+            const next = { ...prev };
+            group.items.forEach((item) => {
+                const subMaterialId = item.subMaterialId?._id || item.subMaterialId;
+                const addQty = item.defaultQuantity ?? 1;
+                if (!subMaterialId) return;
+                next[subMaterialId] = (next[subMaterialId] || 0) + addQty;
+            });
+            return next;
+        });
+        toast.success(`Added "${group.name}" to estimate.`);
+    };
+
+    const handleAddRehabGroup = () => {
+        if (!selectedRehabGroupId) {
+            toast.warning("Select a rehab group.");
+            return;
+        }
+        const group = rehabGroups.find((g) => g._id === selectedRehabGroupId);
+        if (group) applyRehabGroup(group);
+    };
+
     return (
 
         <Container className="py-4">
@@ -449,6 +482,50 @@ const Estimater = () => {
                         className="font-weight-bold w-auto mb-3"
                     />
                 </Form.Group>
+
+                <div className="mb-4 p-3 border rounded-3 bg-light d-flex align-items-center gap-2">
+                    <strong className="text-dark">Markup %:</strong>
+                    <Form.Control
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.5"
+                        value={markupPercent}
+                        onChange={(e) => setMarkupPercent(parseFloat(e.target.value) || 0)}
+                        className="w-25"
+                        style={{ maxWidth: "90px" }}
+                    />
+                    <span className="text-muted">(applied to each material line)</span>
+                </div>
+
+                {rehabGroups.length > 0 && (
+                    <div className="mb-4 p-3 border rounded-3 bg-light">
+                        <Form.Label className="text-dark fw-semibold">Add rehab group to estimate</Form.Label>
+                        <div className="d-flex flex-wrap align-items-center gap-2 mt-1">
+                            <Form.Select
+                                style={{ width: "fit-content", minWidth: "200px" }}
+                                value={selectedRehabGroupId}
+                                onChange={(e) => setSelectedRehabGroupId(e.target.value)}
+                            >
+                                <option value="">— Select group —</option>
+                                {rehabGroups.map((g) => (
+                                    <option key={g._id} value={g._id}>
+                                        {g.name} ({g.items?.length || 0} items)
+                                    </option>
+                                ))}
+                            </Form.Select>
+                            <button
+                                type="button"
+                                className="btn btn-primary"
+                                onClick={handleAddRehabGroup}
+                                disabled={!selectedRehabGroupId}
+                            >
+                                Add to estimate
+                            </button>
+                        </div>
+                        <small className="text-muted">Materials from the group will be added to the estimate and totals below.</small>
+                    </div>
+                )}
 
                 {rooms.map((room) => (
 
@@ -551,6 +628,8 @@ const Estimater = () => {
                                                             <th>Price</th>
                                                             <th>Quantity</th>
                                                             <th className="text-end">Amount</th>
+                                                            <th className="text-end">Markup %</th>
+                                                            <th className="text-end">Total</th>
                                                             <th>Action</th>
                                                         </>
                                                     )}
@@ -591,8 +670,29 @@ const Estimater = () => {
                                                                             className="w-75"
                                                                         />
                                                                     </td>
+                                                                    <td className="text-end">
+                                                                        ${((quantities[sub._id] || 0) * sub.price).toFixed(2)}
+                                                                    </td>
+                                                                    <td className="text-end">
+                                                                        <Form.Control
+                                                                            type="number"
+                                                                            min="0"
+                                                                            max="100"
+                                                                            step="0.5"
+                                                                            size="sm"
+                                                                            value={getLineMarkupPercent(sub._id)}
+                                                                            onChange={(e) => {
+                                                                                const v = parseFloat(e.target.value);
+                                                                                if (!Number.isNaN(v) && v >= 0) {
+                                                                                    setMarkupBySubMaterial((prev) => ({ ...prev, [sub._id]: v }));
+                                                                                }
+                                                                            }}
+                                                                            className="d-inline-block text-end"
+                                                                            style={{ width: "70px" }}
+                                                                        />
+                                                                    </td>
                                                                     <td className="fw-bold text-end text-success">
-                                                                        ${(quantities[sub._id] || 0) * sub.price}
+                                                                        ${getLineAmountWithMarkup((quantities[sub._id] || 0) * sub.price, sub._id).toFixed(2)}
                                                                     </td>
                                                                     <td className="text-center">
                                                                         <button
@@ -649,6 +749,13 @@ const Estimater = () => {
                                 )}
                             </div>
                         )}
+
+                        {(calculateTotal().markupAmount > 0) && (
+                            <div className="text-secondary">
+                                <span>Total markup on materials:</span>
+                                <span className="ms-auto">+ ${calculateTotal().markupAmount.toFixed(2)}</span>
+                            </div>
+                        )}
                         <hr className="my-2" />
 
                         <div className="d-flex align-items-center fs-5 fw-bold text-success">
@@ -670,7 +777,6 @@ const Estimater = () => {
 
             </Card >
         </Container >
-
 
     );
 };
