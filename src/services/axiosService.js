@@ -14,6 +14,7 @@ const axiosService = (method, url, payload) => {
             "Content-Type": "application/json",
             Authorization: token ? `Bearer ${token}` : "",
         },
+        params: method === "GET" ? payload : undefined, // Attach payload as params for GET
     };
 
     return new Promise((resolve, reject) => {

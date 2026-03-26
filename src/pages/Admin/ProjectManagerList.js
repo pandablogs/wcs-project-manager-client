@@ -1,27 +1,59 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchProjectManager, deleteProjectManager, updateProjectManager, addProjectManager } from "../../redux/slices/projectManagerSlice";
-import {
-    Button, Table, TableBody, TableCell, TableContainer, TableHead,
-    TableRow, Paper, Dialog, DialogActions, DialogContent,
-    DialogTitle, TextField, TablePagination, TableSortLabel
-} from "@mui/material";
-import { AiOutlinePlus } from "react-icons/ai";
-import Loading from "react-fullscreen-loading";
+import { 
+  fetchProjectManager, 
+  deleteProjectManager, 
+  updateProjectManager, 
+  addProjectManager 
+} from "../../redux/slices/projectManagerSlice";
+import { 
+  Plus, 
+  Search, 
+  Edit2, 
+  Trash2, 
+  Mail, 
+  Phone, 
+  Users, 
+  Shield, 
+  SearchIcon,
+  Loader2,
+  MoreVertical,
+  ChevronRight
+} from "lucide-react";
 import { toast } from "react-toastify";
-import { FiEdit, FiTrash2 } from "react-icons/fi";
+import { Button } from "../../components/ui/Button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../components/ui/Card";
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "../../components/ui/Table";
+import { Input } from "../../components/ui/Input";
+import { Badge } from "../../components/ui/Badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../../components/ui/Dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../../components/ui/AlertDialog";
+import { Label } from "../../components/ui/Label";
+import { Switch } from "../../components/ui/Switch";
+import { PageHeader } from "../../components/ui/PageHeader";
+import { StatCard } from "../../components/ui/StatCard";
+import { motion, AnimatePresence } from "framer-motion";
 
 const ProjectManagerList = () => {
     const dispatch = useDispatch();
     const { project_managerList, loading } = useSelector((state) => state.project_manager);
 
-    const [openEdit, setOpenEdit] = useState(false);
-    const [openDelete, setOpenDelete] = useState(false);
-    const [openAdd, setOpenAdd] = useState(false);
-    const [selectedProjectManager, setSelectedProjectManager] = useState(null);
-    const [localLoading, setLocalLoading] = useState(false); // Loader state
+    const [search, setSearch] = useState("");
+    const [isAddOpen, setIsAddOpen] = useState(false);
+    const [deleteId, setDeleteId] = useState(null);
+    const [selectedManager, setSelectedManager] = useState(null);
+    const [localLoading, setLocalLoading] = useState(false);
 
-    const [formData, setFormData] = useState({ firstName: "", lastName: "", phone: "", email: "", password: "", confirmPassword: "" });
+    const [formData, setFormData] = useState({ 
+      firstName: "", 
+      lastName: "", 
+      phone: "", 
+      email: "", 
+      password: "", 
+      confirmPassword: "",
+      status: "Active"
+    });
+
     const [queryParams, setQueryParams] = useState({
         page: 1,
         limit: 10,
@@ -31,337 +63,324 @@ const ProjectManagerList = () => {
     });
 
     useEffect(() => {
-        setLocalLoading(true);
         dispatch(fetchProjectManager(queryParams));
-        setTimeout(() => {
-            setLocalLoading(false);
-        }, 1000);
-        console.log("--------calll", queryParams)
     }, [dispatch, queryParams]);
 
     const handleSearchChange = (e) => {
+        setSearch(e.target.value);
         setQueryParams(prev => ({ ...prev, search: e.target.value, page: 1 }));
     };
 
-    const handleSort = (field) => {
-        setQueryParams(prev => ({
-            ...prev,
-            sortField: field,
-            sortOrder: prev.sortField === field
-                ? (prev.sortOrder === -1 ? 1 : prev.sortOrder === 1 ? 0 : -1)
-                : -1
-        }));
+    const handleEdit = (manager) => {
+        setSelectedManager(manager);
+        setFormData({ 
+          firstName: manager.firstName, 
+          lastName: manager.lastName, 
+          phone: manager.phone, 
+          email: manager.email,
+          password: "",
+          confirmPassword: "",
+          status: "Active" // Simplified for now
+        });
+        setIsAddOpen(true);
     };
 
-
-    const handleChangePage = (event, newPage) => {
-        setQueryParams(prev => ({ ...prev, page: newPage + 1 }));
+    const handleAddClick = () => {
+        setSelectedManager(null);
+        setFormData({ firstName: "", lastName: "", phone: "", email: "", password: "", confirmPassword: "", status: "Active" });
+        setIsAddOpen(true);
     };
 
-    const handleChangeRowsPerPage = (event) => {
-        setQueryParams(prev => ({ ...prev, limit: parseInt(event.target.value, 10), page: 1 }));
-    };
-
-    // Open Add Dialog
-    const handleAdd = () => {
-        setFormData({ firstName: "", lastName: "", phone: "", email: "", password: "", confirmPassword: "" });
-        setOpenAdd(true);
-    };
-
-    // Close Add Dialog
-    const handleCloseAdd = () => {
-        setOpenAdd(false);
-    };
-
-    // Handle Add Save
-    const handleSaveAdd = async () => {
-        if (formData.password !== formData.confirmPassword) {
-            alert("Passwords do not match!");
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        
+        if (!selectedManager && (formData.password !== formData.confirmPassword)) {
+            toast.error("Passwords do not match!");
             return;
         }
-        const payload = {
-            role_type: "project_manager",
-            firstName: formData.firstName,
-            lastName: formData.lastName,
-            phone: formData.phone,
-            email: formData.email,
-            password: formData.password
-        };
-        await dispatch(addProjectManager(payload));
-        setOpenAdd(false);
-    };
 
-    // Open Edit Dialog
-    const handleEdit = (project_manager) => {
-        setSelectedProjectManager(project_manager);
-        setFormData({ firstName: project_manager.firstName, lastName: project_manager.lastName, phone: project_manager.phone, email: project_manager.email });
-        setOpenEdit(true);
-    };
-
-    // Close Edit Dialog
-    const handleCloseEdit = () => {
-        setOpenEdit(false);
-    };
-
-    // Handle Edit Save
-    const handleSaveEdit = async () => {
         setLocalLoading(true);
-        await dispatch(updateProjectManager({ id: selectedProjectManager._id, projectManagerData: formData }));
-        setOpenEdit(false);
-
-        setTimeout(() => {
-            setLocalLoading(false);
-            toast.success("ProjectManager details updated successfully!");
-        }, 1000);
+        try {
+          if (!selectedManager) {
+              const payload = {
+                  role_type: "project_manager",
+                  ...formData
+              };
+              await dispatch(addProjectManager(payload));
+              toast.success("Manager added successfully!");
+          } else {
+              await dispatch(updateProjectManager({ 
+                id: selectedManager._id, 
+                projectManagerData: formData 
+              }));
+              toast.success("Manager details updated!");
+          }
+          setIsAddOpen(false);
+        } catch (err) {
+          toast.error("Operation failed.");
+        } finally {
+          setLocalLoading(false);
+        }
     };
 
-    // Confirm Delete Action with Loader & Toast
-    const handleDelete = () => {
+    const handleDelete = async () => {
+        if (!deleteId) return;
         setLocalLoading(true);
-        dispatch(deleteProjectManager(selectedProjectManager._id));
-        setOpenDelete(false);
-
-        setTimeout(() => {
-            setLocalLoading(false);
-            toast.success("ProjectManager deleted successfully!");
-        }, 1000);
+        try {
+          await dispatch(deleteProjectManager(deleteId));
+          toast.success("Manager removed successfully!");
+          setDeleteId(null);
+        } catch (err) {
+          toast.error("Failed to delete manager.");
+        } finally {
+          setLocalLoading(false);
+        }
     };
 
-    // Open Delete Confirmation
-    const handleDeleteConfirm = (project_manager) => {
-        setSelectedProjectManager(project_manager);
-        setOpenDelete(true);
-    };
-
-    // Confirm Delete Action
-
+    const activeCount = project_managerList.length; // Placeholder for real active count if needed
 
     return (
-        <div className=" container-fluid " style={{ padding: '20px' }}>
-            <div className="text-center d-flex justify-content-between">
-                <h3 className="fw-bold text-warning text-center mb-4">Project Manager LIST</h3>
-                <div>
+        <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="space-y-8 pb-12"
+        >
+            <PageHeader 
+                title="Project Managers" 
+                description="Manage your team of project supervisors and administrative staff."
+            >
+                <Button onClick={handleAddClick} className="rounded-xl shadow-lg shadow-primary/20 h-10 px-6">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Manager
+                </Button>
+            </PageHeader>
 
-                    <TextField
-                        label="Search"
-                        variant="outlined"
-                        size="small"
-                        value={queryParams.search}
-                        onChange={handleSearchChange}
-                        style={{ marginBottom: '24px', marginInline: '10px' }}
-                    />
-                    <Button variant="contained" color="warning" onClick={handleAdd} style={{ boxShadow: 'none', padding: '7px 20px', float: 'right', marginBottom: '24px' }}>
-                        <AiOutlinePlus /> 	&nbsp;  Add
-                    </Button>
-                </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <StatCard 
+                    title="Total Staff" 
+                    value={project_managerList.length} 
+                    icon={Users} 
+                    description="Active authenticated users"
+                    delay={0.1}
+                />
+                <StatCard 
+                    title="Administrators" 
+                    value={1} // Placeholder
+                    icon={Shield} 
+                    description="Level 1 access"
+                    delay={0.2}
+                />
             </div>
 
-            {localLoading && <Loading loading={true} loaderColor="#f18271" />}
-
-            {!loading && (
-                <TableContainer component={Paper} style={{ boxShadow: 'none', border: '1px solid #80808075' }}>
-                    <Table>
-                        <TableHead>
-                            <TableRow style={{ backgroundColor: "#f3f4f6" }}>
-                                <TableCell className="py-2">#</TableCell>
-                                <TableCell className="py-2"> <TableSortLabel
-                                    active={queryParams.sortOrder !== 0 && queryParams.sortField === "firstName"}
-                                    direction={queryParams.sortOrder === -1 ? "desc" : queryParams.sortOrder === 1 ? "asc" : undefined}
-                                    onClick={() => handleSort("firstName")}
-                                >
-                                    First Name
-                                </TableSortLabel></TableCell>
-                                <TableCell className="py-2">  <TableSortLabel
-                                    active={queryParams.sortOrder !== 0 && queryParams.sortField === "lastName"}
-                                    direction={queryParams.sortOrder === -1 ? "desc" : queryParams.sortOrder === 1 ? "asc" : undefined}
-                                    onClick={() => handleSort("lastName")}
-                                >
-                                    Last Name
-                                </TableSortLabel></TableCell>
-                                <TableCell className="py-2">  <TableSortLabel
-                                    active={queryParams.sortOrder !== 0 && queryParams.sortField === "phone"}
-                                    direction={queryParams.sortOrder === -1 ? "desc" : queryParams.sortOrder === 1 ? "asc" : undefined}
-                                    onClick={() => handleSort("phone")}
-                                >
-                                    Phone
-                                </TableSortLabel></TableCell>
-                                <TableCell className="py-2">  <TableSortLabel
-                                    active={queryParams.sortOrder !== 0 && queryParams.sortField === "email"}
-                                    direction={queryParams.sortOrder === -1 ? "desc" : queryParams.sortOrder === 1 ? "asc" : undefined}
-                                    onClick={() => handleSort("email")}
-                                >
-                                    Email
-                                </TableSortLabel></TableCell>
-                                <TableCell className="py-2">Action</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {project_managerList.map((project_manager, index) => (
-                                <TableRow key={project_manager._id} hover>
-                                    <TableCell>{index + 1}</TableCell>
-                                    <TableCell>{project_manager.firstName}</TableCell>
-                                    <TableCell>{project_manager.lastName}</TableCell>
-                                    <TableCell>{project_manager.phone}</TableCell>
-                                    <TableCell>{project_manager.email}</TableCell>
-                                    {/* <TableCell >
-                                        <button className=" border-0 bg-transparent" onClick={() => handleEdit(project_manager)}>
-                                            <i className="fa fa-edit mr-1 fa-iconclredit mx-2 edit-btn"></i>
-                                        </button>
-
-                                        <button className=" border-0 bg-transparent" onClick={() => handleDeleteConfirm(project_manager)}>
-                                            <i className="fa fa-trash fa-iconclrtrace mx-2 delate-btn"></i>
-                                        </button>
-                                    </TableCell> */}
-                                    <TableCell>
-                                        <FiEdit
-                                            className="icon edit me-2"
-                                            onClick={() => handleEdit(project_manager)}
-                                            style={{ cursor: 'pointer', marginRight: 8 }}
-                                        />
-                                        <FiTrash2
-                                            className="icon delete"
-                                            onClick={() => handleDeleteConfirm(project_manager)}
-                                            style={{
-                                                cursor: 'pointer'
-                                            }}
-                                        />
-                                    </TableCell>
+            <Card className="border-border/40 bg-card/30 backdrop-blur-md shadow-2xl overflow-hidden rounded-[2rem]">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-6 px-10 pt-10">
+                    <div className="space-y-1.5">
+                        <CardTitle className="text-2xl font-black italic tracking-tighter">Manager Directory</CardTitle>
+                        <CardDescription className="text-xs font-bold uppercase tracking-widest opacity-60">System Access Control</CardDescription>
+                    </div>
+                    <div className="relative max-w-sm w-full">
+                        <SearchIcon className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-primary/40" />
+                        <Input 
+                            placeholder="Search operatives..." 
+                            value={search}
+                            onChange={handleSearchChange}
+                            className="!pl-14 h-12 rounded-2xl bg-background/40 border-border/40 focus-visible:ring-primary/20 font-bold"
+                        />
+                    </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                    <div className="overflow-x-auto">
+                        <Table>
+                            <TableHeader className="bg-primary/5">
+                                <TableRow className="border-border/40 hover:bg-transparent">
+                                    <TableHead className="w-[80px] text-[10px] font-black uppercase tracking-[0.2em] pl-10 text-primary/60"># ID</TableHead>
+                                    <TableHead className="font-black text-[10px] uppercase tracking-widest">Full Identity</TableHead>
+                                    <TableHead className="font-black text-[10px] uppercase tracking-widest">Contact Logic</TableHead>
+                                    <TableHead className="font-black text-[10px] uppercase tracking-widest">Security Status</TableHead>
+                                    <TableHead className="text-right pr-10 font-black text-[10px] uppercase tracking-widest">Operations</TableHead>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-            )}
-            <TablePagination
-                component="div"
-                count={project_managerList.length}
-                page={queryParams.page - 1}
-                rowsPerPage={queryParams.limit}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-                rowsPerPageOptions={[5, 10, 25, 50]}
-                sx={{
-                    "& .MuiTablePagination-toolbar": {
-                        backgroundColor: "#f3f4f6",
-                        borderRadius: "8px",
-                        padding: "8px 16px",
-                        boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-                    },
-                    "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows": {
-                        fontSize: "14px",
-                        fontWeight: "500",
-                        color: "#333",
-                    },
-                    "& .MuiTablePagination-actions button": {
-                        color: "#f18271",
-                    },
-                }}
-            />
+                            </TableHeader>
+                            <TableBody>
+                                <AnimatePresence mode="wait">
+                                    {loading ? (
+                                        Array(5).fill(0).map((_, i) => (
+                                            <TableRow key={i} className="animate-pulse border-border/20">
+                                                <TableCell className="pl-10"><div className="h-4 w-8 bg-muted/40 rounded-full" /></TableCell>
+                                                <TableCell><div className="h-4 w-32 bg-muted/40 rounded-full" /></TableCell>
+                                                <TableCell><div className="h-4 w-48 bg-muted/40 rounded-full" /></TableCell>
+                                                <TableCell><div className="h-4 w-16 bg-muted/40 rounded-full" /></TableCell>
+                                                <TableCell className="text-right pr-10"><div className="h-8 w-8 bg-muted/40 rounded-lg float-right" /></TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : project_managerList.length === 0 ? (
+                                        <TableRow>
+                                            <TableCell colSpan={5} className="text-center py-32 text-muted-foreground font-black italic uppercase tracking-widest text-xs opacity-50">
+                                                Zero managers detected in database
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : (
+                                        project_managerList.map((manager, idx) => (
+                                            <motion.tr
+                                                key={manager._id}
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, scale: 0.95 }}
+                                                transition={{ delay: idx * 0.03 }}
+                                                className="group border-border/40 hover:bg-primary/[0.03] transition-all cursor-default"
+                                            >
+                                                <TableCell className="pl-10 text-[10px] font-black text-muted-foreground/40 tabular-nums">
+                                                    {((queryParams.page - 1) * queryParams.limit + idx + 1).toString().padStart(2, '0')}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary font-black text-sm border border-primary/20 shadow-inner group-hover:scale-110 transition-transform duration-500">
+                                                            {manager.firstName[0]}{manager.lastName[0]}
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <span className="font-black text-foreground tracking-tight">{manager.firstName} {manager.lastName}</span>
+                                                            <span className="text-[9px] text-primary font-black uppercase tracking-widest opacity-70 italic">Verified Staff</span>
+                                                        </div>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex flex-col gap-1.5 font-bold tracking-tight">
+                                                        <span className="flex items-center gap-2 text-xs text-muted-foreground group-hover:text-foreground transition-colors"><Mail className="w-3.5 h-3.5 text-primary/60" /> {manager.email}</span>
+                                                        <span className="flex items-center gap-2 text-xs text-muted-foreground group-hover:text-foreground transition-colors"><Phone className="w-3.5 h-3.5 text-blue-500/60" /> {manager.phone}</span>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 font-black text-[9px] uppercase px-3 py-1 rounded-full tracking-wider italic">
+                                                        Authorized
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell className="text-right pr-10">
+                                                    <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
+                                                        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl bg-background border border-border/40 shadow-sm hover:border-primary/50 hover:text-primary transition-all" onClick={() => handleEdit(manager)}>
+                                                            <Edit2 className="w-4 h-4" />
+                                                        </Button>
+                                                        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl bg-background border border-border/40 shadow-sm hover:border-destructive/50 hover:text-destructive transition-all" onClick={() => setDeleteId(manager._id)}>
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </Button>
+                                                    </div>
+                                                </TableCell>
+                                            </motion.tr>
+                                        ))
+                                    )}
+                                </AnimatePresence>
+                            </TableBody>
+                        </Table>
+                    </div>
+                </CardContent>
+                <div className="px-10 py-6 border-t border-border/40 flex items-center justify-between bg-primary/[0.02]">
+                    <div className="flex items-center gap-3">
+                        <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
+                            Registry synced: {project_managerList.length} entities indexed
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="h-10 px-5 text-[10px] font-black uppercase tracking-widest rounded-xl border-border/40 bg-background/50 hover:bg-primary hover:text-white transition-all shadow-sm disabled:opacity-30" 
+                            disabled={queryParams.page === 1} 
+                            onClick={() => setQueryParams(p => ({ ...p, page: p.page - 1 }))}
+                        >
+                            Prev
+                        </Button>
+                        <div className="h-10 w-10 rounded-xl bg-primary text-white flex items-center justify-center text-[10px] font-black shadow-lg shadow-primary/20 italic">{queryParams.page}</div>
+                        <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="h-10 px-5 text-[10px] font-black uppercase tracking-widest rounded-xl border-border/40 bg-background/50 hover:bg-primary hover:text-white transition-all shadow-sm disabled:opacity-30" 
+                            disabled={project_managerList.length < queryParams.limit} 
+                            onClick={() => setQueryParams(p => ({ ...p, page: p.page + 1 }))}
+                        >
+                            Next
+                        </Button>
+                    </div>
+                </div>
+            </Card>
 
-            {/* Add Dialog */}
-            <Dialog open={openAdd} onClose={handleCloseAdd} maxWidth="sm" fullWidth>
-                <DialogTitle>Add New Project Manager</DialogTitle>
-                <DialogContent>
-                    <TextField
-                        label="First Name"
-                        fullWidth
-                        margin="dense"
-                        value={formData.firstName}
-                        onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                    />
-                    <TextField
-                        label="Last Name"
-                        fullWidth
-                        margin="dense"
-                        value={formData.lastName}
-                        onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                    />
-                    <TextField
-                        label="Phone"
-                        fullWidth
-                        margin="dense"
-                        value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    />
-                    <TextField
-                        label="Email"
-                        fullWidth
-                        margin="dense"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    />
-                    <TextField
-                        label="Password"
-                        type="password"
-                        fullWidth
-                        margin="dense"
-                        value={formData.password}
-                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    />
-                    <TextField
-                        label="Confirm Password"
-                        type="password"
-                        fullWidth
-                        margin="dense"
-                        value={formData.confirmPassword}
-                        onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                    />
+            {/* Add/Edit Modal */}
+            <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+                <DialogContent className="sm:max-w-2xl rounded-3xl p-0 overflow-hidden border-border/50 shadow-2xl">
+                    <DialogHeader className="px-8 pt-8 pb-6 border-b border-border/50 bg-muted/20">
+                        <DialogTitle className="text-2xl font-black tracking-tight">{selectedManager ? "Modify Manager" : "Onboard New Manager"}</DialogTitle>
+                        <CardDescription>System access for project supervisors.</CardDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleSubmit} className="p-8 pb-6 space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <Label htmlFor="firstName">First Name</Label>
+                                <Input id="firstName" required value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} className="rounded-xl h-11 bg-background/50 border-border/50 focus-visible:ring-primary/20" placeholder="John" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="lastName">Last Name</Label>
+                                <Input id="lastName" required value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} className="rounded-xl h-11 bg-background/50 border-border/50 focus-visible:ring-primary/20" placeholder="Doe" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="email">Work Email</Label>
+                                <Input id="email" type="email" required value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="rounded-xl h-11 bg-background/50 border-border/50 focus-visible:ring-primary/20" placeholder="john@example.com" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="phone">Phone Number</Label>
+                                <Input id="phone" required value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="rounded-xl h-11 bg-background/50 border-border/50 focus-visible:ring-primary/20" placeholder="(555) 000-0000" />
+                            </div>
+                            {!selectedManager && (
+                                <>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="password">Set Password</Label>
+                                        <Input id="password" type="password" required value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="rounded-xl h-11 bg-background/50 border-border/50 focus-visible:ring-primary/20" placeholder="••••••••" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="confirmPassword">Confirm Password</Label>
+                                        <Input id="confirmPassword" type="password" required value={formData.confirmPassword} onChange={e => setFormData({...formData, confirmPassword: e.target.value})} className="rounded-xl h-11 bg-background/50 border-border/50 focus-visible:ring-primary/20" placeholder="••••••••" />
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                        <div className="flex items-center justify-between pt-4 border-t border-border/50">
+                            <div className="space-y-0.5">
+                                <Label>Account Status</Label>
+                                <p className="text-xs text-muted-foreground font-medium">Toggle system access for this manager.</p>
+                            </div>
+                            <Switch 
+                                checked={formData.status === "Active"} 
+                                onCheckedChange={(c) => setFormData({...formData, status: c ? "Active" : "Inactive"})} 
+                            />
+                        </div>
+                        <DialogFooter className="pt-4">
+                            <Button type="button" variant="ghost" onClick={() => setIsAddOpen(false)} className="rounded-xl font-bold h-11">Discard</Button>
+                            <Button type="submit" disabled={localLoading} className="rounded-xl font-bold px-8 h-11 shadow-lg shadow-primary/20">
+                                {localLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : (selectedManager ? "Save Changes" : "Register Manager")}
+                            </Button>
+                        </DialogFooter>
+                    </form>
                 </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseAdd} color="secondary" variant="outlined">Cancel</Button>
-                    <Button onClick={handleSaveAdd} color="primary" variant="contained">Add</Button>
-                </DialogActions>
             </Dialog>
 
-            {/* Edit Dialog */}
-            <Dialog open={openEdit} onClose={handleCloseEdit} maxWidth="sm" fullWidth>
-                <DialogTitle>Edit ProjectManager</DialogTitle>
-                <DialogContent>
-                    <TextField
-                        label="First Name"
-                        fullWidth
-                        margin="dense"
-                        value={formData.firstName}
-                        onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                    />
-                    <TextField
-                        label="Last Name"
-                        fullWidth
-                        margin="dense"
-                        value={formData.lastName}
-                        onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                    />
-                    <TextField
-                        label="Phone"
-                        fullWidth
-                        margin="dense"
-                        value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    />
-                    <TextField
-                        label="Email"
-                        fullWidth
-                        margin="dense"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    />
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseEdit} color="secondary" variant="outlined">Cancel</Button>
-                    <Button onClick={handleSaveEdit} color="primary" variant="contained">Save</Button>
-                </DialogActions>
-            </Dialog>
-
-            {/* Delete Confirmation Dialog */}
-            <Dialog open={openDelete} onClose={() => setOpenDelete(false)} maxWidth="xs" fullWidth>
-                <DialogTitle>Confirm Delete</DialogTitle>
-                <DialogContent>Are you sure you want to delete {selectedProjectManager?.firstName}?</DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setOpenDelete(false)} color="secondary" variant="outlined">Cancel</Button>
-                    <Button onClick={handleDelete} color="error" variant="contained">Delete</Button>
-                </DialogActions>
-            </Dialog>
-        </div>
+            {/* Delete Confirmation */}
+            <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+                <AlertDialogContent className="rounded-[2rem] border-border/50 shadow-2xl max-w-md p-8">
+                    <AlertDialogHeader className="items-center text-center">
+                        <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+                            <Trash2 className="w-8 h-8 text-destructive" />
+                        </div>
+                        <AlertDialogTitle className="text-2xl font-black tracking-tight">Revoke Access?</AlertDialogTitle>
+                        <AlertDialogDescription className="text-base font-medium">
+                            This will permanently remove the manager's system access. This action is irreversible.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="mt-8 gap-3 sm:flex-row sm:justify-center">
+                        <AlertDialogCancel className="rounded-xl h-12 px-8 font-bold border-border/50">Keep Account</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90 rounded-xl h-12 px-8 font-bold text-white shadow-lg shadow-destructive/20 border-none transition-all active:scale-[0.98]">
+                            {localLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Revoke Permanently"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </motion.div>
     );
 };
 

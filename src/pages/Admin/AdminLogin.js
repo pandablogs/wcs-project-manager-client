@@ -1,24 +1,23 @@
 import React, { useState } from "react";
-import { TextField, Typography, Box } from "@mui/material";
 import { useDispatch } from "react-redux";
 import { setUser } from "../../redux/slices/userSlice";
 import { toast } from "react-toastify";
-import Loading from "react-fullscreen-loading";
 import { useNavigate } from "react-router-dom";
+import { ShieldCheck, Loader2 } from "lucide-react";
 import authServices from "../../services/authServices";
-import logov1 from "../../assets/images/logo/wcs-pm.png";
-import starSVG from "../../assets/svgs/star.svg";
-import "../../components/common/Login.scss";
-
+import { Button } from "../../components/ui/Button";
+import { Input } from "../../components/ui/Input";
+import { Label } from "../../components/ui/Label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/Card";
+import { motion } from "framer-motion";
 
 const AdminLogin = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
-    const [role, setRole] = useState("admin");
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState("");
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -37,7 +36,7 @@ const AdminLogin = () => {
         let payload = {
             email: email,
             password: password,
-            role_type: role,
+            role_type: "admin",
         };
 
         try {
@@ -45,114 +44,103 @@ const AdminLogin = () => {
             const response = await authServices.login(payload);
             localStorage.setItem("_token", response?.token || "");
             dispatch(setUser(response.user));
-            localStorage.setItem("role_type", role);
-            toast.success("Login successful!");
+            localStorage.setItem("role_type", "admin");
+            toast.success("Welcome back, Administrator!");
+            
             setTimeout(() => {
                 navigate("/admin/dashboard");
                 setIsLoading(false);
-            }, 1500);
+            }, 800);
         } catch (error) {
             setIsLoading(false);
-            toast.error("Login failed.");
-            setError(error.response?.data?.message || "Login failed.");
+            const msg = error.response?.data?.message || "Authentication failed.";
+            setError(msg);
+            toast.error(msg);
         }
     };
 
     return (
-        <div className="login-page">
-            {/* <div className="login-left">
-                <img className=' position-absolute star-svg' src={starSVG}></img>
-                <div className="d-flex">
-                    <img src={logov1} alt="Professional" className="login-image" />
-                    <h3 className="logo-title pt-3 px-2 fw-bold ">Project Manager</h3>
-                </div>
-                <div className="ads-card">
-                    <div className="row">
-                        <div className="example-2 card">
-                            <div className="wrapper">
-                                <div className="header">
-                                    <div className="date">
-                                        <span className="day">12</span>
-                                        <span className="month">Aug</span>
-                                        <span className="year">2016</span>
-                                    </div>
-
-                                </div>
-                                <div className="data">
-                                    <div className="content">
-                                        <h3 className="title">Project Planning & Scheduling</h3>
-                                        <h3 className="title">Budgeting & Financial Management</h3>
-                                        <h3 className="title">Cost estimation and tracking</h3>
-                                        <h3 className="title">Automated scheduling & Gantt charts </h3>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div className="login-text">
-
-                    <Typography className="login-title">
-                        CONNECTING BRANDS TO AUDIENCE
-                    </Typography>
-                    <Typography className="login-description">
-                        Empower Brands to create meaningful connections with audiences,
-                        delivering impactful advertising experiences.
-                    </Typography>
-                </div>
-            </div> */}
-
-
-            <div className="login-right">
-                <Box className="login-container" sx={{ maxWidth: "500px", margin: "84px auto", padding: "30px", borderRadius: "10px", backgroundColor: "#fff" }}>
-                    <h1 className="login-header text-left" >
-                        Login to Project Manager
-                    </h1>
-                    <p className="login-subtitle text-left mb-5">
-                        Welcome back! Please enter your details.
-                    </p>
-
-
-                    {error && <Typography color="error" sx={{ marginBottom: "20px", textAlign: "center" }}>{error}</Typography>}
-                    {/* <hr className="mt-5 mb-5 divied-line"></hr> */}
-
-                    <form className="login-form mt-0" onSubmit={handleSubmit}>
-
-                        <TextField
-                            fullWidth
-                            label="Email"
-                            variant="outlined"
-                            margin="normal"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                        <TextField
-                            fullWidth
-                            label="Password"
-                            type="password"
-                            variant="outlined"
-                            margin="normal"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-
-                        <button
-                            type="submit"
-                            className="login-button"
-                        >
-                            Log in
-                        </button>
-                    </form>
-
-                    {/* <p className="signup-link mt-4 fw-semibold text-center ">Don't have an account yet? <a href='/signup' onClick={() => navigate("/signup")}>Sign up now</a></p> */}
-                    {/* <p className="signup-link mt-4 fw-semibold text-center ">Forget password? <a href='/forget-password' onClick={() => navigate("/forget-password")}>Reset now</a></p> */}
-                </Box>
-
-                <Typography variant="body2" className="login-footer" sx={{ textAlign: "center", marginTop: "20px", fontSize: "12px", color: "#666" }}>
-                    © Project Manager 2025
-                </Typography>
+        <div className="min-h-screen w-full flex items-center justify-center bg-slate-950 relative overflow-hidden">
+            {/* Admin specific background */}
+            <div className="absolute inset-0 z-0 text-primary/10">
+                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/20 blur-[120px] rounded-full" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-500/10 blur-[120px] rounded-full" />
+                <div className="absolute top-0 left-0 w-full h-full opacity-[0.05] pointer-events-none" 
+                     style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }}></div>
             </div>
-            {isLoading && <Loading loading={true} loaderColor="#f18271" />}
+
+            <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+                className="z-10 w-full max-w-md px-4"
+            >
+                <div className="flex flex-col items-center mb-10">
+                    <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl flex items-center justify-center shadow-2xl mb-6">
+                        <ShieldCheck className="w-10 h-10 text-primary" />
+                    </div>
+                    <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest mb-4 border border-primary/20">
+                        Secure Admin Portal
+                    </div>
+                    <h1 className="text-4xl font-display font-black tracking-tight text-white mb-2">WCS Admin</h1>
+                    <p className="text-slate-400 text-center font-medium">Enterprise Resource Control Center</p>
+                </div>
+
+                <Card className="border-white/10 shadow-2xl bg-slate-900/40 backdrop-blur-2xl rounded-3xl overflow-hidden">
+                    <CardHeader className="space-y-1 pb-6 text-center border-b border-white/5">
+                        <CardTitle className="text-xl font-bold text-white uppercase tracking-tight">Authentication</CardTitle>
+                        <CardDescription className="text-slate-400">Enter secure credentials to proceed</CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-8">
+                        <form onSubmit={handleSubmit} className="space-y-5">
+                            {error && (
+                                <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm text-center font-medium">
+                                    {error}
+                                </div>
+                            )}
+                            <div className="space-y-2">
+                                <Label htmlFor="email" className="text-slate-300 text-[11px] uppercase tracking-wider font-bold">Admin Email</Label>
+                                <Input 
+                                    id="email" 
+                                    type="email" 
+                                    placeholder="admin@wcs-manager.com" 
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="h-12 rounded-xl bg-white/5 border-white/10 text-white placeholder:text-slate-600 focus-visible:ring-primary/40 focus-visible:border-primary/40 focus-visible:bg-white/10 transition-all"
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="password" className="text-slate-300 text-[11px] uppercase tracking-wider font-bold">Secure Password</Label>
+                                <Input 
+                                    id="password" 
+                                    type="password" 
+                                    placeholder="••••••••" 
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="h-12 rounded-xl bg-white/5 border-white/10 text-white placeholder:text-slate-600 focus-visible:ring-primary/40 focus-visible:border-primary/40 focus-visible:bg-white/10 transition-all"
+                                    required
+                                />
+                            </div>
+                            <Button 
+                                type="submit" 
+                                className="w-full h-14 rounded-xl text-base font-bold uppercase tracking-widest shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-[0.98] mt-4" 
+                                disabled={isLoading}
+                            >
+                                {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <ShieldCheck className="w-5 h-5 mr-2" />}
+                                {isLoading ? "Verifying..." : "Access Dashboard"}
+                            </Button>
+                        </form>
+                    </CardContent>
+                </Card>
+                
+                <div className="mt-12 flex flex-col items-center gap-4">
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">
+                        System Integrity Monitored
+                    </p>
+                    <div className="w-1 h-1 rounded-full bg-primary animate-ping"></div>
+                </div>
+            </motion.div>
         </div>
     );
 };

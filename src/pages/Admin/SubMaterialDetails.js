@@ -1,30 +1,56 @@
-import { useEffect, useState } from "react";
-import {
-    Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-    TablePagination, TableSortLabel, TextField, Button, Dialog, DialogActions,
-    DialogContent, DialogTitle, FormControlLabel, Switch
-} from "@mui/material";
-import { FiEdit, FiTrash2 } from "react-icons/fi";
-import { AiOutlinePlus } from 'react-icons/ai';
-import Loading from "react-fullscreen-loading";
-import { toast } from "react-toastify";
-import { RiShareForward2Fill } from "react-icons/ri";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "react-toastify";
+import { 
+  Plus, 
+  Search, 
+  Edit2, 
+  Trash2, 
+  MoveLeft,
+  Package,
+  Layers,
+  ArrowUpDown,
+  DollarSign,
+  Percent,
+  Truck,
+  AlertCircle,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+  ClipboardList
+} from "lucide-react";
 import materialService from "../../services/materialServices";
+import { Button } from "../../components/ui/Button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../components/ui/Card";
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "../../components/ui/Table";
+import { Input } from "../../components/ui/Input";
+import { Badge } from "../../components/ui/Badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../../components/ui/Dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../../components/ui/AlertDialog";
+import { PageHeader } from "../../components/ui/PageHeader";
+import { StatCard } from "../../components/ui/StatCard";
+import { Label } from "../../components/ui/Label";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "../../lib/utils";
 
 const SubMaterialDetails = () => {
-
     const { matId, id } = useParams();
+    const navigate = useNavigate();
     const [subMaterialTypes, setsubMaterialTypes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [localLoading, setLocalLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [totalPages, setTotalPages] = useState(1);
     const [totalDocs, setTotalDocs] = useState(0);
-    const navigate = useNavigate();
+    const [deleteId, setDeleteId] = useState(null);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [editingId, setEditingId] = useState(null);
+    const [form, setForm] = useState({ name: "", price: "", supplier: "" });
+    
+    const [selectedRoom, setSelectedRoom] = useState({});
+    const [selectedMaterial, setSelectedMaterial] = useState({});
+
     const [queryParams, setQueryParams] = useState({
         page: 1,
-        limit: 5,
+        limit: 10,
         sortField: "",
         sortOrder: 0,
         search: "",
@@ -32,67 +58,41 @@ const SubMaterialDetails = () => {
         materialId: matId,
     });
 
-    const [openSubMaterialFormDialog, setopenSubMaterialFormDialog] = useState(false);
-    const [subMaterialFormData, setsubMaterialFormData] = useState({
-        id: null,
-        name: "",
-        price: "",
-        supplier: "",
-    });
-    const [editingSubMaterialId, seteditingSubMaterialId] = useState(null);
-    const [selectedRoom, setselectedRoom] = useState({})
-    const [selectedMaterial, setselectedMaterial] = useState({})
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [deleteTargetId, setDeleteTargetId] = useState(null);
-    const [deletingId, setDeletingId] = useState(null);
-
     useEffect(() => {
         fetchSubMaterial();
-        fetchRoomById(id)
-        fetchMaterialById(matId)
+        fetchRoomById(id);
+        fetchMaterialById(matId);
     }, [queryParams, id, matId]);
 
     const fetchSubMaterial = async () => {
         setLoading(true);
         try {
-            const res = await materialService.getSubMaterial(queryParams); // Must support pagination server-side
+            const res = await materialService.getSubMaterial(queryParams);
             const data = res.data || {};
             setsubMaterialTypes(data?.subMaterials || []);
-            setTotalPages(data.totalPages || 1);
             setTotalDocs(data.totalRecords || 0);
         } catch (err) {
-            console.error(err);
-            setError("Failed to fetch SubMaterials");
+            toast.error("Cloud synchronization failed");
         } finally {
             setLoading(false);
         }
     };
 
-    const fetchRoomById = async (id) => {
-        setLoading(true);
+    const fetchRoomById = async (roomId) => {
         try {
-            const res = await materialService.getMaterialRoomById(id); // Must support pagination server-side
-            const data = res.data || {};
-            setselectedRoom(data);
+            const res = await materialService.getMaterialRoomById(roomId);
+            setSelectedRoom(res.data || {});
         } catch (err) {
-            console.error(err);
-            setError("Failed to fetch Room Data");
-        } finally {
-            setLoading(false);
+            console.error("Failed to fetch Room Data");
         }
     };
 
-    const fetchMaterialById = async (id) => {
-        setLoading(true);
+    const fetchMaterialById = async (materialId) => {
         try {
-            const res = await materialService.getMaterialById(id); // Must support pagination server-side
-            const data = res.data || {};
-            setselectedMaterial(data);
+            const res = await materialService.getMaterialById(materialId);
+            setSelectedMaterial(res.data || {});
         } catch (err) {
-            console.error(err);
-            setError("Failed to fetch Room Data");
-        } finally {
-            setLoading(false);
+            console.error("Failed to fetch Material Data");
         }
     };
 
@@ -111,230 +111,250 @@ const SubMaterialDetails = () => {
         });
     };
 
-    const handleSearchChange = (e) => {
-        setQueryParams(prev => ({ ...prev, search: e.target.value, page: 1 }));
-    };
-
-    const handleChangePage = (_, newPage) => {
-        setQueryParams(prev => ({ ...prev, page: newPage + 1 }));
-    };
-
-    const handleChangeRowsPerPage = (e) => {
-        setQueryParams(prev => ({ ...prev, limit: parseInt(e.target.value, 10), page: 1 }));
-    };
-
-    const confirmDelete = (id) => {
-        setShowDeleteModal(true);
-        setDeleteTargetId(id);
-    };
-
     const handleDelete = async () => {
-        setDeletingId(deleteTargetId);
+        if (!deleteId) return;
+        setLocalLoading(true);
         try {
-            await materialService.deleteSubMaterial(deleteTargetId);
-            toast.success("SubMaterials deleted successfully");
+            await materialService.deleteSubMaterial(deleteId);
+            toast.success("Item decommissioned successfully");
             fetchSubMaterial();
         } catch (err) {
-            toast.error("Failed to delete SubMaterials");
+            toast.error("Revocation protocol failed");
         } finally {
-            setDeletingId(null);
-            setDeleteTargetId(null);
-            setShowDeleteModal(false);
+            setLocalLoading(false);
+            setDeleteId(null);
         }
     };
 
-    const handlesubMaterialsEdit = (data) => {
-        setsubMaterialFormData({ name: data.name, supplier: data?.supplier, price: data?.price });
-        seteditingSubMaterialId(data._id);
-        setopenSubMaterialFormDialog(true);
-    };
-
-    const handlesubMaterialsAddOrEdit = async () => {
+    const handleSave = async (e) => {
+        e.preventDefault();
         setLocalLoading(true);
         try {
-            const payload = {
-                ...subMaterialFormData,
-                roomId: id,
-                materialId: matId
-            }
-            if (editingSubMaterialId) {
-                await materialService.updateSubMaterial(editingSubMaterialId, subMaterialFormData);
-                toast.success("SubMaterials updated successfully");
+            const payload = { ...form, roomId: id, materialId: matId };
+            if (editingId) {
+                await materialService.updateSubMaterial(editingId, form);
+                toast.success("Item configuration updated");
             } else {
                 await materialService.addSubMaterial(payload);
-                toast.success("SubMaterials added successfully");
+                toast.success("New item registered");
             }
-            setsubMaterialFormData({ name: "", supplier: '', price: '' });
-            seteditingSubMaterialId(null);
             fetchSubMaterial();
-            setopenSubMaterialFormDialog(false);
+            setIsDialogOpen(false);
         } catch (err) {
-            toast.error("Failed to save SubMaterials");
+            toast.error("Data commitment failed");
         } finally {
             setLocalLoading(false);
         }
     };
 
     return (
-        <>
-            <Paper sx={{ padding: 2, boxShadow: 'none' }}>
-                {localLoading && (
-                    <Loading loading={true} background="rgba(0,0,0,0.5)" loaderColor="#fff" />
-                )}
+        <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="space-y-8 pb-12"
+        >
+            <div className="flex flex-wrap items-center gap-3">
+                <Button 
+                    variant="outline" 
+                    size="icon" 
+                    onClick={() => navigate(`/material/${id}`)}
+                    className="h-10 w-10 rounded-xl border-border/40 bg-background/50 backdrop-blur-sm hover:bg-primary hover:text-white transition-all shadow-sm"
+                >
+                    <MoveLeft className="w-5 h-5" />
+                </Button>
+                <div className="flex items-center gap-3 px-4 h-10 rounded-xl border border-border/40 bg-background/30 backdrop-blur-md">
+                    <Badge variant="secondary" className="px-2 py-0.5 font-black text-[9px] uppercase tracking-widest bg-primary/10 text-primary border-primary/20 italic">
+                        {selectedRoom?.name || '...'}
+                    </Badge>
+                    <span className="text-muted-foreground/20 font-black">/</span>
+                    <Badge variant="secondary" className="px-2 py-0.5 font-black text-[9px] uppercase tracking-widest border-primary/40 bg-primary text-white italic">
+                        {selectedMaterial?.name || '...'}
+                    </Badge>
+                </div>
+            </div>
 
-                <div className="text-center d-flex justify-content-between mb-4">
-                    <h3 className="fw-bold text-warning">SubMaterial Categories</h3>
-
-
-                    <div>
-                        <TextField
-                            label="Search"
-                            variant="outlined"
-                            size="small"
+            <PageHeader 
+                title="Inventory Registry" 
+                description="Technical specifications, logistical partners, and valuation metrics for selected components."
+            >
+                <div className="flex gap-4">
+                    <div className="relative w-64">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-primary w-4 h-4" />
+                        <Input 
+                            placeholder="Filter registry..." 
                             value={queryParams.search}
-                            onChange={handleSearchChange}
-                            style={{ marginInline: '10px' }}
+                            onChange={(e) => setQueryParams(p => ({ ...p, search: e.target.value, page: 1 }))}
+                            className="!pl-14 h-11 rounded-2xl bg-card/30 border-border/40 focus-visible:ring-primary/20 font-bold text-xs"
                         />
-                        <Button
-                            variant="contained"
-                            color="warning"
-                            onClick={() => {
-                                setsubMaterialFormData({ name: "", supplier: '', price: '' });
-                                seteditingSubMaterialId(null);
-                                setopenSubMaterialFormDialog(true);
-                            }}
-                            startIcon={<AiOutlinePlus />}
-                        >
-                            Add
+                    </div>
+                    <Button onClick={() => { setEditingId(null); setForm({ name: "", price: "", supplier: "" }); setIsDialogOpen(true); }} className="rounded-xl shadow-lg shadow-primary/20 h-11 px-8 bg-primary text-white hover:opacity-90 font-bold italic tracking-tight">
+                        <Plus className="w-4 h-4 mr-2" />
+                        NEW ENTRY
+                    </Button>
+                </div>
+            </PageHeader>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <StatCard title="Inventory Depth" value={totalDocs} icon={ClipboardList} description="Total specifications" delay={0.1} trend={null} />
+                <StatCard title="Unit Protocol" value={selectedRoom?.percentageType ? "Percentage %" : "Currency $"} icon={DollarSign} description="Valuation basis" delay={0.2} trend={null} />
+            </div>
+
+            <Card className="border-border/40 bg-card/30 backdrop-blur-md shadow-2xl overflow-hidden rounded-[2.5rem]">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-10 px-10 pt-10">
+                    <div className="flex items-center gap-5">
+                        <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary border border-primary/20 shadow-md">
+                            <Layers className="w-7 h-7" />
+                        </div>
+                        <div className="space-y-1">
+                            <CardTitle className="text-2xl font-black italic tracking-tighter">Inventory Matrix</CardTitle>
+                            <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Deep-level structural item metadata</CardDescription>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                    <div className="overflow-x-auto px-2">
+                        <Table>
+                            <TableHeader className="bg-primary/5">
+                                <TableRow className="border-border/40 hover:bg-transparent">
+                                    <TableHead className="px-10 h-14">
+                                        <button onClick={() => handleSort("name")} className="flex items-center gap-3 hover:text-primary transition-colors text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 italic">
+                                            Item Specification
+                                            <ArrowUpDown className={cn("w-3 h-3 transition-colors", queryParams.sortField === 'name' ? 'text-primary' : 'text-muted-foreground/20')} />
+                                        </button>
+                                    </TableHead>
+                                    <TableHead className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 italic">Supplier Ref</TableHead>
+                                    <TableHead className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 italic">Unit Protocol</TableHead>
+                                    <TableHead className="text-right pr-10 text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 italic">Controls</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                <AnimatePresence mode="wait">
+                                    {loading ? (
+                                        Array(5).fill(0).map((_, i) => (
+                                            <TableRow key={i} className="animate-pulse border-border/50">
+                                                <TableCell className="px-8 py-4"><div className="h-4 w-64 bg-muted rounded" /></TableCell>
+                                                <TableCell className="py-4"><div className="h-4 w-32 bg-muted rounded" /></TableCell>
+                                                <TableCell className="py-4"><div className="h-4 w-16 bg-muted rounded" /></TableCell>
+                                                <TableCell className="text-right pr-8 py-4"><div className="h-8 w-24 bg-muted rounded float-right" /></TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : subMaterialTypes.length === 0 ? (
+                                        <TableRow>
+                                            <TableCell colSpan={4} className="py-20 text-center text-muted-foreground font-medium uppercase tracking-[0.2em] text-[10px]">
+                                                No items identified in current structural registry.
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : (
+                                        subMaterialTypes.map((data, idx) => (
+                                            <TableRow key={data._id} className="group border-border/50 hover:bg-muted/10 transition-colors">
+                                                <TableCell className="px-8 py-4 text-sm">
+                                                    <span className="font-bold text-foreground transition-colors group-hover:text-primary">{data.name || '-'}</span>
+                                                </TableCell>
+                                                <TableCell className="py-4">
+                                                    <div className="flex items-center gap-2 text-muted-foreground font-bold text-[10px] uppercase tracking-wide">
+                                                        <Truck className="w-3.5 h-3.5 opacity-40" />
+                                                        {data.supplier || 'N/A'}
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="py-4">
+                                                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/5 border border-primary/20 text-primary">
+                                                        {selectedRoom?.percentageType ? <Percent className="w-3 h-3" /> : <DollarSign className="w-3 h-3" />}
+                                                        <span className="text-xs font-black tracking-tight">{data.price || '0.00'}</span>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="text-right pr-8 py-4">
+                                                    <div className="flex justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-all">
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-background" onClick={() => { setEditingId(data._id); setForm({ name: data.name, price: data.price, supplier: data.supplier || "" }); setIsDialogOpen(true); }}>
+                                                            <Edit2 className="w-3.5 h-3.5 text-muted-foreground" />
+                                                        </Button>
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-destructive/10 hover:text-destructive" onClick={() => setDeleteId(data._id)}>
+                                                            <Trash2 className="w-3.5 h-3.5 text-muted-foreground" />
+                                                        </Button>
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    )}
+                                </AnimatePresence>
+                            </TableBody>
+                        </Table>
+                    </div>
+                </CardContent>
+                <div className="px-8 py-5 border-t border-border/50 flex items-center justify-between bg-muted/20">
+                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                        Inventory Sync &bull; {totalDocs} Items Registered
+                    </span>
+                    <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm" className="h-8 rounded-lg border-border/50 text-[10px] font-black uppercase tracking-widest" disabled={queryParams.page === 1} onClick={() => setQueryParams(p => ({ ...p, page: p.page - 1 }))}>
+                            <ChevronLeft className="w-4 h-4 mr-1" /> Prev
+                        </Button>
+                        <div className="h-8 px-4 rounded-lg bg-background border border-border/50 flex items-center justify-center text-[10px] font-black text-primary">{queryParams.page}</div>
+                        <Button variant="outline" size="sm" className="h-8 rounded-lg border-border/50 text-[10px] font-black uppercase tracking-widest" disabled={subMaterialTypes.length < queryParams.limit} onClick={() => setQueryParams(p => ({ ...p, page: p.page + 1 }))}>
+                            Next <ChevronRight className="w-4 h-4 ml-1" />
                         </Button>
                     </div>
                 </div>
-                <div>
-                    <h5 className="fw-bolder text-muted">Room: {selectedRoom?.name || '-'}</h5>
-                    <h5 className="fw-bolder text-muted">Material: {selectedMaterial?.name || '-'}</h5>
-                </div>
-                {loading ? (
-                    <Loading loading={true} loaderColor="#f18271" />
-                ) : error ? (
-                    <div className="text-danger">{error}</div>
-                ) : (
-                    <>
-                        <TableContainer component={Paper} style={{ boxShadow: 'none', border: '1px solid #80808075' }}>
-                            <Table>
-                                <TableHead>
-                                    <TableRow style={{ backgroundColor: "#f3f4f6" }}>
-                                        <TableCell>
-                                            <TableSortLabel
-                                                active={queryParams.sortField === "name" && queryParams.sortOrder !== 0}
-                                                direction={queryParams.sortOrder === 1 ? "asc" : "desc"}
-                                                onClick={() => handleSort("name")}
-                                            >
-                                                Name
-                                            </TableSortLabel>
-                                        </TableCell>
-                                        <TableCell>Supplier</TableCell>
-                                        <TableCell>Value</TableCell>
-                                        <TableCell>Actions</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {subMaterialTypes.map((data) => (
-                                        <TableRow key={data._id}>
-                                            <TableCell>{data.name ? data.name : '-'}</TableCell>
-                                            <TableCell>{data.supplier ? data.supplier : '-'}</TableCell>
-                                            <TableCell>{data.price ? data.price : '-'}</TableCell>
-                                            <TableCell>
-                                                <FiEdit
-                                                    className="me-3"
-                                                    style={{ cursor: 'pointer' }}
-                                                    onClick={() => handlesubMaterialsEdit(data)}
-                                                />
-                                                <FiTrash2
-                                                    className="me-3"
-                                                    style={{ cursor: 'pointer', opacity: deletingId === data._id ? 0.5 : 1 }}
-                                                    onClick={() => confirmDelete(data._id)}
-                                                />
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
+            </Card>
 
-
-                        {
-                            subMaterialTypes?.length === 0 ?
-                                <div className="text-center">
-                                    No Data Found
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogContent className="sm:max-w-xl rounded-[2rem] p-0 overflow-hidden border-border/50 shadow-2xl">
+                    <DialogHeader className="px-10 pt-10 pb-6 border-b border-border/50 bg-muted/20">
+                        <DialogTitle className="text-3xl font-black tracking-tight">{editingId ? "Refine Item" : "New Inventory Entry"}</DialogTitle>
+                        <CardDescription className="text-sm">Configure structural item specifications and valuation protocols.</CardDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleSave} className="p-10 pb-6 space-y-8">
+                        <div className="space-y-6">
+                            <div className="space-y-2">
+                                <Label htmlFor="iName">Structural Nomenclature</Label>
+                                <Input id="iName" required value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} className="rounded-xl h-12 bg-muted/20 border-border/50 focus-visible:ring-primary/20" placeholder="e.g. Premium White Oak" />
+                            </div>
+                            <div className="grid grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <Label htmlFor="iPrice">{selectedRoom?.percentageType ? "Percentage %" : "Unit Value $"}</Label>
+                                    <div className="relative">
+                                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-xs">
+                                            {selectedRoom?.percentageType ? "%" : "$"}
+                                        </div>
+                                        <Input id="iPrice" type="number" step="0.01" required value={form.price} onChange={e => setForm(p => ({ ...p, price: e.target.value }))} className="pl-8 rounded-xl h-12 bg-muted/20 border-border/50 focus-visible:ring-primary/20" placeholder="0.00" />
+                                    </div>
                                 </div>
-                                : ''
-                        }
+                                <div className="space-y-2">
+                                    <Label htmlFor="iSupplier">Primary Supplier</Label>
+                                    <Input id="iSupplier" value={form.supplier} onChange={e => setForm(p => ({ ...p, supplier: e.target.value }))} className="rounded-xl h-12 bg-muted/20 border-border/50 focus-visible:ring-primary/20" placeholder="e.g. Global Resources" />
+                                </div>
+                            </div>
+                        </div>
+                        <DialogFooter className="pt-6 border-t border-border/50">
+                            <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl font-bold h-11">Discard</Button>
+                            <Button type="submit" disabled={localLoading} className="rounded-xl font-bold px-10 h-11 shadow-lg shadow-primary/20">
+                                {localLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : "Commit Item"}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
 
-
-                        <TablePagination
-                            component="div"
-                            count={totalDocs}
-                            page={queryParams.page - 1}
-                            onPageChange={handleChangePage}
-                            rowsPerPage={queryParams.limit}
-                            onRowsPerPageChange={handleChangeRowsPerPage}
-                            rowsPerPageOptions={[5, 10, 25, 50]}
-                        />
-                    </>
-                )}
-
-                {/* Delete Modal */}
-                <Dialog open={showDeleteModal} onClose={() => setShowDeleteModal(false)} fullWidth maxWidth="xs">
-                    <DialogTitle>Confirm Deletion</DialogTitle>
-                    <DialogContent>Are you sure you want to delete this SubMaterials?</DialogContent>
-                    <DialogActions>
-                        <Button onClick={() => setShowDeleteModal(false)} color="secondary">Cancel</Button>
-                        <Button onClick={handleDelete} color="error" disabled={deletingId === deleteTargetId}>
-                            {deletingId === deleteTargetId ? "Deleting..." : "Delete"}
-                        </Button>
-                    </DialogActions>
-                </Dialog>
-
-                {/* Add/Edit Room Dialog */}
-                <Dialog open={openSubMaterialFormDialog} onClose={() => setopenSubMaterialFormDialog(false)} fullWidth>
-                    <DialogTitle>{editingSubMaterialId ? "Edit SubMaterials" : "Add SubMaterials"}</DialogTitle>
-                    <DialogContent>
-                        <TextField
-                            fullWidth
-                            label="SubMaterials Name"
-                            variant="outlined"
-                            margin="dense"
-                            value={subMaterialFormData.name}
-                            onChange={(e) => setsubMaterialFormData(prev => ({ ...prev, name: e.target.value }))}
-                        />
-                        <TextField
-                            fullWidth
-                            label="SubMaterials Supplier"
-                            variant="outlined"
-                            margin="dense"
-                            value={subMaterialFormData.supplier}
-                            onChange={(e) => setsubMaterialFormData(prev => ({ ...prev, supplier: e.target.value }))}
-                        />
-                        <TextField
-                            type="number"
-                            fullWidth
-                            label={`SubMaterials ${selectedRoom?.percentageType ? 'Percentage' : 'Price'}`}
-                            variant="outlined"
-                            margin="dense"
-                            value={subMaterialFormData.price}
-                            onChange={(e) => setsubMaterialFormData(prev => ({ ...prev, price: e.target.value }))}
-                        />
-                    </DialogContent>
-                    <DialogActions>
-                        <Button onClick={() => setopenSubMaterialFormDialog(false)} color="secondary">Cancel</Button>
-                        <Button onClick={handlesubMaterialsAddOrEdit} variant="contained" color="primary">
-                            {editingSubMaterialId ? "Update" : "Add"}
-                        </Button>
-                    </DialogActions>
-                </Dialog>
-            </Paper>
-        </>
-    )
-}
+            <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+                <AlertDialogContent className="rounded-[2.5rem] border-border/50 shadow-2xl max-w-md p-10">
+                    <AlertDialogHeader className="items-center text-center">
+                        <div className="w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center mb-6">
+                            <Trash2 className="w-10 h-10 text-destructive" />
+                        </div>
+                        <AlertDialogTitle className="text-3xl font-black tracking-tight">Revoke Entry?</AlertDialogTitle>
+                        <AlertDialogDescription className="text-base font-medium leading-relaxed">
+                            This will permanently decommission this item from the active inventory registry. This operation is terminal.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="mt-10 gap-4 sm:flex-row sm:justify-center">
+                        <AlertDialogCancel className="rounded-xl h-12 px-10 font-bold border-border/50">Maintain Policy</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90 rounded-xl h-12 px-10 font-bold text-white shadow-lg shadow-destructive/20 border-none transition-all active:scale-[0.98]">
+                            {localLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Revoke Permanently"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </motion.div>
+    );
+};
 
 export default SubMaterialDetails;

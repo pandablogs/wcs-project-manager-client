@@ -1,13 +1,164 @@
-body {
-  margin: 0;
-  /* font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif; */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-sans: 'Inter', system-ui, sans-serif;
+    --font-display: 'Outfit', system-ui, sans-serif;
+    --background: 210 30% 98%;
+    --foreground: 222 47% 11%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 238 83% 60%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --sidebar-background: 222 47% 11%;
+    --sidebar-foreground: 210 40% 98%;
+    --primary: 238 83% 60%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+  }
+
+  .dark {
+    --font-sans: 'Inter', system-ui, sans-serif;
+    --font-display: 'Outfit', system-ui, sans-serif;
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+    --border: 215 28% 17%;
+    --input: 215 28% 17%;
+    --ring: 238 83% 60%;
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+    --sidebar-background: 224 50% 8%;
+    --sidebar-foreground: 210 40% 98%;
+    --primary: 238 83% 60%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 215 28% 17%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 215 28% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 215 28% 17%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+  }
+
+  html {
+    @apply antialiased scroll-smooth;
+    font-family: var(--font-sans);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+    @apply font-bold;
+  }
+
+  .font-glitch {
+    position: relative;
+    display: inline-block;
+    color: var(--foreground);
+    text-shadow: -1.5px 0 rgba(255, 0, 0, 0.5), 1.5px 0 rgba(0, 255, 255, 0.5);
+    transition: text-shadow 0.2s ease;
+  }
+
+  .font-glitch:hover {
+    text-shadow: -2.5px 0.5px rgba(255, 0, 0, 0.6), 2.5px -0.5px rgba(0, 255, 255, 0.6);
+  }
+
+  body {
+    @apply min-h-screen bg-background text-foreground selection:bg-primary/30 selection:text-primary-foreground dark:selection:text-primary-foreground;
+  }
+
+  /* Custom Scrollbar for Premium Look */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 transition-colors;
+  }
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+@layer components {
+  .glass {
+    @apply bg-white/70 backdrop-blur-md border border-white/20 dark:bg-slate-950/70 dark:border-slate-800/50;
+  }
+
+  .card-premium {
+    @apply rounded-2xl border border-slate-200 bg-white shadow-soft transition-all duration-300 hover:shadow-premium dark:border-slate-800 dark:bg-slate-900/50 dark:hover:shadow-premium-dark;
+  }
+}
+
+/* MUI dark-mode overrides - Preserving business logic */
+html.dark .MuiPaper-root {
+  background-color: #0b1220 !important;
+  color: #f8fafc !important;
+  background-image: none !important;
+}
+
+html.dark .MuiDialog-paper {
+  background-color: #0b1220 !important;
+  color: #f8fafc !important;
+}
+
+html.dark .MuiTableCell-root {
+  color: #cbd5e1 !important;
+  border-color: rgba(148, 163, 184, 0.1) !important;
+}
+
+html.dark .MuiTableHead-root .MuiTableCell-root {
+  background-color: #0f172a !important;
+  color: #f1f5f9 !important;
+  border-color: rgba(148, 163, 184, 0.2) !important;
+}
+
+html.dark .MuiTableRow-root:hover .MuiTableCell-root {
+  background-color: rgba(15, 23, 42, 0.5) !important;
+}
+
+html.dark .MuiOutlinedInput-root {
+  background-color: rgba(15, 23, 42, 0.4) !important;
+}
+
+html.dark .MuiOutlinedInput-notchedOutline {
+  border-color: rgba(148, 163, 184, 0.2) !important;
+}
+
+html.dark .MuiInputLabel-root {
+  color: rgba(226, 232, 240, 0.6) !important;
+}
+
+html.dark .MuiInputBase-input {
+  color: #f1f5f9 !important;
+}
+
+/* Fix for Toastify in Premium Style */
+.wcs-toastify-toast {
+  @apply !rounded-2xl !border !shadow-premium !p-4;
+}
+
+.dark .wcs-toastify-toast {
+  @apply !shadow-premium-dark;
 }

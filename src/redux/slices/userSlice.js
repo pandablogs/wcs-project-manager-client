@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
     user: null,
+    loading: false,
     stats: {
         totalAdmins: 0,
         amountInvested: 0,

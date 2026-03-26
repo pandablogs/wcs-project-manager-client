@@ -1,15 +1,15 @@
 import React, { useState } from "react";
-import { TextField, Typography, Box } from "@mui/material";
 import { useDispatch } from "react-redux";
 import { setUser } from "../../redux/slices/userSlice";
 import { toast } from "react-toastify";
-import Loading from "react-fullscreen-loading";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import authServices from "../../services/authServices";
-import logov1 from "../../assets/images/logo/wcs-pm.png";
-import starSVG from "../../assets/svgs/star.svg";
-import "../../components/common/Login.scss";
-
+import { Button } from "../../components/ui/Button";
+import { Input } from "../../components/ui/Input";
+import { Label } from "../../components/ui/Label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/Card";
+import { Building2, Loader2 } from "lucide-react";
+import { motion } from "framer-motion";
 
 const Login = () => {
     const navigate = useNavigate();
@@ -59,103 +59,85 @@ const Login = () => {
     };
 
     return (
-        <div className="login-page">
-            {/* <div className="login-left">
-                <img className=' position-absolute star-svg' src={starSVG}></img>
-                <div className="d-flex">
-                    <img src={logov1} alt="Professional" className="login-image" />
-                    <h3 className="logo-title pt-3 px-2 fw-bold ">Project Manager</h3>
-                </div>
-                <div className="ads-card">
-                    <div className="row">
-                        <div className="example-2 card">
-                            <div className="wrapper">
-                                <div className="header">
-                                    <div className="date">
-                                        <span className="day">12</span>
-                                        <span className="month">Aug</span>
-                                        <span className="year">2016</span>
-                                    </div>
-
-                                </div>
-                                <div className="data">
-                                    <div className="content">
-                                        <h3 className="title">Project Planning & Scheduling</h3>
-                                        <h3 className="title">Budgeting & Financial Management</h3>
-                                        <h3 className="title">Cost estimation and tracking</h3>
-                                        <h3 className="title">Automated scheduling & Gantt charts </h3>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div className="login-text">
-
-                    <Typography className="login-title">
-                        CONNECTING BRANDS TO AUDIENCE
-                    </Typography>
-                    <Typography className="login-description">
-                        Empower Brands to create meaningful connections with audiences,
-                        delivering impactful advertising experiences.
-                    </Typography>
-                </div>
-            </div> */}
-
-
-            <div className="login-right">
-                <Box className="login-container" sx={{ maxWidth: "500px", margin: "40px auto", padding: "30px", borderRadius: "10px", backgroundColor: "#fff" }}>
-                    <h1 className="login-header text-left" >
-                        Login to Project Manager
-                    </h1>
-                    <p className="login-subtitle text-left mb-4">
-                        Welcome back! Please enter your details.
-                    </p>
-
-
-                    {error && <Typography color="error" sx={{ marginBottom: "20px", textAlign: "center" }}>{error}</Typography>}
-                    {/* <hr className="mt-5 mb-5 divied-line"></hr> */}
-
-                    <form className="login-form" onSubmit={handleSubmit}>
-
-                        <TextField
-                            fullWidth
-                            label="Email"
-                            variant="outlined"
-                            margin="normal"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                        <TextField
-                            fullWidth
-                            label="Password"
-                            type="password"
-                            variant="outlined"
-                            margin="normal"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-
-                        <button
-                            type="submit"
-                            className="login-button"
-                        >
-                            Log in
-                        </button>
-                    </form>
-
-                    <p className="signup-link mt-4 fw-semibold text-center ">Don't have an account yet? <a onClick={() => navigate("/signup")}>Sign up now</a></p>
-                    {/* <p className="signup-link mt-4 fw-semibold text-center ">Forget password? <a href='/forget-password' onClick={() => navigate("/forget-password")}>Reset now</a></p> */}
-                    <Typography variant="body2" className="login-footer" sx={{ textAlign: "center", fontSize: "12px", color: "#666" }}>
-                        © Project Manager 2025
-                    </Typography>
-                </Box>
-
-                {/* <Typography variant="body2" className="login-footer" sx={{ textAlign: "center", fontSize: "12px", color: "#666" }}>
-                    © Project Manager 2025
-                </Typography> */}
+        <div className="min-h-screen w-full flex items-center justify-center bg-slate-50 dark:bg-slate-950 relative overflow-hidden">
+            <div className="absolute inset-0 z-0">
+                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
+                <div className="absolute top-0 left-0 w-full h-full opacity-[0.03] dark:opacity-[0.05] pointer-events-none" 
+                     style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, gray 1px, transparent 0)', backgroundSize: '24px 24px' }}></div>
             </div>
-            {isLoading && <Loading loading={true} loaderColor="#f18271" />}
+
+            <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+                className="z-10 w-full max-w-md px-4"
+            >
+                <div className="flex flex-col items-center mb-8">
+                    <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center shadow-xl shadow-primary/30 mb-4">
+                        <Building2 className="w-7 h-7 text-primary-foreground" />
+                    </div>
+                    <h1 className="text-3xl font-display font-bold tracking-tight text-foreground">WCS Manager</h1>
+                    <p className="text-muted-foreground mt-2 text-center">Project Planning & Management</p>
+                </div>
+
+                <Card className="border-border/50 shadow-2xl bg-card/80 backdrop-blur-xl rounded-2xl overflow-hidden">
+                    <CardHeader className="space-y-1 pb-6 text-center">
+                        <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
+                        <CardDescription>Enter your credentials to access your account</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            {error && (
+                                <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm text-center">
+                                    {error}
+                                </div>
+                            )}
+                            <div className="space-y-2">
+                                <Label htmlFor="email">Email</Label>
+                                <Input 
+                                    id="email" 
+                                    type="email" 
+                                    placeholder="name@example.com" 
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="h-11 rounded-lg bg-background/50 border-muted focus-visible:ring-primary/30"
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <Label htmlFor="password">Password</Label>
+                                    <Link to="/forget-password" data-sidebar="link" className="text-sm font-medium text-primary hover:underline">Forgot password?</Link>
+                                </div>
+                                <Input 
+                                    id="password" 
+                                    type="password" 
+                                    placeholder="••••••••" 
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="h-11 rounded-lg bg-background/50 border-muted focus-visible:ring-primary/30"
+                                    required
+                                />
+                            </div>
+                            <Button 
+                                type="submit" 
+                                className="w-full h-11 rounded-lg text-base font-medium shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-[0.98]" 
+                                disabled={isLoading}
+                            >
+                                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Sign in"}
+                            </Button>
+                        </form>
+                        
+                        <div className="mt-6 text-center text-sm text-muted-foreground">
+                            <p>Don't have an account yet? <Link to="/signup" className="text-primary font-medium hover:underline">Sign up now</Link></p>
+                        </div>
+                    </CardContent>
+                </Card>
+                
+                <p className="mt-8 text-center text-xs text-muted-foreground">
+                    © WCS Project Manager 2026
+                </p>
+            </motion.div>
         </div>
     );
 };

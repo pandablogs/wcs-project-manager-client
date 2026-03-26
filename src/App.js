@@ -1,12 +1,10 @@
-import React from "react";
+import React, { createContext, useEffect, useMemo, useState } from "react";
 import { HashRouter as Router, Routes, Route } from "react-router-dom";
 import { Provider } from "react-redux";
-import { CssBaseline, Container } from "@mui/material";
 import store from "./redux/store";
 import AuthRouteMiddleware from "./middleware/AuthRouteMiddleware";
 import NonAuthRouteMiddleware from "./middleware/NonAuthRouteMiddleware";
 import AuthLayout from "./layouts/AuthLayout";
-import NonAuthLayout from "./layouts/NonAuthLayout";
 import Home from "./pages/Public/Home";
 import Dashboard from "./pages/Authenticated/Dashboard";
 import Login from "./pages/Public/Login";
@@ -24,13 +22,23 @@ import MaterialPage from "./pages/Admin/MaterialPage";
 import Estimater from "./pages/Authenticated/Estimater";
 import ForgetPassword from "./components/common/ForgetPassword";
 
-import "bootstrap/dist/css/bootstrap.min.css";
-import './App.css'
+import './App.css'; 
+import 'react-toastify/dist/ReactToastify.css';
 import Category from "./pages/Admin/Category";
 import MaterialDetails from "./pages/Admin/MaterialDetails";
 import SubMaterialDetails from "./pages/Admin/SubMaterialDetails.js";
 import MaterialList from "./pages/Admin/MaterialList";
 import RehabGroups from "./pages/Admin/RehabGroups";
+
+export const ThemeContext = createContext({
+  theme: "light",
+  setTheme: () => {},
+});
+
+export const LoadingContext = createContext({
+  loading: false,
+  setLoading: () => {},
+});
 
 const nonAuthRoutes = [
   { path: "/login", element: <Login /> },
@@ -57,52 +65,85 @@ const authRoutes = [
   { path: "/project-estimater/:id", element: <Estimater />, roles: ["admin", "project_manager", "user"] },
   { path: "/project-list", element: <ProjectList />, roles: ["admin", "project_manager", "user"] }
 ];
+
 const App = () => {
+  const THEME_KEY = "wcs_theme";
+
+  const getInitialTheme = () => {
+    try {
+      const saved = localStorage.getItem(THEME_KEY);
+      if (saved === "light" || saved === "dark") return saved;
+      return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light";
+    } catch {
+      return "light";
+    }
+  };
+
+  const [theme, setTheme] = useState(getInitialTheme);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    try {
+      localStorage.setItem(THEME_KEY, theme);
+    } catch {
+      // ignore
+    }
+  }, [theme]);
+
+  const themeValue = useMemo(() => ({ theme, setTheme }), [theme]);
+  const loadingValue = useMemo(() => ({ loading, setLoading }), [loading]);
 
   return (
-    <Provider store={store}>
-      <CssBaseline />
-      <Router>
-        <div>
-          <ToastContainer
-            position="bottom-right"
-            autoClose={1500}
-            theme="colored"
-          />
-          <Routes>
-            {/* Non-Authenticated Routes */}
-            {nonAuthRoutes.map(({ path, element }) => (
-              <Route key={path} path={path} element={
-                <NonAuthRouteMiddleware>{element}</NonAuthRouteMiddleware>
-              } />
-            ))}
+    <ThemeContext.Provider value={themeValue}>
+      <LoadingContext.Provider value={loadingValue}>
+        <Provider store={store}>
+          <Router>
+            <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
+              <ToastContainer
+                position="bottom-right"
+                autoClose={1500}
+                theme={theme === "dark" ? "dark" : "light"}
+                toastClassName="!rounded-2xl !border-slate-200 !shadow-soft dark:!border-slate-800"
+              />
+              <Routes>
+                {/* Non-Authenticated Routes */}
+                {nonAuthRoutes.map(({ path, element }) => (
+                  <Route
+                    key={path}
+                    path={path}
+                    element={<NonAuthRouteMiddleware>{element}</NonAuthRouteMiddleware>}
+                  />
+                ))}
 
-            {/* Authenticated Routes */}
-            <Route>
-              {authRoutes.map(({ path, element, roles }) => (
+                {/* Authenticated Routes */}
+                <Route>
+                  {authRoutes.map(({ path, element, roles }) => (
+                    <Route
+                      key={path}
+                      path={path}
+                      element={
+                        <AuthRouteMiddleware roles={roles}>
+                          <AuthLayout>{element}</AuthLayout>
+                        </AuthRouteMiddleware>
+                      }
+                    />
+                  ))}
+                </Route>
+
+                {/* Public Route (Home) */}
                 <Route
-                  key={path}
-                  path={path}
-                  element={
-                    <AuthRouteMiddleware roles={roles}>
-                      <AuthLayout>{element}</AuthLayout>
-                    </AuthRouteMiddleware>
-                  }
+                  path="/"
+                  element={<Home />}
                 />
-              ))}
-            </Route>
-
-            {/* Public Route (Home) */}
-            <Route path="/" element={
-              // <NonAuthLayout>
-              <Home />
-              // </NonAuthLayout>
-            }
-            />
-          </Routes>
-        </div>
-      </Router>
-    </Provider>
+              </Routes>
+            </div>
+          </Router>
+        </Provider>
+      </LoadingContext.Provider>
+    </ThemeContext.Provider>
   );
 };
 

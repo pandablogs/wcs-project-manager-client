@@ -1,17 +1,17 @@
 import React, { useState } from "react";
-import { Container, TextField, Button, Typography, Box } from "@mui/material";
-import "../../components/common/Login.scss";
-import authServices from '../../services/authServices';
 import { useDispatch } from "react-redux";
 import { setUser } from "../../redux/slices/userSlice";
-import { toast } from 'react-toastify';
-import Loading from 'react-fullscreen-loading';
+import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import logov1 from "../../assets/images/logo/wcs-pm.png";
-import starSVG from "../../assets/svgs/star.svg";
-import "../../components/common/Login.scss";
+import { Users, Loader2, Briefcase, LogIn } from "lucide-react";
+import authServices from "../../services/authServices";
+import { Button } from "../../components/ui/Button";
+import { Input } from "../../components/ui/Input";
+import { Label } from "../../components/ui/Label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/Card";
+import { motion } from "framer-motion";
 
-const Login = () => {
+const StaffLogin = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const [email, setEmail] = useState("");
@@ -33,125 +33,114 @@ const Login = () => {
             setError("Please enter a valid email address.");
             return;
         }
+        
         let payload = {
             email: email,
             password: password,
             role_type: role,
         }
+
         try {
+            setIsLoading(true);
             const response = await authServices.login(payload);
             localStorage.setItem("_token", response?.token || '');
             dispatch(setUser(response.user));
             localStorage.setItem("role_type", role);
-            toast.success("Login successful!");
+            toast.success("Welcome back, Project Manager!");
+            
             setTimeout(() => {
                 navigate("/projectManager/dashboard");
                 setIsLoading(false)
-            }, 1500);
+            }, 1000);
 
         } catch (error) {
             setIsLoading(false)
-            setError(error.response?.data?.message || "Signup failed.");
+            const msg = error.response?.data?.message || "Authentication failed.";
+            setError(msg);
+            toast.error(msg);
         }
     };
 
     return (
-        <div className="login-page">
-            {/* <div className="login-left">
-                <img className=' position-absolute star-svg' src={starSVG}></img>
-                <div className="d-flex">
-                    <img src={logov1} alt="Professional" className="login-image" />
-                    <h3 className="logo-title pt-3 px-2 fw-bold ">Project Manager</h3>
-                </div>
-                <div className="ads-card">
-                    <div className="row">
-                        <div className="example-2 card">
-                            <div className="wrapper">
-                                <div className="header">
-                                    <div className="date">
-                                        <span className="day">12</span>
-                                        <span className="month">Aug</span>
-                                        <span className="year">2016</span>
-                                    </div>
-
-                                </div>
-                                <div className="data">
-                                    <div className="content">
-                                        <h3 className="title">Project Planning & Scheduling</h3>
-                                        <h3 className="title">Budgeting & Financial Management</h3>
-                                        <h3 className="title">Cost estimation and tracking</h3>
-                                        <h3 className="title">Automated scheduling & Gantt charts </h3>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div className="login-text">
-
-                    <Typography className="login-title">
-                        CONNECTING BRANDS TO AUDIENCE
-                    </Typography>
-                    <Typography className="login-description">
-                        Empower Brands to create meaningful connections with audiences,
-                        delivering impactful advertising experiences.
-                    </Typography>
-                </div>
-            </div> */}
-
-
-            <div className="login-right">
-                <Box className="login-container" sx={{ maxWidth: "500px", margin: "84px auto", padding: "30px", borderRadius: "10px", backgroundColor: "#fff" }}>
-                    <h1 className="login-header text-left" >
-                        Login to Project Manager
-                    </h1>
-                    <p className="login-subtitle text-left mb-5">
-                        Welcome back! Please enter your details.
-                    </p>
-
-
-                    {error && <Typography color="error" sx={{ marginBottom: "20px", textAlign: "center" }}>{error}</Typography>}
-                    {/* <hr className="mt-5 mb-5 divied-line"></hr> */}
-
-                    <form className="login-form mt-0" onSubmit={handleSubmit}>
-
-                        <TextField
-                            fullWidth
-                            label="Email"
-                            variant="outlined"
-                            margin="normal"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                        <TextField
-                            fullWidth
-                            label="Password"
-                            type="password"
-                            variant="outlined"
-                            margin="normal"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-
-                        <button
-                            type="submit"
-                            className="login-button"
-                        >
-                            Log in
-                        </button>
-                    </form>
-
-                    {/* <p className="signup-link mt-4 fw-semibold text-center ">Don't have an account yet? <a href='/signup' onClick={() => navigate("/signup")}>Sign up now</a></p> */}
-                    {/* <p className="signup-link mt-4 fw-semibold text-center ">Forget password? <a href='/forget-password' onClick={() => navigate("/forget-password")}>Reset now</a></p> */}
-                </Box>
-
-                <Typography variant="body2" className="login-footer" sx={{ textAlign: "center", marginTop: "20px", fontSize: "12px", color: "#666" }}>
-                    © Project Manager 2025
-                </Typography>
+        <div className="min-h-screen w-full flex items-center justify-center bg-slate-50 dark:bg-slate-950 relative overflow-hidden">
+            <div className="absolute inset-0 z-0 opacity-[0.4]">
+                <div className="absolute top-0 left-0 w-full h-[50%] bg-gradient-to-b from-primary/10 to-transparent" />
+                <div className="absolute bottom-0 right-0 w-full h-[50%] bg-gradient-to-t from-blue-500/5 to-transparent" />
             </div>
-            {isLoading && <Loading loading={true} loaderColor="#f18271" />}
+
+            <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+                className="z-10 w-full max-w-lg px-4"
+            >
+                <div className="flex flex-col items-center mb-10">
+                    <div className="w-14 h-14 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl flex items-center justify-center mb-6">
+                        <Briefcase className="w-8 h-8 text-primary" />
+                    </div>
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[11px] font-bold uppercase tracking-wider mb-4">
+                        <Users className="w-3 h-3" />
+                        Project Manager Portal
+                    </div>
+                    <h1 className="text-4xl font-display font-black tracking-tight text-foreground text-center">Staff Entrance</h1>
+                </div>
+
+                <Card className="border-border/50 shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] bg-card/80 backdrop-blur-xl rounded-[2rem] overflow-hidden p-2">
+                    <CardHeader className="space-y-1 pb-8 pt-6 text-center">
+                        <CardTitle className="text-2xl font-bold">Authorized Access</CardTitle>
+                        <CardDescription>Enter your staff credentials to manage your assigned projects.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="px-6 pb-8">
+                        <form onSubmit={handleSubmit} className="space-y-5">
+                            {error && (
+                                <div className="p-4 rounded-2xl bg-destructive/10 border border-destructive/20 text-destructive text-sm text-center font-medium">
+                                    {error}
+                                </div>
+                            )}
+                            <div className="space-y-2.5">
+                                <Label htmlFor="email">Work Email</Label>
+                                <Input 
+                                    id="email" 
+                                    type="email" 
+                                    placeholder="pm@wcs-manager.com" 
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="h-12 rounded-xl bg-background border-muted/50 focus-visible:ring-primary/20 focus-visible:border-primary transition-all px-4"
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2.5">
+                                <div className="flex items-center justify-between">
+                                    <Label htmlFor="password">Staff Password</Label>
+                                </div>
+                                <Input 
+                                    id="password" 
+                                    type="password" 
+                                    placeholder="••••••••" 
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="h-12 rounded-xl bg-background border-muted/50 focus-visible:ring-primary/20 focus-visible:border-primary transition-all px-4"
+                                    required
+                                />
+                            </div>
+                            <Button 
+                                type="submit" 
+                                className="w-full h-14 rounded-xl text-base font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-[0.98] mt-6 bg-primary" 
+                                disabled={isLoading}
+                            >
+                                {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <LogIn className="w-5 h-5 mr-2" />}
+                                {isLoading ? "Verifying Credentials..." : "Launch Workspace"}
+                            </Button>
+                        </form>
+                    </CardContent>
+                </Card>
+                
+                <p className="mt-10 text-center text-[11px] font-bold text-muted-foreground uppercase tracking-[0.25em]">
+                    Internal Networking &bull; Secure Protocol 7
+                </p>
+            </motion.div>
         </div>
     );
 };
 
-export default Login;
+export default StaffLogin;

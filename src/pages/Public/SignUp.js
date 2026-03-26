@@ -1,11 +1,13 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Container, TextField, Button, Typography } from "@mui/material";
-import "../../components/common/SignUp.scss";
-import authServices from '../../services/authServices';
+import { useNavigate, Link } from "react-router-dom";
 import { toast } from 'react-toastify';
-import Loading from 'react-fullscreen-loading';
-
+import { UserPlus, Loader2, Mail, Lock, Phone, User, ArrowLeft } from "lucide-react";
+import authServices from '../../services/authServices';
+import { Button } from "../../components/ui/Button";
+import { Input } from "../../components/ui/Input";
+import { Label } from "../../components/ui/Label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/Card";
+import { motion } from "framer-motion";
 
 const SignUp = () => {
     const navigate = useNavigate();
@@ -17,8 +19,7 @@ const SignUp = () => {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState("");
     const [role, setRole] = useState("user");
-    const [isLoading, setIsLoading] = useState(false)
-
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -51,8 +52,7 @@ const SignUp = () => {
         try {
             setIsLoading(true)
             const response = await authServices.signup(payload);
-            console.log("User Signed Up:", response);
-            toast.success("Sign-up successful!");
+            toast.success("Registration successful!");
             setTimeout(() => {
                 navigate("/login");
             }, 1000);
@@ -60,96 +60,154 @@ const SignUp = () => {
 
         } catch (error) {
             setIsLoading(false)
-            setError(error.response?.data?.message || "Signup failed.");
+            setError(error.response?.data?.message || "Registration failed.");
+            toast.error(error.response?.data?.message || "Registration failed.");
         }
     };
 
     return (
-        <div className="signup-container">
-            <div className="signup-box">
-                <div className="signup-left">
-                    <Typography variant="h5" gutterBottom>
-                        Create Account
-                    </Typography>
-                    <div className="social-login">
-                        <button className="social-btn">F</button>
-                        <button className="social-btn">G+</button>
-                        <button className="social-btn">in</button>
-                    </div>
-                    <Typography variant="body2">or use your email for registration</Typography>
-                    {error && <Typography color="error">{error}</Typography>}
-                    <form onSubmit={handleSubmit}>
-                        <TextField
-                            fullWidth
-                            label="First Name"
-                            variant="outlined"
-                            margin="normal"
-                            value={firstName}
-                            onChange={(e) => setFirstName(e.target.value)}
-                        />
-                        <TextField
-                            fullWidth
-                            label="Last Name"
-                            variant="outlined"
-                            margin="normal"
-                            value={lastName}
-                            onChange={(e) => setLastName(e.target.value)}
-                        />
-                        <TextField
-                            fullWidth
-                            label="Phone Number"
-                            variant="outlined"
-                            margin="normal"
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
-                        />
-                        <TextField
-                            fullWidth
-                            label="Email"
-                            variant="outlined"
-                            margin="normal"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                        <TextField
-                            fullWidth
-                            label="Password"
-                            type="password"
-                            variant="outlined"
-                            margin="normal"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                        <TextField
-                            fullWidth
-                            label="Confirm Password"
-                            type="password"
-                            variant="outlined"
-                            margin="normal"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                        />
-                        <Button variant="contained" color="primary" type="submit" fullWidth className="sign-up-btn">
-                            Sign Up
-                        </Button>
-                    </form>
-                </div>
-                <div className="signup-right">
-                    <Typography variant="h5">Welcome Back!</Typography>
-                    <Typography variant="body2">
-                        To keep connected with us, please login with your personal info
-                    </Typography>
-                    <Button
-                        variant="contained"
-                        color="secondary"
-                        className="sign-in-btn"
-                        onClick={() => navigate("/login")}
-                    >
-                        Sign In
-                    </Button>
-                </div>
+        <div className="min-h-screen w-full flex items-center justify-center bg-slate-50 dark:bg-slate-950 relative overflow-hidden py-12 px-4">
+            <div className="absolute inset-0 z-0">
+                <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 via-background to-blue-500/5" />
             </div>
-            {isLoading && <Loading loading={true} loaderColor="linear-gradient(to top, #3f51b1 0%, #5a55ae 13%, #7b5fac 25%, #8f6aae 38%, #a86aa4 50%, #cc6b8e 62%, #f18271 75%, #f3a469 87%, #f7c978 100%)" />}
+
+            <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="z-10 w-full max-w-2xl"
+            >
+                <Link to="/login" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors mb-8 group">
+                    <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                    Back to login
+                </Link>
+
+                <Card className="border-border/50 shadow-2xl bg-card/80 backdrop-blur-xl rounded-3xl overflow-hidden p-2">
+                    <CardHeader className="text-center pb-8 border-b border-border/50 mx-6">
+                        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shadow-lg mx-auto mb-4 border border-primary/20">
+                            <UserPlus className="w-6 h-6 text-primary" />
+                        </div>
+                        <CardTitle className="text-3xl font-black tracking-tight">Create Account</CardTitle>
+                        <CardDescription>Join WCS as a new user to start managing your projects.</CardDescription>
+                    </CardHeader>
+                    
+                    <CardContent className="pt-8 px-8">
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            {error && (
+                                <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm text-center font-medium">
+                                    {error}
+                                </div>
+                            )}
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <Label htmlFor="firstName">First Name</Label>
+                                    <div className="relative">
+                                        <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                                        <Input 
+                                            id="firstName" 
+                                            placeholder="John" 
+                                            value={firstName}
+                                            onChange={(e) => setFirstName(e.target.value)}
+                                            className="pl-10 h-11 rounded-xl bg-background/50"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="lastName">Last Name</Label>
+                                    <div className="relative">
+                                        <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                                        <Input 
+                                            id="lastName" 
+                                            placeholder="Doe" 
+                                            value={lastName}
+                                            onChange={(e) => setLastName(e.target.value)}
+                                            className="pl-10 h-11 rounded-xl bg-background/50"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="email">Email Address</Label>
+                                    <div className="relative">
+                                        <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                                        <Input 
+                                            id="email" 
+                                            type="email"
+                                            placeholder="john@example.com" 
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            className="pl-10 h-11 rounded-xl bg-background/50"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="phone">Phone Number</Label>
+                                    <div className="relative">
+                                        <Phone className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                                        <Input 
+                                            id="phone" 
+                                            placeholder="+1 (555) 000-0000" 
+                                            value={phone}
+                                            onChange={(e) => setPhone(e.target.value)}
+                                            className="pl-10 h-11 rounded-xl bg-background/50"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="password">Password</Label>
+                                    <div className="relative">
+                                        <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                                        <Input 
+                                            id="password" 
+                                            type="password"
+                                            placeholder="••••••••" 
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            className="pl-10 h-11 rounded-xl bg-background/50"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="confirmPassword">Confirm Password</Label>
+                                    <div className="relative">
+                                        <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                                        <Input 
+                                            id="confirmPassword" 
+                                            type="password"
+                                            placeholder="••••••••" 
+                                            value={confirmPassword}
+                                            onChange={(e) => setConfirmPassword(e.target.value)}
+                                            className="pl-10 h-11 rounded-xl bg-background/50"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <Button 
+                                type="submit" 
+                                className="w-full h-12 rounded-xl text-lg font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-[0.98] mt-4" 
+                                disabled={isLoading}
+                            >
+                                {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : "Create Account"}
+                            </Button>
+                        </form>
+                        
+                        <div className="mt-8 text-center text-sm text-muted-foreground">
+                            Already have an account? <Link to="/login" className="text-primary font-bold hover:underline">Log in</Link>
+                        </div>
+                    </CardContent>
+                </Card>
+                
+                <p className="mt-12 text-center text-xs text-muted-foreground font-medium">
+                    By creating an account, you agree to our Terms of Service and Privacy Policy.
+                </p>
+            </motion.div>
         </div>
     );
 };

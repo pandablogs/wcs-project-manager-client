@@ -14,7 +14,7 @@ const materialService = {
 
     //material
     addMaterial: (data) => axiosService.apis("POST", "/api/materials/add", data),  // Use correct endpoint
-    getMaterialAll: (queryParams) => axiosService.apis("GET", "/api/materials/all", { queryParams }),
+    getMaterialAll: (queryParams) => axiosService.apis("GET", "/api/materials/all", queryParams),
     getMaterial: (queryParams) => {
         const queryString = new URLSearchParams(queryParams).toString();
         return axiosService.apis("GET", `/api/materials?${queryString}`);
@@ -27,7 +27,7 @@ const materialService = {
 
     //sub-material
     addSubMaterial: (data) => axiosService.apis("POST", "/api/sub-materials/add", data),  // Use correct endpoint
-    getSubMaterialAll: (queryParams) => axiosService.apis("GET", "/api/sub-materials/all", { queryParams }),
+    getSubMaterialAll: (queryParams) => axiosService.apis("GET", "/api/sub-materials/all", queryParams),
     getSubMaterial: (queryParams) => {
         const queryString = new URLSearchParams(queryParams).toString();
         return axiosService.apis("GET", `/api/sub-materials?${queryString}`);

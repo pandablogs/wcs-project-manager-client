@@ -1,16 +1,39 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import materialService from "../../services/materialServices";
 import userServices from "../../services/userServices";
 import rehabGroupService from "../../services/rehabGroupServices";
-import Loading from "react-fullscreen-loading";
 import { toast } from "react-toastify";
-import { Table, Container, Form } from "react-bootstrap";
-import { AiOutlineDollarCircle } from "react-icons/ai";
-import { useParams } from "react-router-dom";
-
-import { Card } from "@mui/material";
+import { useParams, useNavigate } from "react-router-dom";
 import * as XLSX from "xlsx";
-import { saveAs } from "file-saver";
+import { 
+  FileDown, 
+  Save, 
+  Plus, 
+  Trash2, 
+  ChevronRight, 
+  DollarSign, 
+  Info, 
+  Layers, 
+  Layout, 
+  Blocks,
+  Package,
+  ArrowRight,
+  TrendingUp,
+  Percent,
+  Calculator,
+  Loader2
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+// Premium UI Components
+import { Button } from "../../components/ui/Button";
+import { Card, CardHeader, CardContent, CardTitle, CardDescription, CardFooter } from "../../components/ui/Card";
+import { Input } from "../../components/ui/Input";
+import { Badge } from "../../components/ui/Badge";
+import { PageHeader } from "../../components/ui/PageHeader";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/Select";
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "../../components/ui/Table";
+import { cn } from "../../lib/utils";
 
 const Estimater = () => {
     const [quantities, setQuantities] = useState({});
@@ -23,29 +46,36 @@ const Estimater = () => {
     const [projectId, setProjectId] = useState(null)
     const [isEditMode, setIsEditMode] = useState(false);
     const [selectedSubMaterials, setSelectedSubMaterials] = useState({});
-    const [selectedMaterials, setSelectedMaterials] = useState([]);
+    const [selectedMaterials, setSelectedMaterials] = useState({}); // Updated to object mapping: roomId -> [materialIds]
     const [rehabGroups, setRehabGroups] = useState([]);
     const [selectedRehabGroupId, setSelectedRehabGroupId] = useState("");
     const [markupPercent, setMarkupPercent] = useState(0);
     const [markupBySubMaterial, setMarkupBySubMaterial] = useState({});
 
-    const { id } = useParams(); // get :id from URL
+    const { id } = useParams();
+    const navigate = useNavigate();
 
     const getLineMarkupPercent = (subId) => markupBySubMaterial[subId] ?? markupPercent ?? 0;
 
-
     useEffect(() => {
-        fetchRooms();
-        fetchMaterials();
-        fetchSubMaterials();
-        fetchProfile();
-        fetchRehabGroups();
-        if (id) {
-            setIsEditMode(true);
-            setProjectId(id);
-            fetchProjectData(id); // fetch and bind project
-        }
-    }, []);
+        const loadAll = async () => {
+            setLocalLoading(true);
+            await Promise.all([
+                fetchRooms(),
+                fetchMaterials(),
+                fetchSubMaterials(),
+                fetchProfile(),
+                fetchRehabGroups()
+            ]);
+            if (id) {
+                setIsEditMode(true);
+                setProjectId(id);
+                fetchProjectData(id);
+            }
+            setLocalLoading(false);
+        };
+        loadAll();
+    }, [id]);
 
     const fetchRehabGroups = async () => {
         try {
@@ -58,60 +88,41 @@ const Estimater = () => {
 
     const fetchProfile = async () => {
         try {
-            setLocalLoading(true);
             const response = await userServices.getProfile();
-            console.log("------->>>", response.user)
             setCreatedBy(response.user)
         } catch (error) {
-            toast.error("Failed to fetch profile. Please try again.");
-        } finally {
-            setLocalLoading(false);
+            toast.error("Failed to fetch profile");
         }
     };
 
-
-
     const fetchRooms = async () => {
-        setLocalLoading(true);
         try {
             const response = await materialService.getMaterialRoomAll();
             setRoomTypes(response.data);
         } catch (err) {
-            console.error("Error fetching rooms", err);
-            toast.error("Failed to fetch rooms");
-        } finally {
-            setLocalLoading(false);
+            toast.error("Failed to synchronize room categories");
         }
     };
 
     const fetchMaterials = async () => {
-        setLocalLoading(true);
         try {
             const response = await materialService.getMaterialAll({});
             setMaterials(response.data);
         } catch (err) {
-            console.error("Error fetching materials", err);
-            toast.error("Failed to fetch materials");
-        } finally {
-            setLocalLoading(false);
+            toast.error("Failed to sync material data");
         }
     };
 
     const fetchSubMaterials = async () => {
-        setLocalLoading(true);
         try {
             const response = await materialService.getSubMaterialAll({});
             setSubMaterials(response.data);
         } catch (err) {
-            console.error("Error fetching sub-materials", err);
-            toast.error("Failed to fetch sub-materials");
-        } finally {
-            setLocalLoading(false);
+            toast.error("Failed to sync sub-material inventory");
         }
     };
 
     const fetchProjectData = async (projectId) => {
-        setLocalLoading(true);
         try {
             const response = await materialService.getProjectById(projectId);
             if (response.status) {
@@ -156,17 +167,11 @@ const Estimater = () => {
                 setSelectedMaterials(selectedMatMap);
                 setMarkupPercent(project.markupPercent ?? 0);
                 setMarkupBySubMaterial(markupMap);
-            } else {
-                toast.error("Failed to load project.");
             }
         } catch (err) {
-            toast.error("Error loading project data.");
-        } finally {
-            setLocalLoading(false);
+            toast.error("Critical error retrieving project data");
         }
     };
-
-
 
     const handleQuantityChange = (id, value) => {
         setQuantities((prev) => ({
@@ -175,7 +180,7 @@ const Estimater = () => {
         }));
     };
 
-    const calculateTotal = () => {
+    const calculateTotal = useMemo(() => {
         let actualTotal = 0;
         let totalWithMarkup = 0;
         let percentageMarkup = 0;
@@ -200,7 +205,10 @@ const Estimater = () => {
                     } else {
                         const amount = qty * (sub?.price || 0);
                         actualTotal += amount;
-                        totalWithMarkup += getLineAmountWithMarkup(amount, subId);
+                        
+                        const m = markupBySubMaterial[subId] ?? markupPercentVal;
+                        const amountWithMarkup = amount + amount * (m / 100);
+                        totalWithMarkup += amountWithMarkup;
                     }
                 });
             });
@@ -210,6 +218,7 @@ const Estimater = () => {
         const subtotalBeforePct = totalWithMarkup;
         const percentageAddAmount = subtotalBeforePct * (percentageMarkup / 100);
         const finalTotal = subtotalBeforePct + percentageAddAmount;
+        
         return {
             actualTotal,
             totalWithMarkup,
@@ -221,111 +230,89 @@ const Estimater = () => {
             subtotalBeforeMarkup: subtotalBeforePct,
             finalTotal
         };
-    };
+    }, [rooms, materials, subMaterials, selectedSubMaterials, quantities, markupPercent, markupBySubMaterial]);
 
     const getLineAmountWithMarkup = (amount, subId) => {
         const m = subId != null ? getLineMarkupPercent(subId) : (markupPercent || 0);
         return amount + amount * (m / 100);
     };
 
-
     const getRoomTotal = (roomId) => {
         const roomMaterials = materials.filter(mat => mat.roomId?._id === roomId);
-
         return roomMaterials.reduce((matTotal, mat) => {
             const subIds = selectedSubMaterials[mat._id] || [];
-            const subTotal = subIds.reduce((acc, subId) => {
+            return matTotal + subIds.reduce((acc, subId) => {
                 const sub = subMaterials.find(s => s._id === subId);
                 const qty = quantities[subId] || 0;
                 const amount = qty * (sub?.price || 0);
                 return acc + getLineAmountWithMarkup(amount, subId);
             }, 0);
-            return matTotal + subTotal;
         }, 0);
     };
 
     const saveProject = async () => {
-        const totals = calculateTotal();
-
+        const totals = calculateTotal;
         const projectData = {
             name: projectName,
             rooms: rooms.map((room) => {
                 const selectedMaterialIds = selectedMaterials[room._id] || [];
-
                 const materialsData = selectedMaterialIds.map((matId) => {
                     const selectedSubIds = selectedSubMaterials[matId] || [];
-
-                    const subMaterialsData = selectedSubIds
-                        .map((subId) => {
-                            const sub = subMaterials.find((s) => s._id === subId);
-                            const quantity = room.percentageType ? 1 : (quantities[subId] || 0);
-
-                            if (quantity > 0) {
-                                const lineMarkup = getLineMarkupPercent(subId);
-                                return {
-                                    subMaterialId: subId,
-                                    quantity,
-                                    price: sub?.price || 0,
-                                    markupPercent: lineMarkup,
-                                };
-                            }
-
-                            return null;
-                        })
-                        .filter(Boolean); // remove nulls
-
-                    // Only include this material if it has at least one sub-material
+                    const subMaterialsData = selectedSubIds.map((subId) => {
+                        const sub = subMaterials.find((s) => s._id === subId);
+                        const quantity = room.percentageType ? 1 : (quantities[subId] || 0);
+                        if (quantity > 0) {
+                            return {
+                                subMaterialId: subId,
+                                quantity,
+                                price: sub?.price || 0,
+                                markupPercent: getLineMarkupPercent(subId),
+                            };
+                        }
+                        return null;
+                    }).filter(Boolean);
+                    
                     if (subMaterialsData.length > 0) {
-                        return {
-                            materialId: matId,
-                            subMaterials: subMaterialsData,
-                        };
+                        return { materialId: matId, subMaterials: subMaterialsData };
                     }
-
                     return null;
-                }).filter(Boolean); // remove nulls
+                }).filter(Boolean);
 
-                return {
-                    roomId: room._id,
-                    materials: materialsData,
-                };
+                return { roomId: room._id, materials: materialsData };
             }),
-
             totalBudget: totals.finalTotal,
             markupPercent: markupPercent ?? 0,
             createdBy: createdBy || {},
         };
 
         try {
+            setLocalLoading(true);
             let response;
             if (isEditMode) {
                 response = await materialService.updateProject(projectId, projectData);
-                if (response?.status) {
-                    toast.success("Project updated successfully!");
-                }
+                if (response?.status) toast.success("Project architecture updated");
             } else {
                 response = await materialService.addProject(projectData);
                 if (response?.status) {
-                    toast.success("Project saved successfully!");
+                    toast.success("New project archived successfully");
+                    navigate("/project-list");
                 }
             }
         } catch (error) {
-            console.error("Error saving project", error);
-            toast.error("Failed to save project");
+            toast.error("Failed to commit project registry");
+        } finally {
+            setLocalLoading(false);
         }
     };
 
     const handleExportToExcel = () => {
         const sheetData = [];
-
         rooms.forEach((room) => {
             const selectedMaterialIds = selectedMaterials[room._id] || [];
             if (selectedMaterialIds.length === 0) return;
 
             let roomHasData = false;
-
-            const roomRows = [];
-            roomRows.push(["Material", "Sub-Material", "Price", "Quantity", "Amount", "Markup", "Total"]);
+            const roomRows = [["Material", "Sub-Material", "Price", "Quantity", "Amount", "Markup", "Total"]];
 
             selectedMaterialIds.forEach((matId) => {
                 const mat = materials.find((m) => m._id === matId);
@@ -334,12 +321,10 @@ const Estimater = () => {
                 selectedSubIds.forEach((subId) => {
                     const sub = subMaterials.find((s) => s._id === subId);
                     const qty = quantities[subId] || 0;
-
                     if (qty > 0) {
+                        roomHasData = true;
                         const price = sub?.price || 0;
                         const amount = qty * price;
-                        roomHasData = true;
-
                         const lineMarkupPct = getLineMarkupPercent(subId);
                         const lineMarkupAmt = amount * (lineMarkupPct / 100);
                         const lineTotalVal = amount + lineMarkupAmt;
@@ -357,427 +342,450 @@ const Estimater = () => {
             });
 
             if (roomHasData) {
-                sheetData.push([room.name]); // Room Name Header
+                sheetData.push([room.name.toUpperCase()]);
                 sheetData.push(...roomRows);
-                sheetData.push([]); // Blank line for spacing
+                sheetData.push([]);
             }
         });
 
-        const totals = calculateTotal();
-
-        // Add totals
-        const totalRow = (label, value) => [label, "", "", "", "", "", value];
-        sheetData.push(totalRow("Actual Total", `$${totals.actualTotal.toFixed(2)}`));
-
-        if (totals.percentageMarkup && totals.percentageMarkup > 0) {
-            sheetData.push(totalRow(
-                `Added Percentage (${totals.percentageMarkup}%)`,
-                `+ $${totals.percentageAddAmount.toFixed(2)}`
-            ));
-
-            if (totals.percentageItems?.length > 0) {
-                sheetData.push([`From: ${totals.percentageItems.join(", ")}`]);
-            }
+        const totals = calculateTotal;
+        sheetData.push(["ESTIMATE SUMMARY"]);
+        sheetData.push(["Actual Total", "", "", "", "", "", `$${totals.actualTotal.toFixed(2)}`]);
+        if (totals.percentageMarkup > 0) {
+            sheetData.push([`Added Pct (${totals.percentageMarkup}%)`, "", "", "", "", "", `+ $${totals.percentageAddAmount.toFixed(2)}`]);
         }
-
-        sheetData.push(["Final Total", "", "", "", "", "", `$${totals.finalTotal.toFixed(2)}`]);
+        sheetData.push(["Final Valuation", "", "", "", "", "", `$${totals.finalTotal.toFixed(2)}`]);
 
         const ws = XLSX.utils.aoa_to_sheet(sheetData);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Estimate");
-
-        XLSX.writeFile(wb, "Estimate.xlsx");
-    };
-
-
-    const removeSubMaterial = (materialId, subMaterialId) => {
-        setSelectedSubMaterials((prev) => ({
-            ...prev,
-            [materialId]: prev[materialId].filter((id) => id !== subMaterialId),
-        }));
-    };
-
-
-    const removeMaterial = (roomId, materialId) => {
-        setSelectedMaterials((prev) => ({
-            ...prev,
-            [roomId]: prev[roomId].filter((id) => id !== materialId),
-        }));
-        setSelectedSubMaterials((prev) => {
-            const newState = { ...prev };
-            delete newState[materialId]; // also remove related sub-materials
-            return newState;
-        });
+        XLSX.writeFile(wb, `${projectName}_Estimate.xlsx`);
     };
 
     const applyRehabGroup = (group) => {
         if (!group?.items?.length) {
-            toast.warning("This group has no materials.");
+            toast.warning("Empty group topology");
             return;
         }
         setSelectedMaterials((prev) => {
             const next = { ...prev };
             group.items.forEach((item) => {
-                const roomId = item.roomId?._id || item.roomId;
-                const materialId = item.materialId?._id || item.materialId;
-                const subMaterialId = item.subMaterialId?._id || item.subMaterialId;
-                const qty = item.defaultQuantity ?? 1;
-                if (!roomId || !materialId || !subMaterialId) return;
-                if (!next[roomId]) next[roomId] = [];
-                if (!next[roomId].includes(materialId)) next[roomId].push(materialId);
+                const rId = item.roomId?._id || item.roomId;
+                const mId = item.materialId?._id || item.materialId;
+                if (!rId || !mId) return;
+                if (!next[rId]) next[rId] = [];
+                if (!next[rId].includes(mId)) next[rId].push(mId);
             });
             return next;
         });
         setSelectedSubMaterials((prev) => {
             const next = { ...prev };
             group.items.forEach((item) => {
-                const materialId = item.materialId?._id || item.materialId;
-                const subMaterialId = item.subMaterialId?._id || item.subMaterialId;
-                if (!materialId || !subMaterialId) return;
-                if (!next[materialId]) next[materialId] = [];
-                if (!next[materialId].includes(subMaterialId)) next[materialId].push(subMaterialId);
+                const mId = item.materialId?._id || item.materialId;
+                const sId = item.subMaterialId?._id || item.subMaterialId;
+                if (!mId || !sId) return;
+                if (!next[mId]) next[mId] = [];
+                if (!next[mId].includes(sId)) next[mId].push(sId);
             });
             return next;
         });
         setQuantities((prev) => {
             const next = { ...prev };
             group.items.forEach((item) => {
-                const subMaterialId = item.subMaterialId?._id || item.subMaterialId;
-                const addQty = item.defaultQuantity ?? 1;
-                if (!subMaterialId) return;
-                next[subMaterialId] = (next[subMaterialId] || 0) + addQty;
+                const sId = item.subMaterialId?._id || item.subMaterialId;
+                if (!sId) return;
+                next[sId] = (next[sId] || 0) + (item.defaultQuantity ?? 1);
             });
             return next;
         });
-        toast.success(`Added "${group.name}" to estimate.`);
+        toast.success(`Injected group: ${group.name}`);
     };
 
     const handleAddRehabGroup = () => {
-        if (!selectedRehabGroupId) {
-            toast.warning("Select a rehab group.");
-            return;
-        }
-        const group = rehabGroups.find((g) => g._id === selectedRehabGroupId);
+        const group = rehabGroups.find(g => g._id === selectedRehabGroupId);
         if (group) applyRehabGroup(group);
     };
 
     return (
-
-        <Container className="py-4">
-            {localLoading && (
-                <Loading loading={true} background="rgba(0,0,0,0.5)" loaderColor="#fff" />
-            )}
-
-            <Card className="p-4 shadow-lg border" style={{ borderColor: "#d9b451" }}>
-                <h2 className="text-center text-dark mb-4">Rehab Rough Budget Estimator</h2>
-
-                <Form.Group>
-                    <Form.Label className="text-dark font-weight-bold" style={{ fontSize: "1.2rem" }}>
-                        Project Name:
-                    </Form.Label>
-                    <Form.Control
-                        type="text"
-                        value={projectName}
-                        onChange={(e) => setProjectName(e.target.value)}
-                        className="font-weight-bold w-auto mb-3"
-                    />
-                </Form.Group>
-
-                <div className="mb-4 p-3 border rounded-3 bg-light d-flex align-items-center gap-2">
-                    <strong className="text-dark">Markup %:</strong>
-                    <Form.Control
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="0.5"
-                        value={markupPercent}
-                        onChange={(e) => setMarkupPercent(parseFloat(e.target.value) || 0)}
-                        className="w-25"
-                        style={{ maxWidth: "90px" }}
-                    />
-                    <span className="text-muted">(applied to each material line)</span>
-                </div>
-
-                {rehabGroups.length > 0 && (
-                    <div className="mb-4 p-3 border rounded-3 bg-light">
-                        <Form.Label className="text-dark fw-semibold">Add rehab group to estimate</Form.Label>
-                        <div className="d-flex flex-wrap align-items-center gap-2 mt-1">
-                            <Form.Select
-                                style={{ width: "fit-content", minWidth: "200px" }}
-                                value={selectedRehabGroupId}
-                                onChange={(e) => setSelectedRehabGroupId(e.target.value)}
-                            >
-                                <option value="">— Select group —</option>
-                                {rehabGroups.map((g) => (
-                                    <option key={g._id} value={g._id}>
-                                        {g.name} ({g.items?.length || 0} items)
-                                    </option>
-                                ))}
-                            </Form.Select>
-                            <button
-                                type="button"
-                                className="btn btn-primary"
-                                onClick={handleAddRehabGroup}
-                                disabled={!selectedRehabGroupId}
-                            >
-                                Add to estimate
-                            </button>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pb-24 space-y-8">
+            <AnimatePresence>
+                {localLoading && (
+                    <motion.div 
+                        initial={{ opacity: 0 }} 
+                        animate={{ opacity: 1 }} 
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-md"
+                    >
+                        <div className="flex flex-col items-center gap-4">
+                            <Loader2 className="w-12 h-12 text-primary animate-spin" />
+                            <p className="text-sm font-bold tracking-widest uppercase text-muted-foreground animate-pulse">Syncing Estimate Metadata...</p>
                         </div>
-                        <small className="text-muted">Materials from the group will be added to the estimate and totals below.</small>
-                    </div>
+                    </motion.div>
                 )}
+            </AnimatePresence>
 
-                {rooms.map((room) => (
+            <PageHeader 
+                title={isEditMode ? "Project Architecture" : "Project Estimator"}
+                description="Engineering high-fidelity financial projections for architectural initiatives."
+            >
+                <div className="flex items-center gap-4">
+                    <Button variant="outline" className="rounded-xl border-border/40 bg-background/50 backdrop-blur-sm h-11 px-5 shadow-sm hover:bg-muted transition-all" onClick={handleExportToExcel}>
+                        <FileDown className="w-4 h-4 mr-2" /> EXPORT XLSX
+                    </Button>
+                    <Button className="rounded-xl shadow-lg shadow-primary/20 h-11 px-8 bg-primary text-white hover:opacity-90 font-bold italic tracking-tight" onClick={saveProject}>
+                        <Save className="w-4 h-4 mr-2" /> {isEditMode ? "COMMIT REVISIONS" : "STAGE PROJECT"}
+                    </Button>
+                </div>
+            </PageHeader>
 
-
-                    <div key={room._id} className="mb-5 p-4 border rounded-3 bg-white shadow">
-                        {/* Header */}
-                        <div className="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
-                            <h4 className="fw-semibold text-primary mb-0">{room.name}</h4>
-                            <div className="fs-5 fw-bold text-success">
-                                Total: ${getRoomTotal(room._id).toFixed(2)}
+            <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
+                <div className="xl:col-span-3 space-y-8">
+                    {/* General Settings */}
+                    <Card className="border-border/40 bg-card/30 backdrop-blur-sm overflow-hidden">
+                        <CardHeader className="bg-muted/30 border-b border-border/40 py-6">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 rounded-2xl bg-primary/10 text-primary border border-primary/20">
+                                    <Layout className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <CardTitle className="text-xl font-black italic tracking-tighter">Project Config</CardTitle>
+                                    <CardDescription>Establish project identity and global financial parameters.</CardDescription>
+                                </div>
                             </div>
-                        </div>
-
-                        {/* Material Dropdown */}
-                        {materials.filter((m) => m.roomId?._id === room._id).length >
-                            (selectedMaterials[room._id]?.length || 0) && (
-                                <Form.Select
-                                    className="mb-4"
-                                    style={{ width: 'fit-content' }}
-                                    onChange={(e) => {
-                                        const matId = e.target.value;
-                                        if (!matId) return;
-
-                                        setSelectedMaterials((prev) => ({
-                                            ...prev,
-                                            [room._id]: [...(prev[room._id] || []), matId],
-                                        }));
-                                    }}
-                                >
-                                    <option value="">➕ Add Material</option>
-                                    {materials
-                                        .filter((mat) => mat.roomId?._id === room._id)
-                                        .filter((mat) => !(selectedMaterials[room._id] || []).includes(mat._id))
-                                        .map((mat) => (
-                                            <option key={mat._id} value={mat._id}>
-                                                {mat.name}
-                                            </option>
-                                        ))}
-                                </Form.Select>
-                            )}
-
-                        {/* Selected Materials and Sub-Materials */}
-                        {(selectedMaterials[room._id] || []).map((matId) => {
-                            const mat = materials.find((m) => m?._id === matId);
-                            const availableSubs = subMaterials.filter((s) => s.materialId?._id === mat?._id);
-                            const selectedSubs = selectedSubMaterials[mat?._id] || [];
-
-                            return (
-                                <div key={mat?._id} className="mb-4 border-start ps-4 border-3 border-primary">
-                                    <div className="d-flex justify-content-between align-items-center mb-3">
-                                        <h5 className="fw-semibold text-dark mb-0">{mat?.name}</h5>
-                                        <button
-                                            className="btn btn-sm btn-outline-danger"
-                                            onClick={() => removeMaterial(room._id, mat?._id)}
-                                        >
-                                            🗑
-                                        </button>
+                        </CardHeader>
+                        <CardContent className="p-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Project Registry Name</label>
+                                    <Input 
+                                        value={projectName}
+                                        onChange={(e) => setProjectName(e.target.value)}
+                                        className="h-12 text-lg font-bold bg-background/50 border-border/50 rounded-[1rem] focus-visible:ring-primary/20"
+                                        placeholder="e.g. Oakwood Estate Phase I"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Global Markup Factor (%)</label>
+                                    <div className="relative">
+                                        <Percent className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40" />
+                                        <Input 
+                                            type="number"
+                                            value={markupPercent}
+                                            onChange={(e) => setMarkupPercent(parseFloat(e.target.value) || 0)}
+                                            className="h-12 text-lg font-bold bg-background/50 border-border/50 rounded-[1rem] focus-visible:ring-primary/20"
+                                        />
                                     </div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
 
+                    {/* Rehab Groups Quick-Add */}
+                    {rehabGroups.length > 0 && (
+                        <Card className="border-border/40 bg-card/30 backdrop-blur-sm">
+                            <CardHeader className="py-4">
+                                <div className="flex items-center gap-3">
+                                    <Blocks className="w-5 h-5 text-primary" />
+                                    <CardTitle className="text-base font-bold tracking-tight">Rapid Component Injection</CardTitle>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="px-8 pb-8 pt-0">
+                                <div className="flex flex-wrap items-center gap-4">
+                                    <Select value={selectedRehabGroupId} onValueChange={setSelectedRehabGroupId}>
+                                        <SelectTrigger className="w-[300px] h-11 bg-background/40 border-border/40 rounded-xl">
+                                            <SelectValue placeholder="Select component group..." />
+                                        </SelectTrigger>
+                                        <SelectContent className="rounded-xl border-border/40 shadow-2xl">
+                                            {rehabGroups.map((g) => (
+                                                <SelectItem key={g._id} value={g._id} className="rounded-lg">
+                                                    {g.name} ({g.items?.length || 0} units)
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <Button 
+                                        onClick={handleAddRehabGroup} 
+                                        disabled={!selectedRehabGroupId}
+                                        className="h-11 rounded-xl font-bold bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-white transition-all shadow-sm"
+                                    >
+                                        Infect Group <Plus className="w-4 h-4 ml-2" />
+                                    </Button>
+                                    <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider italic">
+                                        Groups will be merged into current architectural stack.
+                                    </p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
 
-                                    {/* Sub-Material Dropdown */}
-                                    {availableSubs.length > selectedSubs.length && (
-                                        <Form.Select
-                                            className="mb-3"
-                                            style={{ width: 'fit-content' }}
-                                            onChange={(e) => {
-                                                const subId = e.target.value;
-                                                if (!subId) return;
+                    {/* Room Layouts */}
+                    <div className="space-y-10">
+                        {rooms.map((room, rIdx) => (
+                            <motion.div 
+                                key={room._id} 
+                                initial={{ opacity: 0, y: 20 }} 
+                                animate={{ opacity: 1, y: 0 }} 
+                                transition={{ delay: rIdx * 0.05 }}
+                            >
+                                <Card className="border-border/50 shadow-2xl overflow-hidden rounded-[2rem]">
+                                    <CardHeader className="pb-6 border-b border-border/40 mx-8 px-0 flex flex-row items-center justify-between">
+                                        <div className="flex items-center gap-5">
+                                            <div className="h-14 w-14 rounded-2xl bg-primary/5 flex items-center justify-center border border-primary/10 shadow-inner">
+                                                <Package className="w-7 h-7 text-primary" />
+                                            </div>
+                                            <div>
+                                                <CardTitle className="text-2xl font-black italic tracking-tight">{room.name}</CardTitle>
+                                                <CardDescription className="text-xs font-bold uppercase tracking-widest opacity-60">Architectural Node</CardDescription>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <Badge variant="outline" className="mb-2 uppercase text-[10px] font-black italic border-primary/20 text-primary bg-primary/5">
+                                                {room.percentageType ? "Percentage Logic" : "Valuation Logic"}
+                                            </Badge>
+                                            <p className="text-2xl font-black text-foreground tracking-tighter">
+                                                ${getRoomTotal(room._id).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                            </p>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="p-8">
+                                        <div className="space-y-12">
+                                            {/* Add Material Dropdown */}
+                                            {materials.filter(m => m.roomId?._id === room._id).length > 
+                                             (selectedMaterials[room._id]?.length || 0) && (
+                                                <div className="flex justify-center -mt-4 mb-4">
+                                                    <Select onValueChange={(val) => {
+                                                        setSelectedMaterials(prev => ({
+                                                            ...prev,
+                                                            [room._id]: [...(prev[room._id] || []), val]
+                                                        }));
+                                                    }}>
+                                                        <SelectTrigger 
+                                                            className="w-auto h-10 px-8 rounded-full border-dashed border-primary/40 bg-primary/5 text-primary text-xs font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all shadow-inner"
+                                                        >
+                                                            <SelectValue placeholder="Deploy Material Component" />
+                                                        </SelectTrigger>
+                                                        <SelectContent className="rounded-2xl border-border/40 shadow-2xl">
+                                                            {materials
+                                                                .filter(mat => mat.roomId?._id === room._id)
+                                                                .filter(mat => !(selectedMaterials[room._id] || []).includes(mat._id))
+                                                                .map(mat => (
+                                                                    <SelectItem key={mat._id} value={mat._id} className="rounded-lg font-bold">
+                                                                        {mat.name}
+                                                                    </SelectItem>
+                                                                ))
+                                                            }
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                            )}
 
-                                                setSelectedSubMaterials((prev) => ({
-                                                    ...prev,
-                                                    [mat._id]: [...(prev[mat._id] || []), subId],
-                                                }));
-                                            }}
-                                        >
-                                            <option value="">➕ Add Sub-Material</option>
-                                            {availableSubs
-                                                .filter((sub) => !selectedSubs.includes(sub._id))
-                                                .map((sub) => (
-                                                    <option key={sub._id} value={sub._id}>
-                                                        {sub.name} — ${sub.price}
-                                                    </option>
-                                                ))}
-                                        </Form.Select>
-                                    )}
+                                            {(selectedMaterials[room._id] || []).map((matId, mIdx) => {
+                                                const mat = materials.find(m => m._id === matId);
+                                                const subs = subMaterials.filter(s => s.materialId?._id === matId);
+                                                const selSubs = selectedSubMaterials[matId] || [];
 
-                                    {/* Sub-Materials Table */}
-                                    {selectedSubs.length > 0 && (
-                                        <Table bordered hover responsive size="sm" className="bg-white">
-                                            <thead className="table-light">
-                                                <tr>
-                                                    <th>Sub-Material</th>
-                                                    {room?.percentageType ? (
-                                                        <>
-                                                            <th>Percentage</th>
-                                                            <th>Action</th>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <th>Price</th>
-                                                            <th>Quantity</th>
-                                                            <th className="text-end">Amount</th>
-                                                            <th className="text-end">Markup %</th>
-                                                            <th className="text-end">Total</th>
-                                                            <th>Action</th>
-                                                        </>
-                                                    )}
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {availableSubs
-                                                    .filter((sub) => selectedSubs.includes(sub._id))
-                                                    .map((sub) => (
-                                                        <tr key={sub._id}>
-                                                            <td>{sub.name}</td>
+                                                return (
+                                                    <div key={matId} className="relative pl-8 border-l-2 border-primary/20 space-y-6 animate-in slide-in-from-left duration-500">
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="h-4 w-4 rounded-full bg-primary/20 border border-primary/40 absolute -left-[9px] top-1" />
+                                                                <h5 className="text-lg font-black tracking-tight underline decoration-primary/30 underline-offset-8">{mat?.name}</h5>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                {subs.length > selSubs.length && (
+                                                                    <Select onValueChange={(val) => {
+                                                                        setSelectedSubMaterials(prev => ({
+                                                                            ...prev,
+                                                                            [matId]: [...(prev[matId] || []), val]
+                                                                        }));
+                                                                    }}>
+                                                                        <SelectTrigger className="h-8 w-auto px-4 rounded-lg bg-muted text-[10px] font-black uppercase tracking-widest border-none">
+                                                                            <SelectValue placeholder="Add Unit" />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent className="rounded-xl border-border/40 shadow-2xl">
+                                                                            {subs.filter(s => !selSubs.includes(s._id)).map(s => (
+                                                                                <SelectItem key={s._id} value={s._id} className="rounded-md">
+                                                                                    {s.name} — ${s.price}
+                                                                                </SelectItem>
+                                                                            ))}
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                )}
+                                                                <Button 
+                                                                    variant="ghost" 
+                                                                    size="icon" 
+                                                                    className="h-8 w-8 rounded-lg text-rose-500 hover:bg-rose-500/10"
+                                                                    onClick={() => {
+                                                                        setSelectedMaterials(prev => ({
+                                                                            ...prev,
+                                                                            [room._id]: prev[room._id].filter(id => id !== matId)
+                                                                        }));
+                                                                    }}
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </Button>
+                                                            </div>
+                                                        </div>
 
-                                                            {room.percentageType ? (
-                                                                <>
-                                                                    <td>{sub.price}%</td>
-                                                                    <td className="text-center">
-                                                                        <button
-                                                                            className="btn btn-sm btn-danger"
-                                                                            onClick={() => removeSubMaterial(mat._id, sub._id)}
-                                                                            title="Remove Sub-Material"
-                                                                        >
-                                                                            🗑
-                                                                        </button>
-                                                                    </td>
-                                                                </>
-                                                            ) : (
-                                                                <>
-                                                                    <td>${sub.price.toFixed(2)}</td>
-                                                                    <td>
-                                                                        <Form.Control
-                                                                            type="number"
-                                                                            min="0"
-                                                                            value={quantities[sub._id] || ""}
-                                                                            disabled={room.percentageType}
-                                                                            onChange={(e) =>
-                                                                                handleQuantityChange(sub._id, parseInt(e.target.value) || 0)
-                                                                            }
-                                                                            className="w-75"
-                                                                        />
-                                                                    </td>
-                                                                    <td className="text-end">
-                                                                        ${((quantities[sub._id] || 0) * sub.price).toFixed(2)}
-                                                                    </td>
-                                                                    <td className="text-end">
-                                                                        <Form.Control
-                                                                            type="number"
-                                                                            min="0"
-                                                                            max="100"
-                                                                            step="0.5"
-                                                                            size="sm"
-                                                                            value={getLineMarkupPercent(sub._id)}
-                                                                            onChange={(e) => {
-                                                                                const v = parseFloat(e.target.value);
-                                                                                if (!Number.isNaN(v) && v >= 0) {
-                                                                                    setMarkupBySubMaterial((prev) => ({ ...prev, [sub._id]: v }));
-                                                                                }
-                                                                            }}
-                                                                            className="d-inline-block text-end"
-                                                                            style={{ width: "70px" }}
-                                                                        />
-                                                                    </td>
-                                                                    <td className="fw-bold text-end text-success">
-                                                                        ${getLineAmountWithMarkup((quantities[sub._id] || 0) * sub.price, sub._id).toFixed(2)}
-                                                                    </td>
-                                                                    <td className="text-center">
-                                                                        <button
-                                                                            className="btn btn-sm btn-danger"
-                                                                            onClick={() => removeSubMaterial(mat._id, sub._id)}
-                                                                            title="Remove Sub-Material"
-                                                                        >
-                                                                            🗑
-                                                                        </button>
-                                                                    </td>
-                                                                </>
-                                                            )}
-                                                        </tr>
+                                                        {selSubs.length > 0 && (
+                                                            <Table className="bg-background/20 rounded-2xl overflow-hidden border-border/20 shadow-inner">
+                                                                <TableHeader className="bg-muted/10">
+                                                                    <TableRow className="border-border/40">
+                                                                        <TableHead className="pl-6">Inventory Unit</TableHead>
+                                                                        {!room.percentageType ? (
+                                                                            <>
+                                                                                <TableHead className="text-center w-32">Price</TableHead>
+                                                                                <TableHead className="text-center w-32">Qty</TableHead>
+                                                                                <TableHead className="text-center w-32">Subtotal</TableHead>
+                                                                                <TableHead className="text-center w-32">Markup%</TableHead>
+                                                                                <TableHead className="text-right pr-6 w-32 text-primary font-black">Valuation</TableHead>
+                                                                            </>
+                                                                        ) : (
+                                                                            <TableHead className="text-right pr-6 w-32">Pct %</TableHead>
+                                                                        )}
+                                                                        <TableHead className="w-12"></TableHead>
+                                                                    </TableRow>
+                                                                </TableHeader>
+                                                                <TableBody>
+                                                                    {subs.filter(s => selSubs.includes(s._id)).map(s => {
+                                                                        const qty = quantities[s._id] || 0;
+                                                                        const baseAmt = qty * s.price;
+                                                                        const markup = getLineMarkupPercent(s._id);
+                                                                        const lineFinal = getLineAmountWithMarkup(baseAmt, s._id);
+
+                                                                        return (
+                                                                            <TableRow key={s._id} className="border-border/30 hover:bg-primary/5 transition-colors">
+                                                                                <TableCell className="pl-6 font-bold">{s.name}</TableCell>
+                                                                                {!room.percentageType ? (
+                                                                                    <>
+                                                                                        <TableCell className="text-center font-medium">${s.price.toFixed(2)}</TableCell>
+                                                                                        <TableCell className="text-center">
+                                                                                            <Input 
+                                                                                                type="number" 
+                                                                                                value={qty || ""}
+                                                                                                onChange={(e) => handleQuantityChange(s._id, parseInt(e.target.value) || 0)}
+                                                                                                className="h-9 w-20 mx-auto text-center font-black rounded-lg bg-background/50 border-border/40 focus-visible:ring-primary/20"
+                                                                                            />
+                                                                                        </TableCell>
+                                                                                        <TableCell className="text-center text-muted-foreground font-mono italic text-xs">${baseAmt.toFixed(2)}</TableCell>
+                                                                                        <TableCell className="text-center">
+                                                                                            <Input 
+                                                                                                type="number"
+                                                                                                value={markup}
+                                                                                                onChange={(e) => setMarkupBySubMaterial(prev => ({ ...prev, [s._id]: parseFloat(e.target.value) || 0 }))}
+                                                                                                className="h-9 w-20 mx-auto text-center font-black rounded-lg bg-background/50 border-border/40 focus-visible:ring-primary/20"
+                                                                                            />
+                                                                                        </TableCell>
+                                                                                        <TableCell className="text-right pr-6 font-black text-emerald-600 dark:text-emerald-400">
+                                                                                            ${lineFinal.toFixed(2)}
+                                                                                        </TableCell>
+                                                                                    </>
+                                                                                ) : (
+                                                                                    <TableCell className="text-right pr-6 font-black text-primary">{s.price}%</TableCell>
+                                                                                )}
+                                                                                <TableCell className="pr-2">
+                                                                                    <Button 
+                                                                                        variant="ghost" 
+                                                                                        size="icon" 
+                                                                                        className="h-7 w-7 rounded-md opacity-0 group-hover:opacity-100 hover:text-rose-500"
+                                                                                        onClick={() => setSelectedSubMaterials(prev => ({
+                                                                                            ...prev,
+                                                                                            [matId]: prev[matId].filter(id => id !== s._id)
+                                                                                        }))}
+                                                                                    >
+                                                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                                                    </Button>
+                                                                                </TableCell>
+                                                                            </TableRow>
+                                                                        )
+                                                                    })}
+                                                                </TableBody>
+                                                            </Table>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Right Summary Column */}
+                <div className="xl:col-span-1">
+                    <div className="sticky top-24 space-y-6">
+                        <Card className="border-primary/20 bg-background/50 backdrop-blur-xl shadow-2xl rounded-[2.5rem] overflow-hidden">
+                            <CardHeader className="bg-primary/5 border-b border-primary/10 py-8 px-10">
+                                <CardTitle className="text-2xl font-black italic tracking-tighter text-primary">Estimate Ledger</CardTitle>
+                                <CardDescription className="font-bold uppercase text-[10px] tracking-widest text-primary/60">Final Valuation Summary</CardDescription>
+                            </CardHeader>
+                            <CardContent className="p-10 space-y-10">
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center px-1">
+                                        <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                                            <Calculator className="w-3.5 h-3.5" /> Actual Total
+                                        </span>
+                                        <span className="font-mono font-bold text-foreground italic">${calculateTotal.actualTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center px-1">
+                                        <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                                            <TrendingUp className="w-3.5 h-3.5" /> Markup Total
+                                        </span>
+                                        <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400 italic">+ ${calculateTotal.markupAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                    </div>
+                                    {calculateTotal.percentageMarkup > 0 && (
+                                        <div className="space-y-2 pt-2 border-t border-border/40">
+                                            <div className="flex justify-between items-center px-1">
+                                                <span className="text-xs font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                                                    <Percent className="w-3.5 h-3.5" /> Added Pct ({calculateTotal.percentageMarkup}%)
+                                                </span>
+                                                <span className="font-mono font-bold text-primary italic">+ ${calculateTotal.percentageAddAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                            </div>
+                                            <div className="p-3 bg-primary/5 rounded-xl border border-primary/10">
+                                                <p className="text-[9px] font-black uppercase tracking-widest text-primary opacity-70 mb-1">Impacted Elements</p>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {calculateTotal.percentageItems.map((item, i) => (
+                                                        <Badge key={i} variant="outline" className="text-[8px] bg-background/50 border-primary/20 text-primary font-bold">{item}</Badge>
                                                     ))}
-                                            </tbody>
-                                        </Table>
+                                                </div>
+                                            </div>
+                                        </div>
                                     )}
                                 </div>
-                            );
-                        })}
-                    </div>
 
-
-                ))}
-
-                <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-4 mt-5 px-3 py-4 bg-white rounded shadow-sm border">
-
-                    {/* Left: Export Button */}
-                    <div>
-                        <button className="btn btn-outline-primary fw-semibold" onClick={handleExportToExcel}>
-                            Print to Excel
-                        </button>
-                    </div>
-
-                    {/* Center: Total Summary */}
-                    <div className="p-3 rounded border shadow-sm bg-light d-flex flex-column gap-2" style={{ minWidth: "300px", maxWidth: "400px" }}>
-                        <div className="d-flex align-items-center text-dark">
-                            <AiOutlineDollarCircle className="me-2" color="#d9b451" size={24} />
-                            <strong className="me-1">Actual Total:</strong>
-                            <span className="ms-auto">${calculateTotal().actualTotal.toFixed(2)}</span>
-                        </div>
-
-                        {calculateTotal().percentageItems !== 0 && (
-                            <div className="text-secondary">
-                                <div className="d-flex align-items-center">
-                                    <i className="bi bi-plus-circle me-2"></i>
-                                    <span>Added Percentage:</span>
-                                    <span className="ms-auto">{calculateTotal().percentageMarkup}%</span>
+                                <div className="pt-8 border-t-2 border-primary/20">
+                                    <div className="flex flex-col gap-2">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">Final Capital Allocation</span>
+                                        </div>
+                                        <p className="text-5xl font-black text-foreground tracking-tighter tabular-nums drop-shadow-xl">
+                                            ${calculateTotal.finalTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                        </p>
+                                    </div>
                                 </div>
-                                {calculateTotal().percentageItems?.length > 0 && (
-                                    <small className="text-muted d-block ms-4">
-                                        From: {calculateTotal().percentageItems.join(", ")}
-                                    </small>
-                                )}
-                            </div>
-                        )}
 
-                        {(calculateTotal().markupAmount > 0) && (
-                            <div className="text-secondary">
-                                <span>Total markup on materials:</span>
-                                <span className="ms-auto">+ ${calculateTotal().markupAmount.toFixed(2)}</span>
-                            </div>
-                        )}
-                        <hr className="my-2" />
-
-                        <div className="d-flex align-items-center fs-5 fw-bold text-success">
-                            <i className="bi bi-cash-coin me-2"></i>
-                            <span>Final Total:</span>
-                            <span className="ms-auto">${calculateTotal().finalTotal.toFixed(2)}</span>
-                        </div>
+                                <Button 
+                                    className="w-full h-16 rounded-[1.5rem] bg-primary text-white text-lg font-black italic shadow-xl shadow-primary/30 hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 border-none group"
+                                    onClick={saveProject}
+                                >
+                                    {isEditMode ? "COMMIT REVISIONS" : "GENERATE PROJECT"}
+                                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                </Button>
+                            </CardContent>
+                            <CardFooter className="bg-muted/30 p-8 flex items-start gap-3">
+                                <Info className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
+                                <p className="text-[10px] font-medium leading-relaxed text-muted-foreground">
+                                    Valuations are synchronized in real-time with project metadata. Ensure all material units are assigned before committing to the registry.
+                                </p>
+                            </CardFooter>
+                        </Card>
                     </div>
-
-                    {/* Right: Save Button */}
-
-
                 </div>
-                <div className="text-end w-100 w-md-auto">
-                    <button className="btn btn-success fw-semibold" onClick={saveProject}>
-                        {isEditMode ? " Update Project" : " Save Project"}
-                    </button>
-                </div>
-
-            </Card >
-        </Container >
-
+            </div>
+        </motion.div>
     );
 };
 
