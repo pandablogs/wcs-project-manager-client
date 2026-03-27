@@ -15,16 +15,9 @@ import { StatCard } from "../../components/ui/StatCard";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
+import materialService from "../../services/materialServices";
+import projectManagerService from "../../services/projectManagerServices";
 
-const chartData = [
-    { name: "Mon", current: 40, previous: 24 },
-    { name: "Tue", current: 30, previous: 13 },
-    { name: "Wed", current: 20, previous: 38 },
-    { name: "Thu", current: 27, previous: 39 },
-    { name: "Fri", current: 18, previous: 48 },
-    { name: "Sat", current: 23, previous: 38 },
-    { name: "Sun", current: 34, previous: 43 },
-];
 
 const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -50,7 +43,16 @@ const AdminDashboard = () => {
     const navigate = useNavigate();
     const hrs = new Date().getHours();
     const [greet, setGreet] = useState("Hello");
-    const stats = useSelector((state) => state.user.stats || { totalProjects: 17, activeManagers: 13, materialCatalog: 9, amountInvested: 2390000 });
+    const [dashboardStats, setDashboardStats] = useState({
+        totalProjects: 0,
+        activeProjects: 0,
+        activeManagers: 0,
+        materialCatalog: 0,
+        totalBudget: 0,
+        recentProjects: []
+    });
+    const [loading, setLoading] = useState(true);
+    const [dynamicChartData, setDynamicChartData] = useState([]);
 
     useEffect(() => {
         if (hrs < 12) setGreet("Good Morning");
@@ -66,7 +68,59 @@ const AdminDashboard = () => {
         }
     }, []);
 
-    const activeProjects = 7;
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            setLoading(true);
+            try {
+                const [projectsRes, managersRes, materialsRes] = await Promise.all([
+                    materialService.getProjects({ limit: 1000 }),
+                    projectManagerService.getAllProjectManager({ limit: 1000 }),
+                    materialService.getMaterialAll()
+                ]);
+
+                const projects = projectsRes?.data?.projects || [];
+                const managers = managersRes?.data?.project_managerList || [];
+                const materials = materialsRes?.data || [];
+
+                const activeCount = projects.filter(p => p.status === 'Active' || p.status === 'In Progress').length;
+                const totalBudget = projects.reduce((sum, p) => sum + (Number(p.budget) || 0), 0);
+                
+                setDashboardStats({
+                    totalProjects: projects.length,
+                    activeProjects: activeCount,
+                    activeManagers: managers.length,
+                    materialCatalog: materials.length,
+                    totalBudget: totalBudget,
+                    recentProjects: projects.slice(0, 3)
+                });
+
+                // Generate dynamic chart data based on project creation dates over the last 7 days
+                const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+                const last7Days = Array.from({length: 7}, (_, i) => {
+                    const d = new Date();
+                    d.setDate(d.getDate() - (6 - i));
+                    return { name: days[d.getDay()], current: 0, previous: 0, dateStr: d.toDateString() };
+                });
+
+                projects.forEach(p => {
+                    if (p.createdAt) {
+                        const createdDate = new Date(p.createdAt);
+                        const dayMatch = last7Days.find(d => d.dateStr === createdDate.toDateString());
+                        if (dayMatch) {
+                            dayMatch.current += 1;
+                        }
+                    }
+                });
+                setDynamicChartData(last7Days);
+
+            } catch (error) {
+                console.error("Failed to fetch dashboard stats", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchDashboardData();
+    }, []);
 
     return (
         <motion.div
@@ -78,7 +132,7 @@ const AdminDashboard = () => {
                 title={<span className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-white dark:via-slate-200 dark:to-white bg-clip-text text-transparent font-display tracking-tight leading-tight">{greet}, {userName.split(' ')[0]}</span>}
             >
                 <div className="flex gap-3">
-                    <Button variant="outline" className="rounded-xl px-6 h-10 border-border/40 bg-background/50 backdrop-blur-sm hover:bg-primary hover:text-white transition-all shadow-sm" onClick={() => navigate("/project-manager-list")}>
+                    <Button className="rounded-xl px-6 h-10 shadow-lg shadow-primary/20 bg-primary text-white hover:opacity-90 transition-all font-bold tracking-tight" onClick={() => navigate("/admin/project-manager-list")}>
                         Manage Team
                     </Button>
                     <Button className="rounded-xl px-6 h-10 shadow-lg shadow-primary/20 bg-primary text-white hover:opacity-90 transition-all font-bold tracking-tight" onClick={() => navigate("/project-list")}>
@@ -90,32 +144,29 @@ const AdminDashboard = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                 <StatCard
                     title="Active Projects"
-                    value={stats.totalProjects ?? 0}
+                    value={dashboardStats.totalProjects}
                     icon={Building2}
-                    trend={12.5}
-                    description={`${activeProjects} active projects`}
+                    description={`${dashboardStats.activeProjects} active projects`}
                     delay={0.1}
                 />
                 <StatCard
                     title="Executive Staff"
-                    value={stats.activeManagers ?? 0}
+                    value={dashboardStats.activeManagers}
                     icon={Users}
-                    trend={0}
-                    description="Total managers"
+                    description="Verified managers"
                     delay={0.2}
                 />
                 <StatCard
                     title="Asset Catalog"
-                    value={stats.materialCatalog ?? 0}
+                    value={dashboardStats.materialCatalog}
                     icon={Hammer}
                     description="Total materials"
                     delay={0.3}
                 />
                 <StatCard
                     title="Capital Flow"
-                    value={`$${((stats.totalBudget || stats.amountInvested || 0) / 1000).toFixed(0)}k`}
+                    value={`$${(dashboardStats.totalBudget / 1000).toFixed(0)}k`}
                     icon={DollarSign}
-                    trend={-2.4}
                     description="Total budget"
                     delay={0.4}
                 />
@@ -148,7 +199,7 @@ const AdminDashboard = () => {
                         <CardContent className="px-10 pb-10">
                             <div className="h-[320px] w-full">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }} barGap={8}>
+                                    <BarChart data={dynamicChartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }} barGap={8}>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--primary)/0.05)" />
                                         <XAxis
                                             dataKey="name"
@@ -187,27 +238,33 @@ const AdminDashboard = () => {
                         </CardHeader>
                         <CardContent className="flex-1 px-10 pb-6">
                             <div className="space-y-6">
-                                {[
-                                    { id: 1, name: "Oakwood Estate", loc: "1245 Oakwood Dr, Austin", val: "$125k", status: "Active" },
-                                    { id: 2, name: "Riverside Flip", loc: "88 Riverside Ave, Austin", val: "$85k", status: "Review" },
-                                    { id: 3, name: "Sunset Hill Retreat", loc: "342 Sunset Blvd, Dallas", val: "$41k", status: "Idle" },
-                                ].map((p, i) => (
-                                    <div key={p.id} className="flex items-center justify-between group cursor-pointer transition-all hover:translate-x-1">
-                                        <div className="flex gap-4 items-center">
-                                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center text-primary border border-primary/20 shadow-lg group-hover:scale-110 transition-transform">
-                                                <Building2 className="w-5 h-5" />
-                                            </div>
-                                            <div className="space-y-0.5">
-                                                <p className="text-sm font-black text-foreground group-hover:text-primary transition-colors tracking-tight">{p.name}</p>
-                                                <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest opacity-40 truncate max-w-[120px]">{p.loc}</p>
-                                            </div>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-sm font-black text-foreground tracking-tighter">{p.val}</p>
-                                            <p className="text-[9px] font-black text-primary uppercase tracking-[0.2em] opacity-60">{p.status}</p>
-                                        </div>
+                                {loading ? (
+                                    Array(3).fill(0).map((_, i) => (
+                                        <div key={i} className="h-16 bg-primary/5 animate-pulse rounded-2xl" />
+                                    ))
+                                ) : dashboardStats.recentProjects.length === 0 ? (
+                                    <div className="py-12 text-center text-muted-foreground font-bold uppercase tracking-widest text-[10px] opacity-40 italic">
+                                        No projects found
                                     </div>
-                                ))}
+                                ) : (
+                                    dashboardStats.recentProjects.map((p, i) => (
+                                        <div key={p._id} className="flex items-center justify-between group cursor-pointer transition-all hover:translate-x-1" onClick={() => navigate("/project-list")}>
+                                            <div className="flex gap-4 items-center">
+                                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center text-primary border border-primary/20 shadow-lg group-hover:scale-110 transition-transform">
+                                                    <Building2 className="w-5 h-5" />
+                                                </div>
+                                                <div className="space-y-0.5">
+                                                    <p className="text-sm font-black text-foreground group-hover:text-primary transition-colors tracking-tight line-clamp-1">{p.name || 'Untitled Project'}</p>
+                                                    <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest opacity-40 truncate max-w-[120px]">{p.address || 'Global Location'}</p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-sm font-black text-foreground tracking-tighter">${(Number(p.budget) || 0).toLocaleString()}</p>
+                                                <p className="text-[9px] font-black text-primary uppercase tracking-[0.2em] opacity-60">{p.status || 'Active'}</p>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
                             </div>
                             <Button variant="default" className="w-full mt-10 h-14 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] bg-primary text-white hover:opacity-90 transition-all group italic" onClick={() => navigate("/project-list")}>
                                 All Projects <ArrowRight className="w-4 h-4 ml-3 group-hover:translate-x-2 transition-transform" />

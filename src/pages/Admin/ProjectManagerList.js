@@ -137,7 +137,7 @@ const ProjectManagerList = () => {
         }
     };
 
-    const activeCount = project_managerList.length; // Placeholder for real active count if needed
+    const activeCount = (project_managerList || []).length;
 
     return (
         <motion.div 
@@ -158,14 +158,14 @@ const ProjectManagerList = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard 
                     title="Total Staff" 
-                    value={project_managerList.length} 
+                    value={(project_managerList || []).length} 
                     icon={Users} 
                     description="Active authenticated users"
                     delay={0.1}
                 />
                 <StatCard 
                     title="Administrators" 
-                    value={1} // Placeholder
+                    value={(project_managerList || []).filter(pm => pm.role_type === 'admin').length || 1} 
                     icon={Shield} 
                     description="Level 1 access"
                     delay={0.2}
@@ -212,14 +212,14 @@ const ProjectManagerList = () => {
                                                 <TableCell className="text-right pr-10"><div className="h-8 w-8 bg-muted/40 rounded-lg float-right" /></TableCell>
                                             </TableRow>
                                         ))
-                                    ) : project_managerList.length === 0 ? (
+                                    ) : (project_managerList || []).length === 0 ? (
                                         <TableRow>
                                                 <TableCell colSpan={5} className="text-center py-32 text-muted-foreground font-black italic uppercase tracking-widest text-xs opacity-50">
                                                     No managers found
                                                 </TableCell>
                                         </TableRow>
                                     ) : (
-                                        project_managerList.map((manager, idx) => (
+                                        (project_managerList || []).map((manager, idx) => (
                                             <motion.tr
                                                 key={manager._id}
                                                 initial={{ opacity: 0, y: 10 }}
@@ -234,7 +234,7 @@ const ProjectManagerList = () => {
                                                 <TableCell>
                                                     <div className="flex items-center gap-4">
                                                         <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center text-primary font-black text-sm border border-primary/20 shadow-lg group-hover:scale-110 transition-all duration-500">
-                                                            {manager.firstName[0].toUpperCase()}{manager.lastName[0].toUpperCase()}
+                                                            {manager.firstName?.[0]?.toUpperCase()}{manager.lastName?.[0]?.toUpperCase()}
                                                         </div>
                                                         <div className="flex flex-col">
                                                             <span className="font-black text-foreground tracking-tight">{manager.firstName} {manager.lastName}</span>
@@ -275,7 +275,7 @@ const ProjectManagerList = () => {
                     <div className="flex items-center gap-3">
                         <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
                         <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
-                            Total: {project_managerList.length} managers
+                            Total: {(project_managerList || []).length} managers
                         </p>
                     </div>
                     <div className="flex items-center gap-3">

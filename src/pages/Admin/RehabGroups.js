@@ -409,13 +409,12 @@ const RehabGroups = () => {
                         <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground ml-1">Qty</Label>
                         <Input type="number" value={addQty} onChange={e => setAddQty(parseInt(e.target.value) || 1)} className="rounded-2xl h-11 bg-background border-border/50 text-center font-black" />
                       </div>
-                      <Button
-                        variant="secondary"
-                        className="flex-1 mt-5 rounded-2xl h-11 font-black uppercase text-xs tracking-widest border border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 transition-all active:scale-[0.98] shadow-sm shadow-primary/5"
-                        onClick={addItem}
-                      >
-                        <Plus className="w-4 h-4 mr-2" /> Inject to Set
-                      </Button>
+                        <Button
+                          className="flex-1 mt-5 rounded-2xl h-11 font-black uppercase text-xs tracking-[0.1em] bg-primary text-white hover:opacity-90 transition-all shadow-lg shadow-primary/10 italic"
+                          onClick={addItem}
+                        >
+                          <Plus className="w-4 h-4 mr-2" /> Inject to Set
+                        </Button>
                     </div>
                   </div>
                 </div>

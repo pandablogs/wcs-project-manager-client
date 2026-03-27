@@ -391,8 +391,8 @@ const MaterialPage = () => {
                             <span className="font-bold text-foreground uppercase tracking-tight text-sm">{mat.name}</span>
                           </TableCell>
                           <TableCell>
-                            <Badge variant="secondary" className="font-bold text-[10px] uppercase px-2 py-0.5">
-                              {getSubMaterialsForMaterial(mat._id).length} Items
+                            <Badge variant="premium" className="px-3 py-1 text-[11px] tracking-[0.1em] rounded-full shadow-lg shadow-primary/10">
+                              {getSubMaterialsForMaterial(mat._id).length} ITEMS
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right pr-6">

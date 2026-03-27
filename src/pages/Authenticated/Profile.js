@@ -129,6 +129,12 @@ const Profile = () => {
     }
   };
 
+  const handleRevert = async (e) => {
+    e.preventDefault();
+    await fetchProfile();
+    toast.info("Profile fields reverted to saved state.");
+  };
+
   const initials = `${formData.firstName?.charAt(0) || ''}${formData.lastName?.charAt(0) || ''}`.toUpperCase() || "U";
 
   return (
@@ -154,9 +160,6 @@ const Profile = () => {
                     {initials}
                   </AvatarFallback>
                 </Avatar>
-                <button className="absolute bottom-0 right-0 h-10 w-10 rounded-full bg-primary text-white border-4 border-background flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-lg">
-                  <Camera className="w-4 h-4" />
-                </button>
               </div>
 
               <div className="space-y-1">
@@ -280,7 +283,7 @@ const Profile = () => {
                       </div>
                     </CardContent>
                     <CardFooter className="p-10 pt-4 border-t border-border/10 bg-muted/10 flex justify-end gap-3">
-                      <Button variant="ghost" className="rounded-xl font-bold h-11 px-8" onClick={fetchProfile}>
+                      <Button variant="ghost" type="button" className="rounded-xl font-bold h-11 px-8" onClick={handleRevert}>
                         <RefreshCcw className="w-4 h-4 mr-2" /> REVERT
                       </Button>
                       <Button className="rounded-xl bg-primary text-white font-black italic h-11 px-10 shadow-lg shadow-primary/20" onClick={handleUpdateProfile} disabled={localLoading}>

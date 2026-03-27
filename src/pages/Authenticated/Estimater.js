@@ -534,8 +534,8 @@ const Estimater = () => {
                                 <Card className="border-border/50 shadow-2xl overflow-hidden rounded-[2rem]">
                                     <CardHeader className="pb-6 border-b border-border/40 mx-8 px-0 flex flex-row items-center justify-between">
                                         <div className="flex items-center gap-5">
-                                            <div className="h-14 w-14 rounded-2xl bg-primary/5 flex items-center justify-center border border-primary/10 shadow-inner">
-                                                <Package className="w-7 h-7 text-white" />
+                                            <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-sm transition-all group-hover:scale-105">
+                                                <Package className="w-7 h-7 text-primary" />
                                             </div>
                                             <div>
                                                 <CardTitle className="text-2xl font-black italic tracking-tight">{room.name}</CardTitle>
@@ -564,9 +564,9 @@ const Estimater = () => {
                                                         }));
                                                     }}>
                                                         <SelectTrigger 
-                                                            className="w-auto h-10 px-8 rounded-full border-dashed border-primary/40 bg-primary/5 text-primary text-xs font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all shadow-inner"
+                                                            className="w-auto h-11 px-10 rounded-full border-none bg-primary text-white text-[11px] font-black uppercase tracking-[0.2em] hover:opacity-90 transition-all shadow-xl shadow-primary/20 scale-100 hover:scale-[1.05] active:scale-[0.95]"
                                                         >
-                                                            <SelectValue placeholder="Deploy Material Component" />
+                                                            <SelectValue placeholder="DEPLOY MATERIAL COMPONENT" />
                                                         </SelectTrigger>
                                                         <SelectContent className="rounded-2xl border-border/40 shadow-2xl">
                                                             {materials

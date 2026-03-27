@@ -150,7 +150,7 @@ const ProjectList = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard title="Active Projects" value={totalDocs} icon={Briefcase} description="Under management" delay={0.1} />
-                <StatCard title="Portfolio Rooms" value={projects.reduce((a, b) => a + (b.rooms?.length || 0), 0)} icon={Boxes} description="Aggregated across 10 records" delay={0.2} />
+                <StatCard title="Portfolio Rooms" value={projects.reduce((a, b) => a + (b.rooms?.length || 0), 0)} icon={Boxes} description={`Aggregated across ${projects.length} records`} delay={0.2} />
                 <StatCard title="Total Budget" value={`$${projects.reduce((a, b) => a + (Number(b.totalBudget) || 0), 0).toLocaleString()}`} icon={DollarSign} description="Capital allocation" delay={0.3} trend={null} />
             </div>
 

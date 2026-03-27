@@ -1,6 +1,9 @@
 import React, { useMemo } from 'react';
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { useEffect, useState } from 'react';
+import materialService from '../../services/materialServices';
+import { toast } from 'react-toastify';
 import { 
   Plus, 
   LayoutGrid, 
@@ -29,7 +32,49 @@ import { PageHeader } from "../../components/ui/PageHeader";
 const ProjectManagerDashboard = () => {
     const navigate = useNavigate();
     const stats = useSelector((state) => state.user.stats || {});
+    const [dashStats, setDashStats] = useState({
+        projects: 0,
+        materials: 0,
+        activities: []
+    });
+    const [loading, setLoading] = useState(true);
     
+    useEffect(() => {
+        const fetchDashData = async () => {
+            setLoading(true);
+            try {
+                const [pRes, mRes] = await Promise.all([
+                    materialService.getProjects({ limit: 5 }),
+                    materialService.getMaterialAll({ limit: 5 })
+                ]);
+                
+                setDashStats({
+                    projects: pRes.data?.totalRecords || 0,
+                    materials: mRes.data?.length || 0,
+                    activities: [
+                        ...(pRes.data?.projects || []).map(p => ({ 
+                            time: "Recently", 
+                            msg: `Project "${p.name}" registered in portfolio.`, 
+                            type: "Portfolio", 
+                            icon: Briefcase 
+                        })),
+                        ...(mRes.data || []).slice(0, 2).map(m => ({ 
+                            time: "Recently", 
+                            msg: `New material category "${m.name}" added to registry.`, 
+                            type: "Catalog", 
+                            icon: Box 
+                        }))
+                    ].slice(0, 5)
+                });
+            } catch (err) {
+                toast.error("Cloud synchronization failed");
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchDashData();
+    }, []);
+
     const userName = useMemo(() => {
       try {
         return localStorage.getItem("user_name") || localStorage.getItem("name") || "Manager";
@@ -72,33 +117,33 @@ const ProjectManagerDashboard = () => {
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard 
               title="Assigned Portfolios"
-              value={stats.assignedProjects ?? 4}
-              trend={12}
+              value={dashStats.projects}
+              trend={null}
               description="Active projects"
               icon={Briefcase}
               delay={0.1}
             />
             <StatCard 
-              title="Tasks"
-              value={12}
-              description="Items to review"
+              title="Active Nodes"
+              value={dashStats.projects > 0 ? 1 : 0}
+              description="Operational instances"
               icon={Activity}
               delay={0.2}
-              trend="stable"
+              trend={null}
             />
             <StatCard 
-              title="Catalog Access"
-              value={stats.materialCatalog ?? 452}
+              title="Catalog Assets"
+              value={dashStats.materials}
               description="Total materials"
               icon={Box}
               delay={0.3}
             />
             <StatCard 
-              title="Progress"
-              value="84%"
-              trend={2.4}
-              description="Project pace"
-              icon={TrendingUp}
+              title="System Load"
+              value="Optimized"
+              trend={null}
+              description="Cloud overhead"
+              icon={Zap}
               delay={0.4}
             />
           </div>
@@ -117,26 +162,32 @@ const ProjectManagerDashboard = () => {
                       </div>
                    </CardHeader>
                    <CardContent className="px-10 pb-10 space-y-4">
-                      {[
-                        { time: "18m ago", msg: "Architectural material added to Oakwood Estate catalog.", type: "Asset", icon: Box },
-                        { time: "2h ago", msg: "Budget protocol approved for Riverside Unit 402.", type: "Protocol", icon: Zap },
-                        { time: "5h ago", msg: "Project Manager assigned to New Heights Phase II.", type: "Identity", icon: Briefcase },
-                      ].map((item, i) => (
-                        <div key={i} className="group relative flex items-center gap-6 p-5 rounded-2xl bg-primary/[0.02] hover:bg-primary/[0.05] border border-border/20 transition-all cursor-pointer">
-                           <div className="h-12 w-12 shrink-0 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center text-primary border border-primary/20 shadow-sm group-hover:scale-110 transition-transform">
-                              <item.icon className="w-5 h-5" />
-                           </div>
-                           <div className="flex-1">
-                              <p className="text-sm font-black text-foreground italic leading-none tracking-tight">{item.msg}</p>
-                              <div className="flex items-center gap-3 mt-2">
-                                 <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">{item.time}</span>
-                                 <div className="w-1 h-1 rounded-full bg-primary/30" />
-                                 <span className="text-[9px] font-black uppercase tracking-[0.2em] text-primary italic">{item.type}</span>
-                              </div>
-                           </div>
-                           <ArrowUpRight className="w-4 h-4 text-primary opacity-0 group-hover:opacity-40 transition-all -translate-y-1" />
+                      {loading ? (
+                        Array(3).fill(0).map((_, i) => (
+                           <div key={i} className="h-20 bg-primary/5 animate-pulse rounded-2xl" />
+                        ))
+                      ) : dashStats.activities.length === 0 ? (
+                        <div className="py-12 text-center text-muted-foreground font-bold uppercase tracking-widest text-[10px] opacity-40 italic">
+                           No recent activity logged
                         </div>
-                      ))}
+                      ) : (
+                        dashStats.activities.map((item, i) => (
+                           <div key={i} className="group relative flex items-center gap-6 p-5 rounded-2xl bg-primary/[0.02] hover:bg-primary/[0.05] border border-border/20 transition-all cursor-pointer">
+                              <div className="h-12 w-12 shrink-0 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center text-primary border border-primary/20 shadow-sm group-hover:scale-110 transition-transform">
+                                 <item.icon className="w-5 h-5" />
+                              </div>
+                              <div className="flex-1">
+                                 <p className="text-sm font-black text-foreground italic leading-none tracking-tight">{item.msg}</p>
+                                 <div className="flex items-center gap-3 mt-2">
+                                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">{item.time}</span>
+                                    <div className="w-1 h-1 rounded-full bg-primary/30" />
+                                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-primary italic">{item.type}</span>
+                                 </div>
+                              </div>
+                              <ArrowUpRight className="w-4 h-4 text-primary opacity-0 group-hover:opacity-40 transition-all -translate-y-1" />
+                           </div>
+                         ))
+                      )}
                       <Button variant="ghost" className="w-full h-14 mt-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] text-primary hover:text-white hover:bg-primary transition-all group italic">
                         ALL ACTIVITY <ChevronRight size={14} className="ml-2 group-hover:translate-x-1 transition-transform" />
                       </Button>

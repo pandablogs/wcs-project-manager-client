@@ -32,7 +32,8 @@ import {
   X,
   Plus,
   Info,
-  Edit2
+  Edit2,
+  ShieldCheck
 } from "lucide-react";
 import { Input } from "../components/ui/Input";
 import { Badge } from "../components/ui/Badge";
@@ -42,6 +43,7 @@ import { ThemeContext, LoadingContext } from "../App";
 import { PremiumLoader } from "../components/ui/PremiumLoader";
 import { useSelector } from "react-redux";
 import userServices from "../services/userServices";
+import materialService from "../services/materialServices";
 import { cn } from "../lib/utils";
 
 const AuthLayout = ({ children }) => {
@@ -53,59 +55,18 @@ const AuthLayout = ({ children }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showAllNotifications, setShowAllNotifications] = useState(false);
 
-  // Mock notifications data
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: "Project Updated",
-      description: "Modern Villa kitchen specs were modified",
-      time: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-      link: "/project-list?search=Modern Villa",
-      type: "edit"
-    },
-    {
-      id: 2,
-      title: "New Material Added",
-      description: "Premium Marble added to Bathroom category",
-      time: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-      link: "/material-list?search=Premium Marble",
-      type: "add"
-    },
-    {
-      id: 3,
-      title: "Template Modified",
-      description: "Kitchen Standard template items updated",
-      time: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-      link: "/rehab-groups?search=Kitchen Standard",
-      type: "edit"
-    },
-    {
-      id: 4,
-      title: "User Profile Updated",
-      description: "Admin password was changed successfully",
-      time: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
-      link: "/profile",
-      type: "info"
-    },
-    {
-      id: 5,
-      title: "New Project Assigned",
-      description: "Skyline Apartment assigned to PM John",
-      time: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(),
-      link: "/project-list?search=Skyline",
-      type: "assign"
-    },
-    {
-      id: 6,
-      title: "System Maintenance",
-      description: "Database optimization completed",
-      time: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30).toISOString(),
-      link: "/admin/dashboard",
-      type: "info"
-    }
-  ]);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const reduxLoading = useSelector(state => state.project_manager?.loading || state.user?.loading);
+
+  const roleType = useMemo(() => {
+    try {
+      return localStorage.getItem("role_type");
+    } catch {
+      return null;
+    }
+  }, []);
 
   // Sync search query with URL if search param exists
   useEffect(() => {
@@ -113,6 +74,8 @@ const AuthLayout = ({ children }) => {
     const search = params.get('search');
     if (search) {
       setSearchQuery(search);
+    } else {
+      setSearchQuery("");
     }
   }, [location.search]);
 
@@ -165,20 +128,97 @@ const AuthLayout = ({ children }) => {
     fetchUserProfile();
   }, []);
 
+  // Fetch real data to simulate notifications
+  useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        const [projectsRes, materialsRes] = await Promise.all([
+          materialService.getProjects({ limit: 10 }),
+          materialService.getMaterialAll({ limit: 10 })
+        ]);
+
+        const projectNotifs = (projectsRes?.data?.projects || []).map(p => {
+          const isUpdated = p.updatedAt && p.createdAt && new Date(p.updatedAt).getTime() - new Date(p.createdAt).getTime() > 2000;
+          return {
+            id: `p-${p._id}-${isUpdated ? p.updatedAt : p.createdAt}`,
+            title: isUpdated ? "Project Updated" : "Project Discovery",
+            description: isUpdated ? `Project "${p.name}" details were recently modified.` : `Project "${p.name}" is logged in the system.`,
+            time: isUpdated ? p.updatedAt : p.createdAt || new Date().toISOString(),
+            link: `/project-list?search=${encodeURIComponent(p.name)}`,
+            type: isUpdated ? "edit" : "assign"
+          };
+        });
+
+        const materialNotifs = (materialsRes?.data || []).map(m => {
+          const isUpdated = m.updatedAt && m.createdAt && new Date(m.updatedAt).getTime() - new Date(m.createdAt).getTime() > 2000;
+          return {
+            id: `m-${m._id}-${isUpdated ? m.updatedAt : m.createdAt}`,
+            title: isUpdated ? "Resource Updated" : "Resource Audit",
+            description: isUpdated ? `Material category "${m.name}" was recently modified.` : `Material category "${m.name}" is active across regions.`,
+            time: isUpdated ? m.updatedAt : m.createdAt || new Date().toISOString(),
+            link: `/material-list?search=${encodeURIComponent(m.name)}`,
+            type: isUpdated ? "edit" : "add"
+          };
+        });
+
+        // Manage true login history
+        let loginHistory = [];
+        try {
+          loginHistory = JSON.parse(localStorage.getItem('wcs_login_history')) || [];
+        } catch {
+          loginHistory = [];
+        }
+        
+        if (!sessionStorage.getItem('wcs_session_logged') && roleType) {
+          loginHistory.unshift({ time: new Date().toISOString(), role: roleType });
+          loginHistory = loginHistory.slice(0, 5); // Keep last 5 logins
+          localStorage.setItem('wcs_login_history', JSON.stringify(loginHistory));
+          sessionStorage.setItem('wcs_session_logged', 'true');
+        }
+
+        const loginNotifs = loginHistory.map((log, idx) => ({
+          id: `login-hist-${idx}`,
+          title: "Secure Session Started",
+          description: `Dashboard access verified for ${log.role === 'admin' ? 'Administrative' : 'Management'} Control.`,
+          time: log.time,
+          link: "/profile",
+          type: "login"
+        }));
+
+        const combined = [
+          ...loginNotifs,
+          ...projectNotifs, 
+          ...materialNotifs
+        ]
+          .sort((a, b) => new Date(b.time) - new Date(a.time))
+          .slice(0, 10);
+
+        setNotifications(combined);
+        
+        // Only show red dot if the latest CHANGE (project/material) is different from the last seen one
+        const latestChangeNotif = [...projectNotifs, ...materialNotifs].sort((a, b) => new Date(b.time) - new Date(a.time))[0];
+        const latestChangeId = latestChangeNotif?.id || null;
+        const lastSeenChangeId = localStorage.getItem('wcs_last_seen_change_id');
+        
+        if (latestChangeId && latestChangeId !== lastSeenChangeId) {
+          setUnreadCount(1);
+        } else {
+          setUnreadCount(0);
+        }
+      } catch (error) {
+        console.error("Failed to fetch notification data");
+      }
+    };
+
+    fetchActivities();
+  }, [location.pathname, roleType]);
+
   // Auto-trigger loading on route change for premium transition feel
   React.useEffect(() => {
     setLoading(true);
     const timer = setTimeout(() => setLoading(false), 600);
     return () => clearTimeout(timer);
   }, [location.pathname, setLoading]);
-
-  const roleType = useMemo(() => {
-    try {
-      return localStorage.getItem("role_type");
-    } catch {
-      return null;
-    }
-  }, []);
 
   const isAdmin = roleType === "admin";
 
@@ -311,47 +351,60 @@ const AuthLayout = ({ children }) => {
             </div>
 
             <div className="flex items-center gap-3">
-              <DropdownMenu onOpenChange={(open) => !open && setShowAllNotifications(false)}>
+              <DropdownMenu onOpenChange={(open) => {
+                if (!open) {
+                  setShowAllNotifications(false);
+                } else {
+                  setUnreadCount(0);
+                  const latestChangeNotif = notifications.find(n => n.type !== 'login');
+                  if (latestChangeNotif) {
+                    localStorage.setItem('wcs_last_seen_change_id', latestChangeNotif.id);
+                  }
+                }
+              }}>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="group relative rounded-full h-11 w-11 transition-all hover:bg-muted/50 border border-transparent hover:border-border/50">
+                  <Button variant="ghost" size="icon" className="group relative rounded-full h-11 w-11 transition-all hover:bg-muted/50 border border-transparent hover:border-border/50 focus-visible:ring-0 focus:outline-none">
                     <Bell className="w-5 h-5 text-muted-foreground transition-colors group-hover:text-primary" />
-                    <span className="absolute right-3 top-3 flex h-2 w-2">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
-                      <span className="relative inline-flex h-2 w-2 rounded-full bg-primary"></span>
-                    </span>
+                    {unreadCount > 0 && (
+                      <span className="absolute right-3 top-3 flex h-2 w-2">
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
+                        <span className="relative inline-flex h-2 w-2 rounded-full bg-primary"></span>
+                      </span>
+                    )}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-[380px] mt-2 p-0 rounded-[2rem] overflow-hidden border-border/40 shadow-premium bg-background/95 backdrop-blur-xl">
-                  <div className="px-6 py-5 border-b border-border/10 bg-primary/[0.03] flex items-center justify-between">
+                <DropdownMenuContent align="end" className="w-[320px] mt-2 p-0 rounded-[1.5rem] overflow-hidden border-border/40 shadow-premium bg-background/95 backdrop-blur-xl">
+                  <div className="px-5 py-4 border-b border-border/10 bg-primary/[0.02] flex items-center justify-between">
                     <div>
-                      <h3 className="text-sm font-black italic tracking-tighter text-foreground uppercase">Notifications</h3>
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">Recent system updates</p>
+                      <h3 className="text-[11px] font-black italic tracking-tighter text-foreground uppercase">Notifications</h3>
+                      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest opacity-50">System Activity</p>
                     </div>
-                    <Badge variant="brand" className="bg-primary/10 text-primary border-primary/20 rounde-full px-3">{notifications.length} Total</Badge>
+                    <Badge variant="brand" className="bg-primary/10 text-primary border-primary/20 rounded-full px-2 py-0 text-[9px] font-black">{notifications.length}</Badge>
                   </div>
 
                   <div className={cn(
                     "divide-y divide-border/5 overflow-y-auto no-scrollbar",
-                    showAllNotifications ? "max-h-[450px]" : "max-h-[380px]"
+                    showAllNotifications ? "max-h-[400px]" : "max-h-[320px]"
                   )}>
                     {displayNotifications.map((notif) => (
                       <button
                         key={notif.id}
                         onClick={() => navigate(notif.link)}
-                        className="w-full flex items-start gap-4 p-5 hover:bg-primary/[0.04] transition-all text-left group"
+                        className="w-full flex items-start gap-3 p-4 hover:bg-primary/[0.03] transition-all text-left group"
                       >
-                        <div className="h-10 w-10 flex-shrink-0 rounded-xl bg-muted/30 border border-border/10 flex items-center justify-center text-muted-foreground transition-all group-hover:bg-primary/20 group-hover:text-primary group-hover:scale-110">
-                          {notif.type === 'edit' && <Edit2 className="w-4 h-4" />}
-                          {notif.type === 'add' && <Plus className="w-4 h-4" />}
-                          {notif.type === 'info' && <Info className="w-4 h-4" />}
-                          {notif.type === 'assign' && <Users className="w-4 h-4" />}
+                        <div className="h-9 w-9 flex-shrink-0 rounded-xl bg-muted/20 border border-border/10 flex items-center justify-center text-muted-foreground transition-all group-hover:bg-primary/10 group-hover:text-primary group-hover:scale-105">
+                          {notif.type === 'edit' && <Edit2 className="w-3.5 h-3.5" />}
+                          {notif.type === 'add' && <Plus className="w-3.5 h-3.5" />}
+                          {notif.type === 'info' && <Info className="w-3.5 h-3.5" />}
+                          {notif.type === 'assign' && <Users className="w-3.5 h-3.5" />}
+                          {notif.type === 'login' && <ShieldCheck className="w-3.5 h-3.5" />}
                         </div>
-                        <div className="flex-1 space-y-1">
-                          <p className="text-sm font-black text-foreground tracking-tight line-clamp-1">{notif.title}</p>
-                          <p className="text-xs font-medium text-muted-foreground line-clamp-2 leading-relaxed opacity-80">{notif.description}</p>
-                          <div className="flex items-center gap-2 pt-1">
-                            <div className="h-1 w-1 rounded-full bg-primary/40" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-primary/60">{formatRelativeTime(notif.time)}</span>
+                        <div className="flex-1 space-y-0.5">
+                          <p className="text-xs font-black text-foreground tracking-tight line-clamp-1 group-hover:text-primary transition-colors">{notif.title}</p>
+                          <p className="text-[10px] font-medium text-muted-foreground line-clamp-2 leading-relaxed opacity-70">{notif.description}</p>
+                          <div className="flex items-center gap-1.5 pt-1">
+                            <div className="h-1 w-1 rounded-full bg-primary/30" />
+                            <span className="text-[8px] font-black uppercase tracking-widest text-primary/50">{formatRelativeTime(notif.time)}</span>
                           </div>
                         </div>
                       </button>
@@ -359,7 +412,7 @@ const AuthLayout = ({ children }) => {
                   </div>
 
                   {!showAllNotifications && notifications.length > 5 && (
-                    <div className="p-3 border-t border-border/10 bg-muted/10">
+                    <div className="p-2.5 border-t border-border/10 bg-muted/5">
                       <Button
                         variant="ghost"
                         onClick={(e) => {
@@ -367,9 +420,9 @@ const AuthLayout = ({ children }) => {
                           e.stopPropagation();
                           setShowAllNotifications(true);
                         }}
-                        className="w-full h-10 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] text-primary hover:bg-primary/10 transition-all italic"
+                        className="w-full h-9 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] text-primary hover:bg-primary/5 transition-all italic"
                       >
-                        View All Notifications
+                        View All
                       </Button>
                     </div>
                   )}

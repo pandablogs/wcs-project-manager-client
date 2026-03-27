@@ -283,7 +283,7 @@ const MaterialList = () => {
                       <div className="flex-1">
                         <div className="flex items-center gap-4">
                             <span className="text-xl font-black tracking-tighter text-foreground uppercase italic">{room.name}</span>
-                            <Badge variant="outline" className="text-[10px] uppercase font-black tracking-widest text-primary border-primary/30 bg-primary/5 py-0.5 px-3 rounded-full italic">Room</Badge>
+                            <Badge variant="premium" className="px-3 py-1 rounded-full shadow-lg shadow-primary/10">Room</Badge>
                         </div>
                         <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mt-1 opacity-60">{roomMats.length} Material Categories</p>
                       </div>
@@ -319,7 +319,7 @@ const MaterialList = () => {
                                   <div className="flex-1">
                                     <div className="flex items-center gap-4">
                                         <span className="text-sm font-black text-foreground tracking-tight">{mat.name}</span>
-                                        <Badge variant="secondary" className="text-[9px] px-2 py-0 border border-border/50 font-black uppercase tracking-widest bg-muted/20">Material</Badge>
+                                        <Badge variant="premium" className="px-3 py-1 scale-90 border-primary/10">Material</Badge>
                                     </div>
                                     <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mt-0.5 opacity-60">{matSubs.length} Items</p>
                                   </div>

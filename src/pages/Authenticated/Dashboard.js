@@ -15,9 +15,13 @@ import {
   ChevronRight,
   TrendingUp,
   CreditCard,
-  Package
+  Package,
+  Activity
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useEffect, useState } from 'react';
+import materialService from '../../services/materialServices';
+import { toast } from 'react-toastify';
 
 // Premium UI Components
 import { Button } from "../../components/ui/Button";
@@ -37,7 +41,52 @@ const Dashboard = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const user = useSelector((state) => state.user.user);
+    const [dashStats, setDashStats] = useState({
+        projects: 0,
+        budget: 0,
+        activities: []
+    });
+    const [loading, setLoading] = useState(true);
     
+    useEffect(() => {
+        const fetchDashData = async () => {
+            setLoading(true);
+            try {
+                const [pRes, mRes] = await Promise.all([
+                    materialService.getProjects({ limit: 5 }),
+                    materialService.getMaterialAll({ limit: 5 })
+                ]);
+                
+                const projects = pRes.data?.projects || [];
+                const totalBudget = projects.reduce((acc, p) => acc + (Number(p.totalBudget) || 0), 0);
+                
+                setDashStats({
+                    projects: pRes.data?.totalRecords || 0,
+                    budget: totalBudget,
+                    activities: [
+                        ...projects.map(p => ({ 
+                            title: "Project Discovery", 
+                            desc: `Project "${p.name}" is active.`, 
+                            time: "Recently", 
+                            icon: Briefcase 
+                        })),
+                        ...(mRes.data || []).slice(0, 2).map(m => ({ 
+                            title: "Resource Audit", 
+                            desc: `Material "${m.name}" verified.`, 
+                            time: "Recently", 
+                            icon: Package 
+                        }))
+                    ].slice(0, 5)
+                });
+            } catch (err) {
+                toast.error("Cloud synchronization failed");
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchDashData();
+    }, []);
+
     const handleLogout = () => {
         dispatch(clearUser());
         localStorage.clear();
@@ -107,19 +156,19 @@ const Dashboard = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <StatCard 
                             title="Active Projects" 
-                            value="12" 
+                            value={dashStats.projects} 
                             icon={Briefcase} 
                             description="Project pipeline status" 
                             delay={0.1}
-                            trend="up"
+                            trend={null}
                         />
                         <StatCard 
                             title="Financial Allocation" 
-                            value="$245k" 
+                            value={`$${dashStats.budget.toLocaleString()}`} 
                             icon={CreditCard} 
                             description="Estimated total budget" 
                             delay={0.2}
-                            trend="stable"
+                            trend={null}
                         />
                     </div>
 
@@ -139,22 +188,28 @@ const Dashboard = () => {
                             </div>
                         </CardHeader>
                         <CardContent className="px-8 pb-8 space-y-4">
-                            {[
-                                { title: "New Material Approved", desc: "Oakwood Estate Phase I requirements met.", time: "2 hours ago", icon: Clock },
-                                { title: "Budget Revision", desc: "Riverside unit valuation adjusted +12%.", time: "5 hours ago", icon: TrendingUp },
-                                { title: "System Notification", desc: "Premium plan successfully renewed.", time: "Yesterday", icon: ShieldCheck },
-                            ].map((item, i) => (
-                                <div key={i} className="group flex items-center gap-4 p-4 rounded-2xl bg-muted/20 hover:bg-primary/5 border border-border/40 transition-all cursor-pointer">
-                                    <div className="h-10 w-10 rounded-xl bg-background border border-border/40 flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
-                                        <item.icon className="w-5 h-5" />
+                            {loading ? (
+                                Array(3).fill(0).map((_, i) => (
+                                    <div key={i} className="h-16 bg-muted/20 animate-pulse rounded-2xl" />
+                                ))
+                            ) : dashStats.activities.length === 0 ? (
+                                <div className="py-12 text-center text-muted-foreground font-bold uppercase tracking-widest text-[10px] opacity-40 italic">
+                                    No recent activity logged
+                                 </div>
+                            ) : (
+                                dashStats.activities.map((item, i) => (
+                                    <div key={i} className="group flex items-center gap-4 p-4 rounded-2xl bg-muted/20 hover:bg-primary/5 border border-border/40 transition-all cursor-pointer">
+                                        <div className="h-10 w-10 rounded-xl bg-background border border-border/40 flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
+                                            <item.icon className="w-5 h-5" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <h4 className="text-sm font-bold text-foreground">{item.title}</h4>
+                                            <p className="text-xs text-muted-foreground">{item.desc}</p>
+                                        </div>
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/50">{item.time}</span>
                                     </div>
-                                    <div className="flex-1">
-                                        <h4 className="text-sm font-bold text-foreground">{item.title}</h4>
-                                        <p className="text-xs text-muted-foreground">{item.desc}</p>
-                                    </div>
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/50">{item.time}</span>
-                                </div>
-                            ))}
+                                ))
+                            )}
                         </CardContent>
                     </Card>
                 </div>
