@@ -14,8 +14,16 @@ console.error = (...args) => {
 };
 
 window.addEventListener('error', e => {
-  if (e.message === 'ResizeObserver loop limit exceeded' || e.message === 'ResizeObserver loop completed with undelivered notifications.') {
+  if (e.message.includes('ResizeObserver')) {
     e.stopImmediatePropagation();
+    const resizeObserverError = document.getElementById('webpack-dev-server-client-overlay');
+    if (resizeObserverError) resizeObserverError.style.display = 'none';
+  }
+});
+
+window.addEventListener('unhandledrejection', e => {
+  if (e.reason && e.reason.message && e.reason.message.includes('ResizeObserver')) {
+    e.preventDefault();
   }
 });
 

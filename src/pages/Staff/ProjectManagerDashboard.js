@@ -85,6 +85,14 @@ const ProjectManagerDashboard = () => {
 
     const firstName = userName.split(' ')[0];
 
+    const greeting = useMemo(() => {
+        const hour = new Date().getHours();
+        if (hour < 12) return "Good morning";
+        if (hour < 17) return "Good afternoon";
+        if (hour < 21) return "Good evening";
+        return "Good night";
+    }, []);
+
     return (
         <motion.div 
           initial={{ opacity: 0 }} 
@@ -93,7 +101,7 @@ const ProjectManagerDashboard = () => {
         >
           {/* Enhanced Header */}
           <PageHeader 
-            title={`Welcome back, ${firstName}`} 
+            title={`${greeting}, ${firstName}`} 
             description="Manage your projects and team."
           >
             <div className="flex gap-3">
@@ -223,37 +231,6 @@ const ProjectManagerDashboard = () => {
                    </CardContent>
                 </Card>
 
-                {/* Promotional/System Status Card */}
-                <div className="group relative rounded-[2.5rem] bg-slate-900 text-white p-10 overflow-hidden shadow-2xl border border-white/5 shadow-slate-900/40 cursor-default">
-                   <div className="absolute top-0 right-0 h-48 w-48 bg-primary/20 rounded-full blur-[72px] group-hover:bg-primary/30 transition-all duration-700 pointer-events-none" />
-                   
-                   <div className="relative z-10 space-y-6">
-                      <div className="flex items-center gap-3">
-                         <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30">
-                            <Star className="w-5 h-5 text-primary fill-primary" />
-                         </div>
-                         <h4 className="text-2xl font-black tracking-tighter italic">WCS <span className="text-primary">ELITE</span></h4>
-                      </div>
-                      <p className="text-[10px] font-bold text-slate-400 leading-relaxed uppercase tracking-widest opacity-80">
-                          Manage your projects and materials in one place.
-                      </p>
-                      <div className="space-y-4">
-                         <div className="flex items-center justify-between">
-                             <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Project Progress</span>
-                             <span className="text-[10px] font-black text-primary italic">67% Complete</span>
-                         </div>
-                         <div className="h-1.5 w-full bg-slate-800/50 rounded-full overflow-hidden shadow-lg">
-                            <motion.div 
-                               initial={{ width: 0 }} 
-                               animate={{ width: "67%" }} 
-                               transition={{ duration: 1.5, ease: "easeOut" }}
-                               className="h-full bg-primary rounded-full shadow-[0_0_15px_rgba(var(--primary),0.8)]" 
-                            />
-                         </div>
-                      </div>
-                       <p className="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em] italic">System ID: WCS-X-9982</p>
-                   </div>
-                </div>
              </div>
           </div>
         </motion.div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+﻿import React, { useState, useEffect, useMemo } from "react";
 import materialService from "../../services/materialServices";
 import userServices from "../../services/userServices";
 import rehabGroupService from "../../services/rehabGroupServices";
@@ -189,10 +189,12 @@ const Estimater = () => {
         let totalWithMarkup = 0;
         let percentageMarkup = 0;
         let percentageItems = [];
-        const markupPercentVal = markupPercent || 0;
+        let itemizedList = [];
+        const markupPercentVal = parseFloat(markupPercent) || 0;
 
         rooms.forEach((room) => {
-            const roomMaterials = materials.filter((mat) => mat.roomId?._id === room._id);
+            const deployedMatIds = selectedMaterials[room._id] || [];
+            const roomMaterials = materials.filter((mat) => deployedMatIds.includes(mat._id));
 
             roomMaterials.forEach((mat) => {
                 const subIds = selectedSubMaterials[mat._id] || [];
@@ -210,6 +212,15 @@ const Estimater = () => {
                         const amount = qty * (sub?.price || 0);
                         actualTotal += amount;
                         
+                        if (qty > 0 && sub) {
+                            itemizedList.push({ 
+                                name: sub.name, 
+                                qty, 
+                                amount, 
+                                room: room.name 
+                            });
+                        }
+
                         const m = markupBySubMaterial[subId] ?? markupPercentVal;
                         const amountWithMarkup = amount + amount * (m / 100);
                         totalWithMarkup += amountWithMarkup;
@@ -232,9 +243,10 @@ const Estimater = () => {
             markupPercent: markupPercentVal,
             markupAmount,
             subtotalBeforeMarkup: subtotalBeforePct,
+            itemizedList,
             finalTotal
         };
-    }, [rooms, materials, subMaterials, selectedSubMaterials, quantities, markupPercent, markupBySubMaterial]);
+    }, [rooms, materials, subMaterials, selectedMaterials, selectedSubMaterials, quantities, markupPercent, markupBySubMaterial]);
 
     const getLineAmountWithMarkup = (amount, subId) => {
         const m = subId != null ? getLineMarkupPercent(subId) : (markupPercent || 0);
@@ -242,7 +254,8 @@ const Estimater = () => {
     };
 
     const getRoomTotal = (roomId) => {
-        const roomMaterials = materials.filter(mat => mat.roomId?._id === roomId);
+        const deployedMatIds = selectedMaterials[roomId] || [];
+        const roomMaterials = materials.filter(mat => deployedMatIds.includes(mat._id));
         return roomMaterials.reduce((matTotal, mat) => {
             const subIds = selectedSubMaterials[mat._id] || [];
             return matTotal + subIds.reduce((acc, subId) => {
@@ -407,7 +420,6 @@ const Estimater = () => {
 
     const handleAddRehabGroup = () => {
         const group = rehabGroups.find(g => g._id === selectedRehabGroupId);
-        if (group) applyRehabGroup(group);
     };
 
     return (
@@ -474,8 +486,9 @@ const Estimater = () => {
                                         <Percent className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40" />
                                         <Input 
                                             type="number"
+                                            min="0"
                                             value={markupPercent}
-                                            onChange={(e) => setMarkupPercent(parseFloat(e.target.value) || 0)}
+                                            onChange={(e) => setMarkupPercent(Math.max(0, parseFloat(e.target.value) || 0))}
                                             className="h-12 text-lg font-bold bg-background/50 border-border/50 rounded-[1rem] focus-visible:ring-primary/20"
                                         />
                                     </div>
@@ -609,7 +622,7 @@ const Estimater = () => {
                                                                         <SelectContent className="rounded-xl border-border/40 shadow-2xl">
                                                                             {subs.filter(s => !selSubs.includes(s._id)).map(s => (
                                                                                 <SelectItem key={s._id} value={s._id} className="rounded-md">
-                                                                                    {s.name} — ${s.price}
+                                                                                    {s.name} â€” ${s.price}
                                                                                 </SelectItem>
                                                                             ))}
                                                                         </SelectContent>
@@ -673,12 +686,13 @@ const Estimater = () => {
                                                                                         </TableCell>
                                                                                         <TableCell className="text-center text-muted-foreground font-mono italic text-xs">${baseAmt.toFixed(2)}</TableCell>
                                                                                         <TableCell className="text-center">
-                                                                                            <Input 
-                                                                                                type="number"
-                                                                                                value={markup}
-                                                                                                onChange={(e) => setMarkupBySubMaterial(prev => ({ ...prev, [s._id]: parseFloat(e.target.value) || 0 }))}
-                                                                                                className="h-9 w-20 mx-auto text-center font-black rounded-lg bg-background/50 border-border/40 focus-visible:ring-primary/20"
-                                                                                            />
+                                                                            <Input 
+                                                                                type="number"
+                                                                                min="0"
+                                                                                value={markup}
+                                                                                onChange={(e) => setMarkupBySubMaterial(prev => ({ ...prev, [s._id]: Math.max(0, parseFloat(e.target.value) || 0) }))}
+                                                                                className="h-9 w-24 mx-auto text-center font-black rounded-lg bg-background/50 border-border/40 focus-visible:ring-primary/20"
+                                                                            />
                                                                                         </TableCell>
                                                                                         <TableCell className="text-right pr-6 font-black text-emerald-600 dark:text-emerald-400">
                                                                                             ${lineFinal.toFixed(2)}
@@ -739,6 +753,26 @@ const Estimater = () => {
                                         </span>
                                         <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400 italic">+ ${calculateTotal.markupAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                                     </div>
+
+                                    {calculateTotal.itemizedList.length > 0 && (
+                                        <div className="pt-6 border-t border-border/40 space-y-4">
+                                            <div className="flex items-center justify-between">
+                                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-50">Itemized Breakdown</p>
+                                                <Badge variant="outline" className="text-[8px] font-black opacity-40">{calculateTotal.itemizedList.length} UNITS</Badge>
+                                            </div>
+                                            <div className="max-h-[200px] overflow-y-auto pr-2 space-y-2.5 no-scrollbar">
+                                                {calculateTotal.itemizedList.map((item, i) => (
+                                                    <div key={i} className="flex items-center justify-between group">
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[11px] font-bold text-foreground line-clamp-1 leading-none mb-1">{item.name}</span>
+                                                            <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-widest opacity-60">Qty: {item.qty} Â· {item.room}</span>
+                                                        </div>
+                                                        <span className="text-[11px] font-mono font-bold text-muted-foreground group-hover:text-primary transition-colors">${item.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                     {calculateTotal.percentageMarkup > 0 && (
                                         <div className="space-y-2 pt-2 border-t border-border/40">
                                             <div className="flex justify-between items-center px-1">
@@ -794,3 +828,4 @@ const Estimater = () => {
 };
 
 export default Estimater;
+

@@ -52,8 +52,8 @@ const ProjectList = () => {
     const [queryParams, setQueryParams] = useState({
         page: 1,
         limit: 10,
-        sortField: "",
-        sortOrder: 0,
+        sortField: "createdAt",
+        sortOrder: -1,
         search: getSearchFromUrl()
     });
 

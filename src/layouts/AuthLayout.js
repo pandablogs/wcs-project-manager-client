@@ -41,17 +41,32 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Avatar, AvatarFallback } from "../components/ui/Avatar";
 import { ThemeContext, LoadingContext } from "../App";
 import { PremiumLoader } from "../components/ui/PremiumLoader";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { setUser as setReduxUser } from "../redux/slices/userSlice";
 import userServices from "../services/userServices";
 import materialService from "../services/materialServices";
 import { cn } from "../lib/utils";
 
 const AuthLayout = ({ children }) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const location = useLocation();
   const { theme, setTheme } = useContext(ThemeContext);
   const { loading, setLoading } = useContext(LoadingContext);
-  const [user, setUser] = useState({ name: "", email: "" });
+  const [user, setUser] = useState(() => {
+    try {
+      const stored = localStorage.getItem("user");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return {
+          id: parsed._id || parsed.id || "",
+          name: `${parsed.firstName || ''} ${parsed.lastName || ''}`.trim() || "User",
+          email: parsed.email || ""
+        };
+      }
+    } catch { /* ignore */ }
+    return { id: "", name: "", email: "" };
+  });
   const [searchQuery, setSearchQuery] = useState("");
   const [showAllNotifications, setShowAllNotifications] = useState(false);
 
@@ -110,9 +125,12 @@ const AuthLayout = ({ children }) => {
         const response = await userServices.getProfile();
         if (response?.user) {
           setUser({
+            id: response.user._id || "",
             name: `${response.user.firstName || ''} ${response.user.lastName || ''}`.trim() || "User",
             email: response.user.email || ""
           });
+          dispatch(setReduxUser(response.user));
+          localStorage.setItem("user", JSON.stringify(response.user));
         }
       } catch (error) {
         // Fallback to hardcoded values if API fails
@@ -132,15 +150,22 @@ const AuthLayout = ({ children }) => {
   useEffect(() => {
     const fetchActivities = async () => {
       try {
-        const [projectsRes, materialsRes] = await Promise.all([
-          materialService.getProjects({ limit: 10 }),
-          materialService.getMaterialAll({ limit: 10 })
-        ]);
+        let projectsRes = { data: { projects: [] } };
+        let materialsRes = { data: [] };
 
-        const projectNotifs = (projectsRes?.data?.projects || []).map(p => {
+        try {
+          projectsRes = await materialService.getProjects({ limit: 20 });
+        } catch (e) { console.error("Projects feed error", e); }
+
+        try {
+          materialsRes = await materialService.getMaterialAll({ limit: 20 });
+        } catch (e) { console.error("Materials feed error", e); }
+
+        let projectNotifs = (projectsRes?.data?.projects || []).map(p => {
           const isUpdated = p.updatedAt && p.createdAt && new Date(p.updatedAt).getTime() - new Date(p.createdAt).getTime() > 2000;
           return {
             id: `p-${p._id}-${isUpdated ? p.updatedAt : p.createdAt}`,
+            creatorId: p.createdBy?._id || p.createdBy || "",
             title: isUpdated ? "Project Updated" : "Project Discovery",
             description: isUpdated ? `Project "${p.name}" details were recently modified.` : `Project "${p.name}" is logged in the system.`,
             time: isUpdated ? p.updatedAt : p.createdAt || new Date().toISOString(),
@@ -149,10 +174,11 @@ const AuthLayout = ({ children }) => {
           };
         });
 
-        const materialNotifs = (materialsRes?.data || []).map(m => {
+        let materialNotifs = (materialsRes?.data || []).map(m => {
           const isUpdated = m.updatedAt && m.createdAt && new Date(m.updatedAt).getTime() - new Date(m.createdAt).getTime() > 2000;
           return {
             id: `m-${m._id}-${isUpdated ? m.updatedAt : m.createdAt}`,
+            creatorId: m.createdBy?._id || m.createdBy || "",
             title: isUpdated ? "Resource Updated" : "Resource Audit",
             description: isUpdated ? `Material category "${m.name}" was recently modified.` : `Material category "${m.name}" is active across regions.`,
             time: isUpdated ? m.updatedAt : m.createdAt || new Date().toISOString(),
@@ -161,18 +187,25 @@ const AuthLayout = ({ children }) => {
           };
         });
 
-        // Manage true login history
+        // Filter activities by current user if not admin
+        if (roleType !== 'admin' && user.id) {
+          projectNotifs = projectNotifs.filter(n => n.creatorId === user.id);
+          materialNotifs = materialNotifs.filter(n => n.creatorId === user.id);
+        }
+
+        // Manage user-specific login history
+        const historyKey = `wcs_login_history_${user.id || 'guest'}`;
         let loginHistory = [];
         try {
-          loginHistory = JSON.parse(localStorage.getItem('wcs_login_history')) || [];
+          loginHistory = JSON.parse(localStorage.getItem(historyKey)) || [];
         } catch {
           loginHistory = [];
         }
         
-        if (!sessionStorage.getItem('wcs_session_logged') && roleType) {
-          loginHistory.unshift({ time: new Date().toISOString(), role: roleType });
+        if (!sessionStorage.getItem('wcs_session_logged') && roleType && user.id) {
+          loginHistory.unshift({ time: new Date().toISOString(), role: roleType, userId: user.id });
           loginHistory = loginHistory.slice(0, 5); // Keep last 5 logins
-          localStorage.setItem('wcs_login_history', JSON.stringify(loginHistory));
+          localStorage.setItem(historyKey, JSON.stringify(loginHistory));
           sessionStorage.setItem('wcs_session_logged', 'true');
         }
 
@@ -210,8 +243,10 @@ const AuthLayout = ({ children }) => {
       }
     };
 
-    fetchActivities();
-  }, [location.pathname, roleType]);
+    if (user.id || roleType) {
+      fetchActivities();
+    }
+  }, [location.pathname, roleType, user.id]);
 
   // Auto-trigger loading on route change for premium transition feel
   React.useEffect(() => {
@@ -245,6 +280,7 @@ const AuthLayout = ({ children }) => {
     try {
       localStorage.removeItem("_token");
       localStorage.removeItem("role_type");
+      sessionStorage.removeItem("wcs_session_logged");
     } catch {
       // ignore
     }

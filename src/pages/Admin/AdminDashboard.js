@@ -14,7 +14,7 @@ import { Badge } from "../../components/ui/Badge";
 import { StatCard } from "../../components/ui/StatCard";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { motion } from "framer-motion";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
+import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 import materialService from "../../services/materialServices";
 import projectManagerService from "../../services/projectManagerServices";
 
@@ -22,15 +22,17 @@ import projectManagerService from "../../services/projectManagerServices";
 const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
         return (
-            <div style={{ background: 'var(--color-background, #fff)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: 16, padding: '12px 16px', boxShadow: '0 8px 32px rgba(0,0,0,0.18)' }}>
-                <p style={{ fontWeight: 800, fontSize: 13, marginBottom: 8, borderBottom: '1px solid rgba(99,102,241,0.1)', paddingBottom: 6 }}>{label}</p>
+            <div style={{ background: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(16px)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: 20, padding: '16px 20px', boxShadow: '0 20px 50px rgba(0,0,0,0.15)' }}>
+                <p style={{ fontWeight: 900, fontSize: 14, marginBottom: 12, color: '#1e293b', borderBottom: '1px solid rgba(99,102,241,0.1)', paddingBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label} 2026</p>
                 {payload.map((entry, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24, marginTop: 4 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <div style={{ width: 8, height: 8, borderRadius: '50%', background: entry.dataKey === 'current' ? 'hsl(238 83% 60%)' : 'rgba(99,102,241,0.3)' }} />
-                            <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#6b7280' }}>{entry.name}</span>
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 32, marginTop: 6 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'hsl(238 83% 60%)', boxShadow: '0 0 10px rgba(99,102,241,0.4)' }} />
+                            <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#64748b' }}>Projected Budget</span>
                         </div>
-                        <span style={{ fontSize: 13, fontWeight: 900, color: entry.dataKey === 'current' ? 'hsl(238 83% 60%)' : '#374151' }}>{entry.value}</span>
+                        <span style={{ fontSize: 15, fontWeight: 900, color: '#0f172a', fontFamily: 'monospace' }}>
+                            ${Number(entry.value).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </span>
                     </div>
                 ))}
             </div>
@@ -55,10 +57,12 @@ const AdminDashboard = () => {
     const [dynamicChartData, setDynamicChartData] = useState([]);
 
     useEffect(() => {
-        if (hrs < 12) setGreet("Good Morning");
-        else if (hrs >= 12 && hrs < 18) setGreet("Good Afternoon");
-        else setGreet("Good Evening");
-    }, [hrs]);
+        const hour = new Date().getHours();
+        if (hour < 12) setGreet("Good morning");
+        else if (hour < 17) setGreet("Good afternoon");
+        else if (hour < 21) setGreet("Good evening");
+        else setGreet("Good night");
+    }, []);
 
     const userName = useMemo(() => {
         try {
@@ -72,46 +76,99 @@ const AdminDashboard = () => {
         const fetchDashboardData = async () => {
             setLoading(true);
             try {
-                const [projectsRes, managersRes, materialsRes] = await Promise.all([
-                    materialService.getProjects({ limit: 1000 }),
-                    projectManagerService.getAllProjectManager({ limit: 1000 }),
-                    materialService.getMaterialAll()
+                // Fetch independently so one failure doesn't block the whole dashboard
+                const safeFetch = async (promise, fallback = []) => {
+                    try {
+                        const res = await promise;
+                        if (!res) return fallback;
+
+                        // Deep-Search data seeker: finds the first meaningful array in any structure
+                        const findArray = (obj, depth = 0) => {
+                            if (depth > 5) return null; // Prevent infinite recursion
+                            if (Array.isArray(obj)) return obj;
+                            if (!obj || typeof obj !== 'object') return null;
+
+                            // 1. Check priority known keys first at this level
+                            const priorityKeys = ['projects', 'staff', 'managers', 'users', 'project_managerList', 'project_manager_list'];
+                            for (const key of priorityKeys) {
+                                if (Array.isArray(obj[key])) return obj[key];
+                            }
+
+                            // 2. Check for any array property at this level
+                            for (const key in obj) {
+                                if (Array.isArray(obj[key]) && obj[key].length > 0) return obj[key];
+                            }
+
+                            // 3. Recurse into objects
+                            for (const key in obj) {
+                                if (obj[key] && typeof obj[key] === 'object' && !Array.isArray(obj[key])) {
+                                    const found = findArray(obj[key], depth + 1);
+                                    if (found) return found;
+                                }
+                            }
+
+                            return null;
+                        };
+
+                        const result = findArray(res);
+                        return result || fallback;
+                    } catch (e) {
+                        console.error("Fetch failed", e);
+                        return fallback;
+                    }
+                };
+
+                const [projects, managers, materials] = await Promise.all([
+                    safeFetch(materialService.getProjects({ limit: 100 })),
+                    safeFetch(projectManagerService.getAllProjectManager({ 
+                        page: 1, 
+                        limit: 100,
+                        sortField: "firstName",
+                        sortOrder: -1
+                    })),
+                    safeFetch(materialService.getMaterialAll())
                 ]);
 
-                const projects = projectsRes?.data?.projects || [];
-                const managers = managersRes?.data?.project_managerList || [];
-                const materials = materialsRes?.data || [];
+                const activeCount = projects.filter(p => p.status === 'Active' || p.status === 'In Progress' || !p.status).length;
+                const totalBudget = projects.reduce((sum, p) => sum + (Number(p.totalBudget || p.budget) || 0), 0);
 
-                const activeCount = projects.filter(p => p.status === 'Active' || p.status === 'In Progress').length;
-                const totalBudget = projects.reduce((sum, p) => sum + (Number(p.budget) || 0), 0);
-                
+                // Sort projects by date newest to oldest
+                const sortedProjects = [...projects].sort((a, b) =>
+                    new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+                );
+
                 setDashboardStats({
                     totalProjects: projects.length,
                     activeProjects: activeCount,
                     activeManagers: managers.length,
                     materialCatalog: materials.length,
                     totalBudget: totalBudget,
-                    recentProjects: projects.slice(0, 3)
+                    recentProjects: sortedProjects.slice(0, 5)
                 });
 
-                // Generate dynamic chart data based on project creation dates over the last 7 days
-                const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-                const last7Days = Array.from({length: 7}, (_, i) => {
+                // Generate dynamic chart data based on project budgets over the last 5 months
+                const shortMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                const last5Months = Array.from({ length: 5 }, (_, i) => {
                     const d = new Date();
-                    d.setDate(d.getDate() - (6 - i));
-                    return { name: days[d.getDay()], current: 0, previous: 0, dateStr: d.toDateString() };
+                    d.setMonth(d.getMonth() - (4 - i));
+                    return { 
+                        name: shortMonths[d.getMonth()], 
+                        budget: 0, 
+                        month: d.getMonth(), 
+                        year: d.getFullYear() 
+                    };
                 });
 
                 projects.forEach(p => {
                     if (p.createdAt) {
-                        const createdDate = new Date(p.createdAt);
-                        const dayMatch = last7Days.find(d => d.dateStr === createdDate.toDateString());
-                        if (dayMatch) {
-                            dayMatch.current += 1;
+                        const date = new Date(p.createdAt);
+                        const monthMatch = last5Months.find(m => m.month === date.getMonth() && m.year === date.getFullYear());
+                        if (monthMatch) {
+                            monthMatch.budget += (Number(p.totalBudget || p.budget) || 0);
                         }
                     }
                 });
-                setDynamicChartData(last7Days);
+                setDynamicChartData(last5Months);
 
             } catch (error) {
                 console.error("Failed to fetch dashboard stats", error);
@@ -165,7 +222,7 @@ const AdminDashboard = () => {
                 />
                 <StatCard
                     title="Capital Flow"
-                    value={`$${(dashboardStats.totalBudget / 1000).toFixed(0)}k`}
+                    value={`$${dashboardStats.totalBudget}`}
                     icon={DollarSign}
                     description="Total budget"
                     delay={0.4}
@@ -182,24 +239,26 @@ const AdminDashboard = () => {
                     <Card className="h-full border-border/40 bg-card/30 backdrop-blur-md shadow-2xl rounded-[2.5rem] overflow-hidden">
                         <CardHeader className="flex flex-row items-center justify-between pb-10 px-10 pt-10">
                             <div className="space-y-1">
-                                <CardTitle className="text-2xl font-black tracking-tighter">Activity</CardTitle>
-                                <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Project progress comparison</CardDescription>
+                                <CardTitle className="text-2xl font-black tracking-tighter">Budget Trend</CardTitle>
+                                <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Project valuation over last 5 months</CardDescription>
                             </div>
                             <div className="flex items-center gap-6">
                                 <div className="flex items-center gap-2">
                                     <div className="w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_8px_rgba(var(--primary),0.5)]" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Current</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <div className="w-2.5 h-2.5 rounded-full bg-primary/10 border border-primary/20" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Baseline</span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Budget</span>
                                 </div>
                             </div>
                         </CardHeader>
                         <CardContent className="px-10 pb-10">
                             <div className="h-[320px] w-full">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={dynamicChartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }} barGap={8}>
+                                    <AreaChart data={dynamicChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                        <defs>
+                                            <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                                                <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                                            </linearGradient>
+                                        </defs>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--primary)/0.05)" />
                                         <XAxis
                                             dataKey="name"
@@ -212,14 +271,22 @@ const AdminDashboard = () => {
                                             axisLine={false}
                                             tickLine={false}
                                             tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10, fontWeight: 900 }}
+                                            tickFormatter={(value) => `$${value >= 1000 ? (value/1000).toFixed(0) + 'k' : value}`}
                                         />
                                         <RechartsTooltip
-                                            cursor={{ fill: 'hsl(var(--primary)/0.03)' }}
+                                            cursor={{ stroke: 'hsl(var(--primary)/0.2)', strokeWidth: 2 }}
                                             content={<CustomTooltip />}
                                         />
-                                        <Bar name="Baseline" dataKey="previous" fill="hsl(var(--primary)/0.15)" radius={[6, 6, 0, 0]} barSize={24} />
-                                        <Bar name="Current" dataKey="current" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} barSize={24} />
-                                    </BarChart>
+                                        <Area
+                                            type="monotone"
+                                            dataKey="budget"
+                                            stroke="hsl(var(--primary))"
+                                            strokeWidth={4}
+                                            fillOpacity={1}
+                                            fill="url(#chartGradient)"
+                                            animationDuration={2000}
+                                        />
+                                    </AreaChart>
                                 </ResponsiveContainer>
                             </div>
                         </CardContent>
@@ -255,11 +322,17 @@ const AdminDashboard = () => {
                                                 </div>
                                                 <div className="space-y-0.5">
                                                     <p className="text-sm font-black text-foreground group-hover:text-primary transition-colors tracking-tight line-clamp-1">{p.name || 'Untitled Project'}</p>
-                                                    <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest opacity-40 truncate max-w-[120px]">{p.address || 'Global Location'}</p>
+                                                    <div className="flex items-center gap-1.5 opacity-40">
+                                                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest truncate max-w-[120px]">{p.address || 'Global Location'}</p>
+                                                        <span className="w-0.5 h-0.5 rounded-full bg-muted-foreground" />
+                                                        <p className="text-[8px] font-black text-muted-foreground uppercase tracking-[0.1em]">
+                                                            {p.createdAt ? new Date(p.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Unknown'}
+                                                        </p>
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-sm font-black text-foreground tracking-tighter">${(Number(p.budget) || 0).toLocaleString()}</p>
+                                                <p className="text-sm font-black text-foreground tracking-tighter">${(Number(p.totalBudget || p.budget) || 0).toLocaleString()}</p>
                                                 <p className="text-[9px] font-black text-primary uppercase tracking-[0.2em] opacity-60">{p.status || 'Active'}</p>
                                             </div>
                                         </div>

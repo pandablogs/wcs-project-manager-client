@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 import { setUser } from "../../redux/slices/userSlice";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { ShieldCheck, Loader2 } from "lucide-react";
+import { ShieldCheck, Loader2, Eye, EyeOff } from "lucide-react";
 import authServices from "../../services/authServices";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
@@ -16,6 +16,7 @@ const AdminLogin = () => {
     const dispatch = useDispatch();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
 
@@ -44,6 +45,7 @@ const AdminLogin = () => {
             const response = await authServices.login(payload);
             localStorage.setItem("_token", response?.token || "");
             dispatch(setUser(response.user));
+            localStorage.setItem("user", JSON.stringify(response.user));
             localStorage.setItem("role_type", "admin");
             toast.success("Welcome back, Administrator!");
 
@@ -60,7 +62,7 @@ const AdminLogin = () => {
     };
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center bg-slate-950 relative overflow-hidden">
+        <div className="h-screen w-full flex items-center justify-center bg-slate-950 relative overflow-hidden p-4 md:p-8">
             {/* Admin specific background */}
             <div className="absolute inset-0 z-0 text-primary/10">
                 <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/20 blur-[120px] rounded-full" />
@@ -73,11 +75,11 @@ const AdminLogin = () => {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.4, ease: "easeOut" }}
-                className="z-10 w-full max-w-md px-4"
+                className="z-10 w-full max-w-md"
             >
-                <div className="flex flex-col items-center mb-10">
-                    <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl flex items-center justify-center shadow-2xl mb-6">
-                        <ShieldCheck className="w-10 h-10 text-primary" />
+                <div className="flex flex-col items-center mb-4 text-center">
+                    <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl flex items-center justify-center shadow-2xl mb-3">
+                        <ShieldCheck className="w-8 h-8 text-primary" />
                     </div>
                     <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest mb-4 border border-primary/20">
                         Secure Admin Portal
@@ -112,15 +114,24 @@ const AdminLogin = () => {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="password" className="text-slate-300 text-[11px] uppercase tracking-wider font-bold">Secure Password</Label>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    placeholder="••••••••"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="h-12 rounded-xl bg-white/5 border-white/10 text-white placeholder:text-slate-600 focus-visible:ring-primary/40 focus-visible:border-primary/40 focus-visible:bg-white/10 transition-all"
-                                    required
-                                />
+                                <div className="relative group/pass">
+                                    <Input
+                                        id="password"
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder="••••••••"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className="h-12 rounded-xl bg-white/5 border-white/10 text-white placeholder:text-slate-600 focus-visible:ring-primary/40 focus-visible:border-primary/40 focus-visible:bg-white/10 transition-all pr-12"
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-slate-500 hover:text-primary hover:bg-white/5 transition-all"
+                                    >
+                                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                    </button>
+                                </div>
                             </div>
                             <Button
                                 type="submit"

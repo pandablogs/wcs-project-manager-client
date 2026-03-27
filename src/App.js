@@ -14,7 +14,6 @@ import SignUp from "./pages/Public/SignUp";
 import { ToastContainer } from 'react-toastify';
 import ProjectManagerDashboard from "./pages/Staff/ProjectManagerDashboard"
 import AdminDashboard from "./pages/Admin/AdminDashboard";
-import LogoutPage from "./components/LogoutPage";
 import Profile from "./pages/Authenticated/Profile";
 import ProjectManagerList from "./pages/Admin/ProjectManagerList";
 import ProjectList from "./pages/Admin/ProjectList";
@@ -45,7 +44,6 @@ const nonAuthRoutes = [
   { path: "/project-manager-login", element: <StaffLogin /> },
   { path: "/admin-login", element: <AdminLogin /> },
   { path: "/signup", element: <SignUp /> },
-  { path: "/logout", element: <LogoutPage /> },
   { path: "/forget-password", element: <ForgetPassword /> }
 ];
 

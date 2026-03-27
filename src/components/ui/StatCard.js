@@ -3,8 +3,9 @@ import { Card, CardContent } from "./Card";
 import { motion, animate } from "framer-motion";
 
 const CountUpValue = ({ value }) => {
-  const [displayValue, setDisplayValue] = React.useState(0);
+  const [displayValue, setDisplayValue] = React.useState("0");
   
+  const isCurrency = typeof value === 'string' && value.startsWith('$');
   const numericValue = typeof value === 'number' ? value : parseFloat(value.toString().replace(/[^0-9.]/g, '')) || 0;
   const prefix = typeof value === 'string' ? value.match(/^[^0-9]*/)?.[0] || "" : "";
   const suffix = typeof value === 'string' ? value.match(/[a-zA-Z%]*$/)?.[0] || "" : "";
@@ -14,12 +15,16 @@ const CountUpValue = ({ value }) => {
       duration: 1.5,
       ease: "easeOut",
       onUpdate: (latest) => {
-        if (numericValue % 1 === 0) setDisplayValue(Math.round(latest));
-        else setDisplayValue(latest.toFixed(1));
+        if (isCurrency) {
+          setDisplayValue(latest.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+        } else {
+          if (numericValue % 1 === 0) setDisplayValue(Math.round(latest).toLocaleString());
+          else setDisplayValue(latest.toFixed(1));
+        }
       }
     });
     return controls.stop;
-  }, [numericValue]);
+  }, [numericValue, isCurrency]);
 
   return <span>{prefix}{displayValue}{suffix}</span>;
 };
