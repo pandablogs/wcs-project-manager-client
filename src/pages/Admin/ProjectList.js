@@ -192,9 +192,9 @@ const ProjectList = () => {
                                     <TableHead className="text-right pr-10 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
-                            <TableBody>
+                            <TableBody className={cn("transition-opacity duration-200", loading && projects.length > 0 ? "opacity-50 pointer-events-none" : "opacity-100")}>
                                 <AnimatePresence mode="wait">
-                                    {loading ? (
+                                    {loading && projects.length === 0 ? (
                                         Array(5).fill(0).map((_, i) => (
                                             <TableRow key={i} className="animate-pulse border-border/20">
                                                 <TableCell className="pl-10 py-8"><div className="h-6 w-64 bg-muted/40 rounded-full" /></TableCell>

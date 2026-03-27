@@ -78,8 +78,8 @@ const Login = () => {
                     <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center shadow-xl shadow-primary/30 mb-4">
                         <Building2 className="w-7 h-7 text-primary-foreground" />
                     </div>
-                    <h1 className="text-3xl font-display font-bold tracking-tight text-foreground">WCS Manager</h1>
-                    <p className="text-muted-foreground mt-2 text-center">Project Planning & Management</p>
+                    <h1 className="text-3xl font-display font-bold tracking-tight text-foreground">Client Portal</h1>
+                    <p className="text-muted-foreground mt-2 text-center">WCS Project Planning & Management</p>
                 </div>
 
                 <Card className="border-border/50 shadow-2xl bg-card/80 backdrop-blur-xl rounded-2xl overflow-hidden">

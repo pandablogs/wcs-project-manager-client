@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import materialService from "../../services/materialServices";
 import userServices from "../../services/userServices";
 import rehabGroupService from "../../services/rehabGroupServices";
@@ -460,7 +460,7 @@ const Estimater = () => {
                     <Card className="border-border/40 bg-card/30 backdrop-blur-sm overflow-hidden">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-6">
                             <div className="flex items-center gap-4">
-                                <div className="p-3 rounded-2xl bg-primary/10 text-white border border-primary/20">
+                                <div className="p-3 rounded-2xl bg-primary/10 text-primary border border-primary/20">
                                     <Layout className="w-6 h-6" />
                                 </div>
                                 <div>
@@ -483,13 +483,13 @@ const Estimater = () => {
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Global Markup Factor (%)</label>
                                     <div className="relative">
-                                        <Percent className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40" />
+                                        <Percent className="absolute right-10 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40" />
                                         <Input 
                                             type="number"
                                             min="0"
                                             value={markupPercent}
                                             onChange={(e) => setMarkupPercent(Math.max(0, parseFloat(e.target.value) || 0))}
-                                            className="h-12 text-lg font-bold bg-background/50 border-border/50 rounded-[1rem] focus-visible:ring-primary/20"
+                                            className="h-12 text-lg font-bold bg-background/50 border-border/50 rounded-[1rem] focus-visible:ring-primary/20 pr-10"
                                         />
                                     </div>
                                 </div>
@@ -622,7 +622,7 @@ const Estimater = () => {
                                                                         <SelectContent className="rounded-xl border-border/40 shadow-2xl">
                                                                             {subs.filter(s => !selSubs.includes(s._id)).map(s => (
                                                                                 <SelectItem key={s._id} value={s._id} className="rounded-md">
-                                                                                    {s.name} â€” ${s.price}
+                                                                                    {s.name} — ${s.price}
                                                                                 </SelectItem>
                                                                             ))}
                                                                         </SelectContent>
@@ -765,7 +765,7 @@ const Estimater = () => {
                                                     <div key={i} className="flex items-center justify-between group">
                                                         <div className="flex flex-col">
                                                             <span className="text-[11px] font-bold text-foreground line-clamp-1 leading-none mb-1">{item.name}</span>
-                                                            <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-widest opacity-60">Qty: {item.qty} Â· {item.room}</span>
+                                                            <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-widest opacity-60">Qty: {item.qty} · {item.room}</span>
                                                         </div>
                                                         <span className="text-[11px] font-mono font-bold text-muted-foreground group-hover:text-primary transition-colors">${item.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                                                     </div>
@@ -806,7 +806,7 @@ const Estimater = () => {
                                 </div>
 
                                 <Button 
-                                    className="w-full h-16 rounded-[1.5rem] bg-primary text-white text-lg font-black italic shadow-xl shadow-primary/30 hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 border-none group"
+                                    className="w-full h-14 rounded-2xl bg-primary text-white text-base font-black italic shadow-xl shadow-primary/30 hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 group border-none"
                                     onClick={saveProject}
                                 >
                                     {isEditMode ? "SAVE CHANGES" : "GENERATE PROJECT"}
@@ -828,4 +828,5 @@ const Estimater = () => {
 };
 
 export default Estimater;
+
 

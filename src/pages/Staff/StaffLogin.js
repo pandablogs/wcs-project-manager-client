@@ -84,7 +84,7 @@ const StaffLogin = () => {
                         <Users className="w-3 h-3" />
                         Project Manager Portal
                     </div>
-                    <h1 className="text-4xl font-display font-black tracking-tight text-foreground text-center">Staff Entrance</h1>
+                    <h1 className="text-4xl font-display font-black tracking-tight text-foreground text-center">Manager Portal</h1>
                 </div>
 
                 <Card className="border-border/50 shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] bg-card/80 backdrop-blur-xl rounded-[2rem] overflow-hidden p-2">

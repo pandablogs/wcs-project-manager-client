@@ -22,6 +22,15 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from 'react';
 import materialService from '../../services/materialServices';
 import { toast } from 'react-toastify';
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer
+} from 'recharts';
 
 // Premium UI Components
 import { Button } from "../../components/ui/Button";
@@ -47,6 +56,7 @@ const Dashboard = () => {
         budget: 0,
         activities: []
     });
+    const [dynamicChartData, setDynamicChartData] = useState([]);
     const [loading, setLoading] = useState(true);
     
     useEffect(() => {
@@ -79,6 +89,31 @@ const Dashboard = () => {
                         }))
                     ].slice(0, 5)
                 });
+                
+                // Generate dynamic chart data based on project budgets over the last 5 months
+                const shortMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                const last5Months = Array.from({ length: 5 }, (_, i) => {
+                    const d = new Date();
+                    d.setMonth(d.getMonth() - (4 - i));
+                    return { 
+                        name: shortMonths[d.getMonth()], 
+                        budget: 0, 
+                        month: d.getMonth(), 
+                        year: d.getFullYear() 
+                    };
+                });
+
+                projects.forEach(p => {
+                    if (p.createdAt) {
+                        const date = new Date(p.createdAt);
+                        const monthMatch = last5Months.find(m => m.month === date.getMonth() && m.year === date.getFullYear());
+                        if (monthMatch) {
+                            monthMatch.budget += (Number(p.totalBudget || p.budget) || 0);
+                        }
+                    }
+                });
+                setDynamicChartData(last5Months);
+                
             } catch (err) {
                 toast.error("Cloud synchronization failed");
             } finally {
@@ -136,10 +171,10 @@ const Dashboard = () => {
                 description={`Verified ${user?.role_type || 'Account Holder'} session active.`}
             >
                 <div className="flex items-center gap-3">
-                    <Button variant="outline" className="rounded-xl border-border/40 bg-background/50 backdrop-blur-sm h-10 px-4 hover:bg-primary hover:text-white transition-all shadow-sm" onClick={() => navigate("/profile")}>
+                    <Button className="rounded-xl shadow-lg shadow-primary/20 bg-primary h-10 px-6 font-black italic tracking-tight text-white uppercase hover:opacity-90" onClick={() => navigate("/profile")}>
                         <Settings className="w-4 h-4 mr-2" /> Settings
                     </Button>
-                    <Button className="rounded-xl shadow-lg shadow-primary/20 bg-primary h-10 px-6 font-black italic tracking-tight text-white hover:opacity-90" onClick={handleLogout}>
+                    <Button className="rounded-xl shadow-lg shadow-primary/20 bg-primary h-10 px-6 font-black italic tracking-tight text-white uppercase hover:opacity-90" onClick={handleLogout}>
                         <LogOut className="w-4 h-4 mr-2" /> Sign Out
                     </Button>
                 </div>
@@ -172,39 +207,65 @@ const Dashboard = () => {
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">
                                     <div className="p-3 rounded-2xl bg-primary/10 text-primary">
-                                        <Bell className="w-6 h-6" />
+                                        <TrendingUp className="w-6 h-6" />
                                     </div>
                                     <div>
-                                        <CardTitle className="text-xl font-bold tracking-tight">Recent Activity</CardTitle>
-                                        <CardDescription>Stay updated on your project ecosystem.</CardDescription>
+                                        <CardTitle className="text-xl font-bold tracking-tight">Budget Trend</CardTitle>
+                                        <CardDescription>Project valuation over last 5 months</CardDescription>
                                     </div>
                                 </div>
-                                <Button variant="ghost" size="sm" className="text-primary font-bold">See all</Button>
                             </div>
                         </CardHeader>
-                        <CardContent className="px-8 pb-8 space-y-4">
-                            {loading ? (
-                                Array(3).fill(0).map((_, i) => (
-                                    <div key={i} className="h-16 bg-muted/20 animate-pulse rounded-2xl" />
-                                ))
-                            ) : dashStats.activities.length === 0 ? (
-                                <div className="py-12 text-center text-muted-foreground font-bold uppercase tracking-widest text-[10px] opacity-40 italic">
-                                    No recent activity logged
-                                 </div>
-                            ) : (
-                                dashStats.activities.map((item, i) => (
-                                    <div key={i} className="group flex items-center gap-4 p-4 rounded-2xl bg-muted/20 hover:bg-primary/5 border border-border/40 transition-all cursor-pointer">
-                                        <div className="h-10 w-10 rounded-xl bg-background border border-border/40 flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
-                                            <item.icon className="w-5 h-5" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <h4 className="text-sm font-bold text-foreground">{item.title}</h4>
-                                            <p className="text-xs text-muted-foreground">{item.desc}</p>
-                                        </div>
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/50">{item.time}</span>
-                                    </div>
-                                ))
-                            )}
+                        <CardContent className="px-8 pb-8 pt-4">
+                            <div className="h-[300px] w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <AreaChart data={dynamicChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                        <defs>
+                                            <linearGradient id="chartGradientManager" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                                                <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--primary)/0.05)" />
+                                        <XAxis
+                                            dataKey="name"
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10, fontWeight: 900 }}
+                                            dy={15}
+                                        />
+                                        <YAxis
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10, fontWeight: 900 }}
+                                            tickFormatter={(value) => `$${value >= 1000 ? (value/1000).toFixed(0) + 'k' : value}`}
+                                        />
+                                        <RechartsTooltip
+                                            cursor={{ stroke: 'hsl(var(--primary)/0.2)', strokeWidth: 2 }}
+                                            content={({ active, payload, label }) => {
+                                                if (active && payload && payload.length) {
+                                                    return (
+                                                        <div className="bg-background/90 backdrop-blur-sm border border-border/50 p-3 rounded-xl shadow-xl">
+                                                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">{label}</p>
+                                                            <p className="text-sm font-black text-primary">${payload[0].value.toLocaleString()}</p>
+                                                        </div>
+                                                    );
+                                                }
+                                                return null;
+                                            }}
+                                        />
+                                        <Area
+                                            type="monotone"
+                                            dataKey="budget"
+                                            stroke="hsl(var(--primary))"
+                                            strokeWidth={4}
+                                            fillOpacity={1}
+                                            fill="url(#chartGradientManager)"
+                                            animationDuration={2000}
+                                        />
+                                    </AreaChart>
+                                </ResponsiveContainer>
+                            </div>
                         </CardContent>
                     </Card>
                 </div>

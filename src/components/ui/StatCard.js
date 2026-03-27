@@ -6,11 +6,14 @@ const CountUpValue = ({ value }) => {
   const [displayValue, setDisplayValue] = React.useState("0");
   
   const isCurrency = typeof value === 'string' && value.startsWith('$');
-  const numericValue = typeof value === 'number' ? value : parseFloat(value.toString().replace(/[^0-9.]/g, '')) || 0;
+  const numericValue = typeof value === 'number' ? value : parseFloat(value.toString().replace(/[^0-9.]/g, ''));
+  const isNanValue = isNaN(numericValue) && typeof value === 'string';
+
   const prefix = typeof value === 'string' ? value.match(/^[^0-9]*/)?.[0] || "" : "";
   const suffix = typeof value === 'string' ? value.match(/[a-zA-Z%]*$/)?.[0] || "" : "";
   
   useEffect(() => {
+    if (isNanValue) return;
     const controls = animate(0, numericValue, { 
       duration: 1.5,
       ease: "easeOut",
@@ -26,7 +29,15 @@ const CountUpValue = ({ value }) => {
     return controls.stop;
   }, [numericValue, isCurrency]);
 
-  return <span>{prefix}{displayValue}{suffix}</span>;
+  return (
+    <span>
+      {isNanValue ? value : (
+        <>
+          {prefix}{displayValue}{suffix}
+        </>
+      )}
+    </span>
+  );
 };
 
 const StatCard = ({ title, value, icon: Icon, trend, description, delay = 0 }) => {
