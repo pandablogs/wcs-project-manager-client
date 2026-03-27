@@ -131,8 +131,8 @@ const Category = () => {
             className="space-y-8 pb-12"
         >
             <PageHeader 
-                title="Space Protocols" 
-                description="Manage room classifications and set specialized calculation protocols for material estimates."
+                title="Room Types" 
+                description="Manage room types and how costs are calculated for each."
             >
                 <Button onClick={handleAddClick} className="rounded-xl shadow-lg shadow-primary/20 h-11 px-8 bg-primary text-white hover:opacity-90 font-bold italic tracking-tight">
                     <Plus className="w-4 h-4 mr-2" />
@@ -142,17 +142,17 @@ const Category = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard 
-                    title="Structural Nodes" 
+                    title="Total Rooms" 
                     value={totalDocs} 
                     icon={Home} 
-                    description="Mapped room types"
+                    description="Stored room types"
                     delay={0.1}
                 />
                 <StatCard 
-                    title="Logic Matrix" 
+                    title="Calculations" 
                     value={roomTypes.filter(r => r.percentageType).length} 
                     icon={Calculator} 
-                    description="Percentage-based rules"
+                    description="Percentage-based rooms"
                     delay={0.2}
                 />
             </div>
@@ -160,13 +160,13 @@ const Category = () => {
             <Card className="border-border/40 bg-card/30 backdrop-blur-md shadow-2xl overflow-hidden rounded-[2.5rem]">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-10 px-10 pt-10">
                     <div className="space-y-1.5">
-                        <CardTitle className="text-2xl font-black italic tracking-tighter">Space Matrix</CardTitle>
-                        <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Architectural Logic Sync</CardDescription>
+                        <CardTitle className="text-2xl font-black italic tracking-tighter">Room List</CardTitle>
+                        <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Manage room calculation types</CardDescription>
                     </div>
                     <div className="relative max-w-sm w-full">
                         <SearchIcon className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-primary" />
                         <Input 
-                            placeholder="Filter registry..." 
+                            placeholder="Search rooms..." 
                             value={search}
                             onChange={handleSearchChange}
                             className="!pl-14 h-12 rounded-2xl bg-background/50 border-border/40 focus-visible:ring-primary/20 font-bold text-xs"
@@ -178,9 +178,9 @@ const Category = () => {
                         <Table>
                             <TableHeader className="bg-primary/5">
                                 <TableRow className="border-border/40 hover:bg-transparent">
-                                    <TableHead className="pl-10 font-black text-[10px] uppercase tracking-[0.2em] text-primary/60">Room Identity</TableHead>
-                                    <TableHead className="font-black text-[10px] uppercase tracking-widest">Calculation Protocol</TableHead>
-                                    <TableHead className="text-right pr-10 font-black text-[10px] uppercase tracking-widest">Operations</TableHead>
+                                    <TableHead className="pl-10 font-black text-[10px] uppercase tracking-[0.2em] text-primary/60">Room Name</TableHead>
+                                    <TableHead className="font-black text-[10px] uppercase tracking-widest">Calculation Type</TableHead>
+                                    <TableHead className="text-right pr-10 font-black text-[10px] uppercase tracking-widest">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -196,7 +196,7 @@ const Category = () => {
                                     ) : roomTypes.length === 0 ? (
                                         <TableRow>
                                             <TableCell colSpan={3} className="text-center py-32 text-muted-foreground font-black italic uppercase tracking-widest text-xs opacity-50">
-                                                No categories registered in system
+                                                No rooms found
                                             </TableCell>
                                         </TableRow>
                                     ) : (
@@ -211,12 +211,12 @@ const Category = () => {
                                             >
                                                 <TableCell className="pl-10">
                                                     <div className="flex items-center gap-4">
-                                                        <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary border border-primary/20 shadow-inner group-hover:scale-110 transition-transform duration-500">
+                                                        <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center text-primary border border-primary/20 shadow-lg group-hover:scale-110 transition-transform duration-500">
                                                             <Home className="w-5 h-5" />
                                                         </div>
                                                         <div className="flex flex-col">
                                                             <span className="font-black text-foreground tracking-tight">{room.name}</span>
-                                                            <span className="text-[9px] text-primary font-black uppercase tracking-widest opacity-70 italic">Verified Category</span>
+                                                            <span className="text-[9px] text-primary font-black uppercase tracking-widest opacity-70 italic">Room Type</span>
                                                         </div>
                                                     </div>
                                                 </TableCell>
@@ -224,11 +224,11 @@ const Category = () => {
                                                     <div className="flex items-center gap-2">
                                                         {room.percentageType ? (
                                                             <Badge variant="secondary" className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20 font-black text-[9px] uppercase px-3 py-1 rounded-full tracking-wider italic">
-                                                                <Percent className="w-3 h-3 mr-1.5 opacity-70" /> Logic Multiplier
+                                                                <Percent className="w-3 h-3 mr-1.5 opacity-70" /> Percentage
                                                             </Badge>
                                                         ) : (
                                                             <Badge variant="secondary" className="bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20 font-black text-[9px] uppercase px-3 py-1 rounded-full tracking-wider italic">
-                                                                <DollarSign className="w-3 h-3 mr-1.5 opacity-70" /> Flat Valuation
+                                                                <DollarSign className="w-3 h-3 mr-1.5 opacity-70" /> Flat Price
                                                             </Badge>
                                                         )}
                                                     </div>
@@ -258,7 +258,7 @@ const Category = () => {
                     <div className="flex items-center gap-3">
                         <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
                         <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
-                            System Status: Page {queryParams.page} of {totalPages} synced
+                            Page {queryParams.page} of {totalPages}
                         </p>
                     </div>
                     <div className="flex items-center gap-3">
@@ -289,19 +289,19 @@ const Category = () => {
             <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
                 <DialogContent className="sm:max-w-lg rounded-3xl p-0 overflow-hidden border-border/50 shadow-2xl">
                     <DialogHeader className="px-8 pt-8 pb-6 border-b border-border/50 bg-muted/20">
-                        <DialogTitle className="text-2xl font-black tracking-tight">{selectedRoom ? "Modify Category" : "Establish Category"}</DialogTitle>
-                        <CardDescription>Configure room identity and calculation logic.</CardDescription>
+                        <DialogTitle className="text-2xl font-black tracking-tight">{selectedRoom ? "Edit Room Type" : "Add Room Type"}</DialogTitle>
+                        <CardDescription>Edit the room name and how it calculates costs.</CardDescription>
                     </DialogHeader>
                     <form onSubmit={handleSubmit} className="p-8 pb-6 space-y-8">
                         <div className="space-y-2">
-                            <Label htmlFor="name">Display Name</Label>
+                            <Label htmlFor="name">Room Name</Label>
                             <Input id="name" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="rounded-xl h-12 bg-background/50 border-border/50 focus-visible:ring-primary/20" placeholder="e.g. Master Bedroom" />
                         </div>
                         
                         <div className="p-6 rounded-2xl border border-border/50 bg-muted/30 flex items-center justify-between group hover:border-primary/50 transition-all">
                             <div className="space-y-1">
-                                <Label className="text-sm font-bold">Calculation Protocol</Label>
-                                <p className="text-xs text-muted-foreground font-medium">Use percentage-based multipliers for this room.</p>
+                                <Label className="text-sm font-bold">Cost Type</Label>
+                                <p className="text-xs text-muted-foreground font-medium">Calculate costs as a percentage instead of a flat price.</p>
                             </div>
                             <div className="flex items-center gap-4">
                                 <span className={formData.percentageType ? "text-[10px] font-bold text-primary uppercase" : "text-[10px] font-bold text-muted-foreground uppercase"}>
@@ -331,15 +331,15 @@ const Category = () => {
                         <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
                             <Trash2 className="w-8 h-8 text-destructive" />
                         </div>
-                        <AlertDialogTitle className="text-2xl font-black tracking-tight">Decommission Category?</AlertDialogTitle>
+                        <AlertDialogTitle className="text-2xl font-black tracking-tight">Delete Room Type?</AlertDialogTitle>
                         <AlertDialogDescription className="text-base font-medium">
-                            This will strip this category and its logic from the system. Active project estimations may be affected.
+                            This will permanently delete this room type. This may affect existing projects.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter className="mt-8 gap-3 sm:flex-row sm:justify-center">
                         <AlertDialogCancel className="rounded-xl h-12 px-8 font-bold border-border/50">Cancel</AlertDialogCancel>
                         <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90 rounded-xl h-12 px-8 font-bold text-white shadow-lg shadow-destructive/20 border-none transition-all active:scale-[0.98]">
-                            {localLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Decommission Now"}
+                            {localLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Delete"}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

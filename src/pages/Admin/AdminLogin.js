@@ -46,7 +46,7 @@ const AdminLogin = () => {
             dispatch(setUser(response.user));
             localStorage.setItem("role_type", "admin");
             toast.success("Welcome back, Administrator!");
-            
+
             setTimeout(() => {
                 navigate("/admin/dashboard");
                 setIsLoading(false);
@@ -65,11 +65,11 @@ const AdminLogin = () => {
             <div className="absolute inset-0 z-0 text-primary/10">
                 <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/20 blur-[120px] rounded-full" />
                 <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-500/10 blur-[120px] rounded-full" />
-                <div className="absolute top-0 left-0 w-full h-full opacity-[0.05] pointer-events-none" 
-                     style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }}></div>
+                <div className="absolute top-0 left-0 w-full h-full opacity-[0.05] pointer-events-none"
+                    style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }}></div>
             </div>
 
-            <motion.div 
+            <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.4, ease: "easeOut" }}
@@ -100,10 +100,10 @@ const AdminLogin = () => {
                             )}
                             <div className="space-y-2">
                                 <Label htmlFor="email" className="text-slate-300 text-[11px] uppercase tracking-wider font-bold">Admin Email</Label>
-                                <Input 
-                                    id="email" 
-                                    type="email" 
-                                    placeholder="admin@wcs-manager.com" 
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    placeholder="admin@wcs-manager.com"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     className="h-12 rounded-xl bg-white/5 border-white/10 text-white placeholder:text-slate-600 focus-visible:ring-primary/40 focus-visible:border-primary/40 focus-visible:bg-white/10 transition-all"
@@ -112,19 +112,19 @@ const AdminLogin = () => {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="password" className="text-slate-300 text-[11px] uppercase tracking-wider font-bold">Secure Password</Label>
-                                <Input 
-                                    id="password" 
-                                    type="password" 
-                                    placeholder="••••••••" 
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    placeholder="••••••••"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     className="h-12 rounded-xl bg-white/5 border-white/10 text-white placeholder:text-slate-600 focus-visible:ring-primary/40 focus-visible:border-primary/40 focus-visible:bg-white/10 transition-all"
                                     required
                                 />
                             </div>
-                            <Button 
-                                type="submit" 
-                                className="w-full h-14 rounded-xl text-base font-bold uppercase tracking-widest shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-[0.98] mt-4" 
+                            <Button
+                                type="submit"
+                                className="w-full h-14 rounded-xl text-base font-bold uppercase tracking-widest shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-[0.98] mt-4"
                                 disabled={isLoading}
                             >
                                 {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <ShieldCheck className="w-5 h-5 mr-2" />}
@@ -133,7 +133,7 @@ const AdminLogin = () => {
                         </form>
                     </CardContent>
                 </Card>
-                
+
                 <div className="mt-12 flex flex-col items-center gap-4">
                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">
                         System Integrity Monitored

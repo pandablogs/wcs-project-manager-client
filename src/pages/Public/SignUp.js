@@ -109,7 +109,7 @@ const SignUp = () => {
                                             placeholder="John" 
                                             value={firstName}
                                             onChange={(e) => setFirstName(e.target.value)}
-                                            className="pl-10 h-11 rounded-xl bg-background/50"
+                                            className="!pl-14 h-11 rounded-xl bg-background/50"
                                             required
                                         />
                                     </div>
@@ -123,7 +123,7 @@ const SignUp = () => {
                                             placeholder="Doe" 
                                             value={lastName}
                                             onChange={(e) => setLastName(e.target.value)}
-                                            className="pl-10 h-11 rounded-xl bg-background/50"
+                                            className="!pl-14 h-11 rounded-xl bg-background/50"
                                             required
                                         />
                                     </div>
@@ -138,7 +138,7 @@ const SignUp = () => {
                                             placeholder="john@example.com" 
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
-                                            className="pl-10 h-11 rounded-xl bg-background/50"
+                                            className="!pl-14 h-11 rounded-xl bg-background/50"
                                             required
                                         />
                                     </div>
@@ -152,7 +152,7 @@ const SignUp = () => {
                                             placeholder="+1 (555) 000-0000" 
                                             value={phone}
                                             onChange={(e) => setPhone(e.target.value)}
-                                            className="pl-10 h-11 rounded-xl bg-background/50"
+                                            className="!pl-14 h-11 rounded-xl bg-background/50"
                                             required
                                         />
                                     </div>
@@ -167,7 +167,7 @@ const SignUp = () => {
                                             placeholder="••••••••" 
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
-                                            className="pl-10 h-11 rounded-xl bg-background/50"
+                                            className="!pl-14 h-11 rounded-xl bg-background/50"
                                             required
                                         />
                                     </div>
@@ -182,7 +182,7 @@ const SignUp = () => {
                                             placeholder="••••••••" 
                                             value={confirmPassword}
                                             onChange={(e) => setConfirmPassword(e.target.value)}
-                                            className="pl-10 h-11 rounded-xl bg-background/50"
+                                            className="!pl-14 h-11 rounded-xl bg-background/50"
                                             required
                                         />
                                     </div>

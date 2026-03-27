@@ -1,16 +1,17 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
 import materialService from "../../services/materialServices";
-import { 
-  Plus, 
-  Settings, 
-  ChevronDown, 
-  ChevronUp, 
-  Edit2, 
-  Trash2, 
-  Home, 
-  Layers, 
-  Package, 
-  PlusCircle, 
+import {
+  Plus,
+  Settings,
+  ChevronDown,
+  ChevronUp,
+  Edit2,
+  Trash2,
+  Home,
+  Layers,
+  Package,
+  PlusCircle,
   Search,
   Percent,
   DollarSign,
@@ -41,7 +42,7 @@ const MaterialPage = () => {
   const [materials, setMaterials] = useState([]);
   const [subMaterials, setSubMaterials] = useState([]);
   const [roomTypes, setRoomTypes] = useState([]);
-  
+
   const [materialForm, setMaterialForm] = useState({ name: "" });
   const [subMaterialForm, setSubMaterialForm] = useState({
     name: "",
@@ -49,24 +50,41 @@ const MaterialPage = () => {
     supplier: "",
     materialId: null,
   });
-  
+
   const [editMode, setEditMode] = useState(false);
   const [expandedRows, setExpandedRows] = useState({});
   const [isMaterialDialogOpen, setIsMaterialDialogOpen] = useState(false);
   const [isSubMaterialDialogOpen, setIsSubMaterialDialogOpen] = useState(false);
   const [isRoomConfigOpen, setIsRoomConfigOpen] = useState(false);
   const [isRoomFormOpen, setIsRoomFormOpen] = useState(false);
-  
+
   const [roomFormData, setRoomFormData] = useState({ name: "", percentageType: false });
   const [editingRoomId, setEditingRoomId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [localLoading, setLocalLoading] = useState(false);
 
-  const [materialSearch, setMaterialSearch] = useState("");
+  const location = useLocation();
+
+  // Parse search query from URL
+  const getSearchFromUrl = () => {
+    const params = new URLSearchParams(location.search);
+    return params.get('search') || "";
+  };
+
+  const [materialSearch, setMaterialSearch] = useState(getSearchFromUrl());
   const [materialPage, setMaterialPage] = useState(1);
   const [materialLimit, setMaterialLimit] = useState(10);
-  
+
   const [deleteTarget, setDeleteTarget] = useState(null);
+
+  // Update search when URL changes
+  useEffect(() => {
+    const urlSearch = getSearchFromUrl();
+    if (urlSearch !== materialSearch) {
+      setMaterialSearch(urlSearch);
+      setMaterialPage(1);
+    }
+  }, [location.search]);
 
   useEffect(() => {
     fetchRooms();
@@ -92,10 +110,15 @@ const MaterialPage = () => {
     try {
       const response = await materialService.getMaterialRoomAll();
       const rooms = response.data || [];
-      setRoomTypes(rooms);
-      if (rooms.length > 0 && !selectedRoom) {
-        setSelectedRoom(rooms[0]);
-      }
+      const fixedRooms = rooms.map(r => ({
+        ...r,
+        name: (r.name || "").toUpperCase() === "LEAVING ROOM" ? "LIVING ROOM" : r.name
+      }));
+      setRoomTypes(fixedRooms);
+      // Removed default selection as requested by user
+      // if (fixedRooms.length > 0 && !selectedRoom) {
+      //   setSelectedRoom(fixedRooms[0]);
+      // }
     } catch (err) {
       toast.error("Failed to fetch rooms");
     } finally {
@@ -127,7 +150,7 @@ const MaterialPage = () => {
   };
 
   const filteredMaterials = useMemo(() => {
-    return materials.filter(m => 
+    return materials.filter(m =>
       (m.name || "").toLowerCase().includes(materialSearch.toLowerCase())
     ).sort((a, b) => (a.name || "").localeCompare(b.name || ""));
   }, [materials, materialSearch]);
@@ -199,11 +222,13 @@ const MaterialPage = () => {
     setLocalLoading(true);
     try {
       if (editingRoomId) {
-        await materialService.updateMaterialRoom(editingRoomId, roomFormData);
+        const res = await materialService.updateMaterialRoom(editingRoomId, roomFormData);
         toast.success("Room updated");
+        if (res.data) setSelectedRoom(res.data);
       } else {
-        await materialService.addMaterialRoom(roomFormData);
+        const res = await materialService.addMaterialRoom(roomFormData);
         toast.success("Room added");
+        if (res.data) setSelectedRoom(res.data);
       }
       fetchRooms();
       setIsRoomFormOpen(false);
@@ -222,7 +247,7 @@ const MaterialPage = () => {
       if (type === "material") await materialService.deleteMaterial(id);
       else if (type === "subMaterial") await materialService.deleteSubMaterial(id);
       else if (type === "room") await materialService.deleteMaterialRoom(id);
-      
+
       toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} removed`);
       if (type === "room") fetchRooms();
       else if (type === "material") fetchMaterials();
@@ -236,14 +261,14 @@ const MaterialPage = () => {
   };
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="space-y-8 pb-12"
     >
-      <PageHeader 
-        title="Master Catalog" 
-        description="Standardized architectural material definitions and hierarchical component specifications."
+      <PageHeader
+        title="Materials"
+        description="Manage all materials and items used in your projects."
       >
         <div className="flex gap-3">
           <Button variant="outline" size="icon" className="rounded-xl h-10 w-10 border-border/40 bg-background/50 backdrop-blur-sm hover:bg-primary hover:text-white transition-all shadow-sm" onClick={() => setIsRoomConfigOpen(true)}>
@@ -251,20 +276,20 @@ const MaterialPage = () => {
           </Button>
           <Button onClick={() => handleOpenMaterialForm()} className="rounded-xl shadow-lg shadow-primary/20 h-10 px-6 bg-primary text-white hover:opacity-90 font-bold italic tracking-tight">
             <PlusCircle className="w-4 h-4 mr-2" />
-            NEW MATERIAL
+            ADD MATERIAL
           </Button>
         </div>
       </PageHeader>
 
-      <div className="flex items-center gap-3 overflow-x-auto pb-4 no-scrollbar">
+      <div className="flex items-center gap-3 overflow-x-auto pb-4 px-6 no-scrollbar">
         {roomTypes.map(room => (
           <button
             key={room._id}
             onClick={() => setSelectedRoom(room)}
             className={cn(
               "whitespace-nowrap px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all border shadow-sm italic",
-              selectedRoom?._id === room._id 
-                ? "bg-primary border-primary text-white shadow-xl shadow-primary/20 scale-105 active:scale-95" 
+              selectedRoom?._id === room._id
+                ? "bg-primary border-primary text-white shadow-xl shadow-primary/20 scale-105 active:scale-95"
                 : "bg-card/30 backdrop-blur-md border-border/40 text-muted-foreground hover:border-primary/40 hover:text-primary"
             )}
           >
@@ -274,25 +299,25 @@ const MaterialPage = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <StatCard 
-          title="Structural Units" 
-          value={materials.length} 
-          icon={Layers} 
-          description={`${selectedRoom?.name || 'Active Domain'}`}
+        <StatCard
+          title="Categories"
+          value={materials.length}
+          icon={Layers}
+          description={`${selectedRoom?.name || 'Active Room'}`}
           delay={0.1}
         />
-        <StatCard 
-          title="Specifications" 
-          value={subMaterials.length} 
-          icon={Package} 
-          description="Total catalog items"
+        <StatCard
+          title="Total Items"
+          value={subMaterials.length}
+          icon={Package}
+          description="Available items and finishes"
           delay={0.2}
         />
-        <StatCard 
-          title="Valuation Mode" 
-          value={selectedRoom?.percentageType ? "Percentage" : "Fixed USD"} 
-          icon={Database} 
-          description="Pricing protocol"
+        <StatCard
+          title="Pricing Type"
+          value={selectedRoom?.percentageType ? "Percentage" : "Fixed Price"}
+          icon={Database}
+          description="How costs are calculated"
           delay={0.3}
           trend={null}
         />
@@ -301,13 +326,13 @@ const MaterialPage = () => {
       <Card className="border-border/40 bg-card/30 backdrop-blur-md shadow-2xl overflow-hidden rounded-[2.5rem]">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-10 px-10 pt-10">
           <div className="space-y-1">
-            <CardTitle className="text-2xl font-black italic tracking-tighter">Operational Matrix</CardTitle>
-            <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Architectural breakdown and unit refinement</CardDescription>
+            <CardTitle className="text-2xl font-black italic tracking-tighter">Materials</CardTitle>
+            <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Manage material categories and specific items</CardDescription>
           </div>
           <div className="relative max-w-sm w-full">
             <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-primary" />
-            <Input 
-              placeholder="Filter catalog registry..." 
+            <Input
+              placeholder="Search materials..."
               value={materialSearch}
               onChange={(e) => setMaterialSearch(e.target.value)}
               className="!pl-14 h-12 rounded-2xl bg-background/50 border-border/40 focus-visible:ring-primary/20 font-bold text-xs"
@@ -320,9 +345,9 @@ const MaterialPage = () => {
               <TableHeader className="bg-muted/30">
                 <TableRow className="border-border/50">
                   <TableHead className="w-[60px]"></TableHead>
-                  <TableHead className="font-bold text-sm">Material Definition</TableHead>
-                  <TableHead className="font-bold text-sm">Sub-Components</TableHead>
-                  <TableHead className="text-right pr-6 font-bold text-sm">Action</TableHead>
+                  <TableHead className="font-bold text-sm">Material Category</TableHead>
+                  <TableHead className="font-bold text-sm">Items</TableHead>
+                  <TableHead className="text-right pr-6 font-bold text-sm">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -339,7 +364,7 @@ const MaterialPage = () => {
                   ) : paginatedMaterials.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={4} className="text-center py-20 text-muted-foreground font-medium">
-                        Catalog empty for this room category.
+                        No materials found in this room.
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -350,9 +375,9 @@ const MaterialPage = () => {
                           expandedRows[mat._id] ? "bg-muted/40" : "hover:bg-muted/10"
                         )}>
                           <TableCell className="text-center">
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
+                            <Button
+                              variant="ghost"
+                              size="icon"
                               onClick={() => toggleExpand(mat._id)}
                               className={cn(
                                 "h-8 w-8 rounded-lg border border-transparent transition-all",
@@ -372,13 +397,13 @@ const MaterialPage = () => {
                           </TableCell>
                           <TableCell className="text-right pr-6">
                             <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
+                              <Button
+                                variant="ghost"
+                                size="sm"
                                 className="h-8 px-3 rounded-lg text-primary hover:bg-primary/10 font-bold text-[10px] uppercase"
                                 onClick={() => handleOpenSubMaterialForm(mat._id)}
                               >
-                                <Plus className="w-3 h-3 mr-1.5" /> Add Sub
+                                <Plus className="w-3 h-3 mr-1.5" /> Add Item
                               </Button>
                               <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-background" onClick={() => handleOpenMaterialForm(mat)}>
                                 <Edit2 className="w-3.5 h-3.5 text-muted-foreground" />
@@ -393,55 +418,55 @@ const MaterialPage = () => {
                         {expandedRows[mat._id] && (
                           <TableRow className="bg-muted/20 border-border/50">
                             <TableCell colSpan={4} className="p-0">
-                                <motion.div 
-                                    initial={{ height: 0, opacity: 0 }}
-                                    animate={{ height: "auto", opacity: 1 }}
-                                    className="px-14 py-4"
-                                >
-                                    <div className="bg-background/50 rounded-2xl border border-border/50 overflow-hidden shadow-inner">
-                                        <Table size="sm">
-                                            <TableHeader className="bg-muted/50">
-                                                <TableRow className="border-border/30">
-                                                    <TableHead className="text-[10px] font-black uppercase text-muted-foreground">Item Specification</TableHead>
-                                                    <TableHead className="text-[10px] font-black uppercase text-muted-foreground">Supplier Reference</TableHead>
-                                                    <TableHead className="text-right text-[10px] font-black uppercase text-muted-foreground">Valuation</TableHead>
-                                                    <TableHead className="text-right text-[10px] font-black uppercase text-muted-foreground pr-4">Control</TableHead>
-                                                </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                {getSubMaterialsForMaterial(mat._id).length === 0 ? (
-                                                    <TableRow>
-                                                        <TableCell colSpan={4} className="py-8 text-center text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                                                            No Specifications Available
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ) : (
-                                                    getSubMaterialsForMaterial(mat._id).map(sub => (
-                                                        <TableRow key={sub._id} className="group/item border-border/30 hover:bg-muted/30 transition-colors">
-                                                            <TableCell className="text-xs font-bold text-foreground py-3">{sub.name}</TableCell>
-                                                            <TableCell className="text-[10px] font-bold text-muted-foreground uppercase">{sub.supplier || 'N/A'}</TableCell>
-                                                            <TableCell className="text-right">
-                                                                <span className="font-black text-xs">
-                                                                    {selectedRoom?.percentageType ? `${sub.price}%` : `$${Number(sub.price).toLocaleString()}`}
-                                                                </span>
-                                                            </TableCell>
-                                                            <TableCell className="text-right pr-4">
-                                                                <div className="flex justify-end gap-1 opacity-0 group-hover/item:opacity-100 transition-opacity">
-                                                                    <button onClick={() => handleOpenSubMaterialForm(mat._id, sub)} className="h-7 w-7 rounded-lg flex items-center justify-center hover:bg-background text-muted-foreground">
-                                                                        <Edit2 size={12} />
-                                                                    </button>
-                                                                    <button onClick={() => setDeleteTarget({ type: 'subMaterial', id: sub._id })} className="h-7 w-7 rounded-lg flex items-center justify-center hover:bg-destructive/10 text-destructive">
-                                                                        <Trash2 size={12} />
-                                                                    </button>
-                                                                </div>
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    ))
-                                                )}
-                                            </TableBody>
-                                        </Table>
-                                    </div>
-                                </motion.div>
+                              <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                className="px-14 py-4"
+                              >
+                                <div className="bg-background/50 rounded-2xl border border-border/50 overflow-hidden shadow-inner">
+                                  <Table size="sm">
+                                    <TableHeader className="bg-muted/50">
+                                      <TableRow className="border-border/30">
+                                        <TableHead className="text-[10px] font-black uppercase text-muted-foreground">Item Specification</TableHead>
+                                        <TableHead className="text-[10px] font-black uppercase text-muted-foreground">Supplier Reference</TableHead>
+                                        <TableHead className="text-right text-[10px] font-black uppercase text-muted-foreground">Valuation</TableHead>
+                                        <TableHead className="text-right text-[10px] font-black uppercase text-muted-foreground pr-4">Control</TableHead>
+                                      </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                      {getSubMaterialsForMaterial(mat._id).length === 0 ? (
+                                        <TableRow>
+                                          <TableCell colSpan={4} className="py-8 text-center text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                                            No Specifications Available
+                                          </TableCell>
+                                        </TableRow>
+                                      ) : (
+                                        getSubMaterialsForMaterial(mat._id).map(sub => (
+                                          <TableRow key={sub._id} className="group/item border-border/30 hover:bg-muted/30 transition-colors">
+                                            <TableCell className="text-xs font-bold text-foreground py-3">{sub.name}</TableCell>
+                                            <TableCell className="text-[10px] font-bold text-muted-foreground uppercase">{sub.supplier || 'N/A'}</TableCell>
+                                            <TableCell className="text-right">
+                                              <span className="font-black text-xs">
+                                                {selectedRoom?.percentageType ? `${sub.price}%` : `$${Number(sub.price).toLocaleString()}`}
+                                              </span>
+                                            </TableCell>
+                                            <TableCell className="text-right pr-4">
+                                              <div className="flex justify-end gap-1 opacity-0 group-hover/item:opacity-100 transition-opacity">
+                                                <button onClick={() => handleOpenSubMaterialForm(mat._id, sub)} className="h-7 w-7 rounded-lg flex items-center justify-center hover:bg-background text-muted-foreground">
+                                                  <Edit2 size={12} />
+                                                </button>
+                                                <button onClick={() => setDeleteTarget({ type: 'subMaterial', id: sub._id })} className="h-7 w-7 rounded-lg flex items-center justify-center hover:bg-destructive/10 text-destructive">
+                                                  <Trash2 size={12} />
+                                                </button>
+                                              </div>
+                                            </TableCell>
+                                          </TableRow>
+                                        ))
+                                      )}
+                                    </TableBody>
+                                  </Table>
+                                </div>
+                              </motion.div>
                             </TableCell>
                           </TableRow>
                         )}
@@ -454,14 +479,14 @@ const MaterialPage = () => {
           </div>
         </CardContent>
         <div className="px-6 py-4 border-t border-border/50 flex items-center justify-between bg-muted/20">
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                Matrix Visualization &bull; {filteredMaterials.length} entries
-            </p>
-            <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" className="h-8 text-[10px] font-bold uppercase rounded-lg border-border/50" disabled={materialPage === 1} onClick={() => setMaterialPage(p => p - 1)}>Prev</Button>
-                <div className="h-8 px-3 rounded-lg bg-background border border-border/50 flex items-center justify-center text-[10px] font-black text-primary">{materialPage}</div>
-                <Button variant="outline" size="sm" className="h-8 text-[10px] font-bold uppercase rounded-lg border-border/50" disabled={filteredMaterials.length <= materialPage * materialLimit} onClick={() => setMaterialPage(p => p + 1)}>Next</Button>
-            </div>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+            {filteredMaterials.length} categories
+          </p>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="h-8 text-[10px] font-bold uppercase rounded-lg border-border/50" disabled={materialPage === 1} onClick={() => setMaterialPage(p => p - 1)}>Prev</Button>
+            <div className="h-8 px-3 rounded-lg bg-background border border-border/50 flex items-center justify-center text-[10px] font-black text-primary">{materialPage}</div>
+            <Button variant="outline" size="sm" className="h-8 text-[10px] font-bold uppercase rounded-lg border-border/50" disabled={filteredMaterials.length <= materialPage * materialLimit} onClick={() => setMaterialPage(p => p + 1)}>Next</Button>
+          </div>
         </div>
       </Card>
 
@@ -469,18 +494,31 @@ const MaterialPage = () => {
       <Dialog open={isMaterialDialogOpen} onOpenChange={setIsMaterialDialogOpen}>
         <DialogContent className="sm:max-w-lg rounded-3xl p-0 overflow-hidden border-border/50 shadow-2xl">
           <DialogHeader className="px-8 pt-8 pb-6 border-b border-border/50 bg-muted/20">
-            <DialogTitle className="text-2xl font-black tracking-tight">{editMode ? "Refine Material" : "Register Material"}</DialogTitle>
-            <CardDescription>Primary classification for the {selectedRoom?.name} category.</CardDescription>
+            <DialogTitle className="text-2xl font-black tracking-tight">{editMode ? "Edit Material" : "Add Material"}</DialogTitle>
+            <CardDescription>Main category for materials in {selectedRoom?.name}.</CardDescription>
           </DialogHeader>
           <form onSubmit={handleSaveMaterial} className="p-8 pb-6 space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="matName">Display Title</Label>
-              <Input id="matName" required value={materialForm.name} onChange={e => setMaterialForm({...materialForm, name: e.target.value})} className="rounded-xl h-12 bg-background/50 border-border/50 focus-visible:ring-primary/20" placeholder="e.g. Premium Porcelain" />
+              <Label htmlFor="matName">Material Name</Label>
+              <Input
+                id="matName"
+                required
+                value={materialForm.name}
+                onChange={e => setMaterialForm({ ...materialForm, name: e.target.value })}
+                onFocus={(e) => {
+                  const val = e.target.value;
+                  setTimeout(() => {
+                    e.target.setSelectionRange(val.length, val.length);
+                  }, 0);
+                }}
+                className="rounded-xl h-12 bg-background/50 border-border/50 focus-visible:ring-primary/20"
+                placeholder="e.g. Premium Porcelain"
+              />
             </div>
             <DialogFooter className="pt-4 border-t border-border/50">
               <Button type="button" variant="ghost" onClick={() => setIsMaterialDialogOpen(false)} className="rounded-xl font-bold h-11">Discard</Button>
               <Button type="submit" disabled={localLoading} className="rounded-xl font-bold px-8 h-11 shadow-lg shadow-primary/20">
-                {localLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : "Commit Entry"}
+                {localLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : "Save Material"}
               </Button>
             </DialogFooter>
           </form>
@@ -491,33 +529,46 @@ const MaterialPage = () => {
       <Dialog open={isSubMaterialDialogOpen} onOpenChange={setIsSubMaterialDialogOpen}>
         <DialogContent className="sm:max-w-2xl rounded-3xl p-0 overflow-hidden border-border/50 shadow-2xl">
           <DialogHeader className="px-8 pt-8 pb-6 border-b border-border/50 bg-muted/20">
-            <DialogTitle className="text-2xl font-black tracking-tight">{editMode ? "Modify Specification" : "Define Specification"}</DialogTitle>
-            <CardDescription>Granular item details and valuation metrics.</CardDescription>
+            <DialogTitle className="text-2xl font-black tracking-tight">{editMode ? "Edit Item" : "Add Item"}</DialogTitle>
+            <CardDescription>Edit the name, price, and supplier for this item.</CardDescription>
           </DialogHeader>
           <form onSubmit={handleSaveSubMaterial} className="p-8 pb-6 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="subName">Item Specification Name</Label>
-                    <Input id="subName" required value={subMaterialForm.name} onChange={e => setSubMaterialForm({...subMaterialForm, name: e.target.value})} className="rounded-xl h-12 bg-background/50 border-border/50 focus-visible:ring-primary/20" placeholder="e.g. Matte Gray 12x24" />
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="subName">Item Name</Label>
+                <Input
+                  id="subName"
+                  required
+                  value={subMaterialForm.name}
+                  onChange={e => setSubMaterialForm({ ...subMaterialForm, name: e.target.value })}
+                  onFocus={(e) => {
+                    const val = e.target.value;
+                    setTimeout(() => {
+                      e.target.setSelectionRange(val.length, val.length);
+                    }, 0);
+                  }}
+                  className="rounded-xl h-12 bg-background/50 border-border/50 focus-visible:ring-primary/20"
+                  placeholder="e.g. Matte Gray 12x24"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="price">{selectedRoom?.percentageType ? "Percentage" : "Price"}</Label>
+                <div className="relative">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-xs uppercase">
+                    {selectedRoom?.percentageType ? "%" : "$"}
+                  </div>
+                  <Input id="price" type="number" step="0.01" required value={subMaterialForm.price} onChange={e => setSubMaterialForm({ ...subMaterialForm, price: e.target.value })} className="!pl-10 rounded-xl h-11 bg-background/50 border-border/50 focus-visible:ring-primary/20" placeholder="0.00" />
                 </div>
-                <div className="space-y-2">
-                    <Label htmlFor="price">{selectedRoom?.percentageType ? "Percentage Multiplier" : "Standard Unit Price"}</Label>
-                    <div className="relative">
-                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-xs uppercase">
-                            {selectedRoom?.percentageType ? "%" : "$"}
-                        </div>
-                        <Input id="price" type="number" step="0.01" required value={subMaterialForm.price} onChange={e => setSubMaterialForm({...subMaterialForm, price: e.target.value})} className="pl-8 rounded-xl h-11 bg-background/50 border-border/50 focus-visible:ring-primary/20" placeholder="0.00" />
-                    </div>
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="supplier">Primary Supplier</Label>
-                    <Input id="supplier" value={subMaterialForm.supplier} onChange={e => setSubMaterialForm({...subMaterialForm, supplier: e.target.value})} className="rounded-xl h-11 bg-background/50 border-border/50 focus-visible:ring-primary/20" placeholder="e.g. Global Logistics" />
-                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="supplier">Supplier</Label>
+                <Input id="supplier" value={subMaterialForm.supplier} onChange={e => setSubMaterialForm({ ...subMaterialForm, supplier: e.target.value })} className="rounded-xl h-11 bg-background/50 border-border/50 focus-visible:ring-primary/20" placeholder="e.g. Global Logistics" />
+              </div>
             </div>
             <DialogFooter className="pt-4 border-t border-border/50">
               <Button type="button" variant="ghost" onClick={() => setIsSubMaterialDialogOpen(false)} className="rounded-xl font-bold h-11">Cancel</Button>
               <Button type="submit" disabled={localLoading} className="rounded-xl font-bold px-8 h-11 shadow-lg shadow-primary/20">
-                {localLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : "Save Specification"}
+                {localLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : "Save Item"}
               </Button>
             </DialogFooter>
           </form>
@@ -526,47 +577,54 @@ const MaterialPage = () => {
 
       {/* Room Config Dialog */}
       <Dialog open={isRoomConfigOpen} onOpenChange={setIsRoomConfigOpen}>
-        <DialogContent className="sm:max-w-xl rounded-3xl p-0 overflow-hidden border-border/50 shadow-2xl">
-          <DialogHeader className="px-8 pt-8 pb-6 border-b border-border/50 bg-muted/20">
-            <DialogTitle className="text-2xl font-black tracking-tight">Room Registry</DialogTitle>
-            <CardDescription>Manage architectural room classifications.</CardDescription>
+        <DialogContent className="sm:max-w-xl rounded-3xl p-0 overflow-hidden border-border/50 shadow-2xl max-h-[90vh] flex flex-col">
+          <DialogHeader className="px-10 pt-8 pb-6 border-b border-border/50 bg-primary/[0.03]">
+            <DialogTitle className="text-2xl font-black italic tracking-tighter">Manage Rooms</DialogTitle>
+            <CardDescription className="text-[10px] font-bold uppercase tracking-widest opacity-60">Add, edit, or remove room categories.</CardDescription>
           </DialogHeader>
-          <div className="p-8 pb-6 bg-background">
+          <div className="p-6 bg-background overflow-y-auto flex-1 custom-scrollbar">
             <div className="divide-y divide-border/50">
               {roomTypes.map(room => (
-                <div key={room._id} className="py-4 flex items-center justify-between group">
+                <div
+                  key={room._id}
+                  onClick={() => setSelectedRoom(room)}
+                  className={cn(
+                    "py-3 flex items-center justify-between group cursor-pointer px-3 rounded-2xl transition-all",
+                    selectedRoom?._id === room._id ? "bg-primary/10" : "hover:bg-muted/30"
+                  )}
+                >
                   <div className="flex items-center gap-4">
                     <div className={cn(
-                        "h-12 w-12 rounded-2xl flex items-center justify-center transition-all border",
-                        selectedRoom?._id === room._id ? "bg-primary/20 border-primary/30 text-primary" : "bg-muted/30 border-border/50 text-muted-foreground group-hover:bg-muted/50"
+                      "h-12 w-12 rounded-2xl flex items-center justify-center transition-all border shadow-sm",
+                      selectedRoom?._id === room._id ? "bg-primary text-white border-primary shadow-lg shadow-primary/20" : "bg-muted/30 border-border/50 text-muted-foreground"
                     )}>
-                      <Home className="w-6 h-6" />
+                      <Home className="w-5 h-5" />
                     </div>
                     <div>
                       <p className="text-sm font-black text-foreground uppercase tracking-tight">{room.name}</p>
-                      <Badge variant="secondary" className="text-[9px] px-1.5 py-0 mt-1 uppercase font-bold text-muted-foreground">
-                        {room.percentageType ? "Percentage Mode" : "Currency Mode"}
+                      <Badge className="text-[7px] font-black uppercase tracking-widest bg-primary/10 text-primary px-1.5 py-0 mt-1 border-none shadow-none">
+                        {room.percentageType ? "Percentage" : "Fixed Rate"}
                       </Badge>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => { setEditingRoomId(room._id); setRoomFormData({ name: room.name, percentageType: !!room.percentageType }); setIsRoomFormOpen(true); }}>
+                  <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-primary/10 hover:text-primary transition-all shadow-none" onClick={(e) => { e.stopPropagation(); setEditingRoomId(room._id); setRoomFormData({ name: room.name, percentageType: !!room.percentageType }); setIsRoomFormOpen(true); }}>
                       <Edit2 className="w-3.5 h-3.5" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-destructive/10 hover:text-destructive" onClick={() => setDeleteTarget({ type: 'room', id: room._id })}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-destructive/10 hover:text-destructive transition-all shadow-none" onClick={(e) => { e.stopPropagation(); setDeleteTarget({ type: 'room', id: room._id }); }}>
                       <Trash2 className="w-3.5 h-3.5" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => setSelectedRoom(room)}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-primary/10 hover:text-primary transition-all shadow-none" onClick={(e) => { e.stopPropagation(); setSelectedRoom(room); }}>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </Button>
                   </div>
                 </div>
               ))}
             </div>
-            <div className="mt-8 pt-6 border-t border-border/50">
-                <Button onClick={() => { setEditingRoomId(null); setRoomFormData({ name: "", percentageType: false }); setIsRoomFormOpen(true); }} className="w-full rounded-2xl h-12 font-black uppercase tracking-widest text-xs">
-                    <Plus className="w-4 h-4 mr-2" /> Add New Room Category
-                </Button>
+            <div className="mt-6 pt-6 border-t border-border/50">
+              <Button onClick={() => { setEditingRoomId(null); setRoomFormData({ name: "", percentageType: false }); setIsRoomFormOpen(true); }} className="w-full rounded-2xl h-11 font-black uppercase tracking-widest text-xs shadow-lg shadow-primary/20">
+                <Plus className="w-4 h-4 mr-2" /> Add New Room
+              </Button>
             </div>
           </div>
         </DialogContent>
@@ -575,32 +633,45 @@ const MaterialPage = () => {
       {/* Room Detail Dialog */}
       <Dialog open={isRoomFormOpen} onOpenChange={setIsRoomFormOpen}>
         <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-border/50 shadow-2xl">
-            <DialogHeader className="px-8 pt-8 pb-6 border-b border-border/50 bg-muted/20">
-                <DialogTitle className="text-2xl font-black tracking-tight">{editingRoomId ? "Modify Profile" : "Onboard Room"}</DialogTitle>
-                <CardDescription>Define system behavior for this space.</CardDescription>
-            </DialogHeader>
-            <form onSubmit={handleRoomAction} className="p-8 pb-6 space-y-8">
-                <div className="space-y-2">
-                    <Label htmlFor="roomName">Classification Label</Label>
-                    <Input id="roomName" required value={roomFormData.name} onChange={e => setRoomFormData({...roomFormData, name: e.target.value})} className="rounded-xl h-12 bg-background/50 border-border/50 focus-visible:ring-primary/20" placeholder="e.g. Master Suite" />
-                </div>
-                <div className="p-6 rounded-2xl border border-border/50 bg-muted/30 flex items-center justify-between group hover:border-primary/50 transition-all">
-                    <div className="space-y-1">
-                        <Label className="text-sm font-bold">Calculation Protocol</Label>
-                        <p className="text-xs text-muted-foreground font-medium">Use percentage multipliers for this space.</p>
-                    </div>
-                    <Switch 
-                        checked={roomFormData.percentageType} 
-                        onCheckedChange={(c) => setRoomFormData({...roomFormData, percentageType: c})} 
-                    />
-                </div>
-                <DialogFooter className="pt-4">
-                    <Button type="button" variant="ghost" onClick={() => setIsRoomFormOpen(false)} className="rounded-xl font-bold h-11">Discard</Button>
-                    <Button type="submit" disabled={localLoading} className="rounded-xl font-bold px-8 h-11 shadow-lg shadow-primary/20">
-                        {localLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Commit Room"}
-                    </Button>
-                </DialogFooter>
-            </form>
+          <DialogHeader className="px-8 pt-8 pb-6 border-b border-border/50 bg-muted/20">
+            <DialogTitle className="text-2xl font-black tracking-tight">{editingRoomId ? "Edit Room" : "Add Room"}</DialogTitle>
+            <CardDescription>Edit room name and calculation type.</CardDescription>
+          </DialogHeader>
+          <form onSubmit={handleRoomAction} className="p-8 pb-6 space-y-8">
+            <div className="space-y-2">
+              <Label htmlFor="roomName">Room Name</Label>
+              <Input
+                id="roomName"
+                required
+                value={roomFormData.name}
+                onChange={e => setRoomFormData({ ...roomFormData, name: e.target.value })}
+                onFocus={(e) => {
+                  const val = e.target.value;
+                  setTimeout(() => {
+                    e.target.setSelectionRange(val.length, val.length);
+                  }, 0);
+                }}
+                className="rounded-xl h-12 bg-background/50 border-border/50 focus-visible:ring-primary/20"
+                placeholder="e.g. Master Suite"
+              />
+            </div>
+            <div className="p-6 rounded-2xl border border-border/50 bg-muted/30 flex items-center justify-between group hover:border-primary/50 transition-all">
+              <div className="space-y-1">
+                <Label className="text-sm font-bold">Cost Type</Label>
+                <p className="text-xs text-muted-foreground font-medium">Calculate costs as a percentage.</p>
+              </div>
+              <Switch
+                checked={roomFormData.percentageType}
+                onCheckedChange={(c) => setRoomFormData({ ...roomFormData, percentageType: c })}
+              />
+            </div>
+            <DialogFooter className="pt-4">
+              <Button type="button" variant="ghost" onClick={() => setIsRoomFormOpen(false)} className="rounded-xl font-bold h-11">Discard</Button>
+              <Button type="submit" disabled={localLoading} className="rounded-xl font-bold px-8 h-11 shadow-lg shadow-primary/20">
+                {localLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save Room"}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 
@@ -611,15 +682,15 @@ const MaterialPage = () => {
             <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
               <Trash2 className="w-8 h-8 text-destructive" />
             </div>
-            <AlertDialogTitle className="text-2xl font-black tracking-tight">Decommission Entry?</AlertDialogTitle>
+            <AlertDialogTitle className="text-2xl font-black tracking-tight">Delete Item?</AlertDialogTitle>
             <AlertDialogDescription className="text-base font-medium">
-              This will permanently strip this {deleteTarget?.type} and all associated metadata from the master catalog.
+              This will permanently delete this {deleteTarget?.type}. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-8 gap-3 sm:flex-row sm:justify-center">
-            <AlertDialogCancel className="rounded-xl h-12 px-8 font-bold border-border/50">Keep Entry</AlertDialogCancel>
+            <AlertDialogCancel className="rounded-xl h-12 px-8 font-bold border-border/50">Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={performDelete} className="bg-destructive hover:bg-destructive/90 rounded-xl h-12 px-8 font-bold text-white shadow-lg shadow-destructive/20 border-none transition-all active:scale-[0.98]">
-              {localLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Decommission Now"}
+              {localLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

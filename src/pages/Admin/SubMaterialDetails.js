@@ -72,7 +72,7 @@ const SubMaterialDetails = () => {
             setsubMaterialTypes(data?.subMaterials || []);
             setTotalDocs(data.totalRecords || 0);
         } catch (err) {
-            toast.error("Cloud synchronization failed");
+            toast.error("Failed to load data");
         } finally {
             setLoading(false);
         }
@@ -119,7 +119,7 @@ const SubMaterialDetails = () => {
             toast.success("Item decommissioned successfully");
             fetchSubMaterial();
         } catch (err) {
-            toast.error("Revocation protocol failed");
+            toast.error("Failed to delete item");
         } finally {
             setLocalLoading(false);
             setDeleteId(null);
@@ -174,14 +174,14 @@ const SubMaterialDetails = () => {
             </div>
 
             <PageHeader 
-                title="Inventory Registry" 
-                description="Technical specifications, logistical partners, and valuation metrics for selected components."
+                title="Items" 
+                description="Manage specific items, pricing, and suppliers for this material."
             >
                 <div className="flex gap-4">
                     <div className="relative w-64">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-primary w-4 h-4" />
                         <Input 
-                            placeholder="Filter registry..." 
+                            placeholder="Search items..." 
                             value={queryParams.search}
                             onChange={(e) => setQueryParams(p => ({ ...p, search: e.target.value, page: 1 }))}
                             className="!pl-14 h-11 rounded-2xl bg-card/30 border-border/40 focus-visible:ring-primary/20 font-bold text-xs"
@@ -189,25 +189,25 @@ const SubMaterialDetails = () => {
                     </div>
                     <Button onClick={() => { setEditingId(null); setForm({ name: "", price: "", supplier: "" }); setIsDialogOpen(true); }} className="rounded-xl shadow-lg shadow-primary/20 h-11 px-8 bg-primary text-white hover:opacity-90 font-bold italic tracking-tight">
                         <Plus className="w-4 h-4 mr-2" />
-                        NEW ENTRY
+                        ADD ITEM
                     </Button>
                 </div>
             </PageHeader>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard title="Inventory Depth" value={totalDocs} icon={ClipboardList} description="Total specifications" delay={0.1} trend={null} />
-                <StatCard title="Unit Protocol" value={selectedRoom?.percentageType ? "Percentage %" : "Currency $"} icon={DollarSign} description="Valuation basis" delay={0.2} trend={null} />
+                <StatCard title="Total Items" value={totalDocs} icon={ClipboardList} description="Total specifications" delay={0.1} trend={null} />
+                <StatCard title="Pricing Type" value={selectedRoom?.percentageType ? "Percentage %" : "Fixed Price $"} icon={DollarSign} description="How costs are calculated" delay={0.2} trend={null} />
             </div>
 
             <Card className="border-border/40 bg-card/30 backdrop-blur-md shadow-2xl overflow-hidden rounded-[2.5rem]">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-10 px-10 pt-10">
                     <div className="flex items-center gap-5">
-                        <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary border border-primary/20 shadow-md">
+                        <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center text-primary border border-primary/20 shadow-lg">
                             <Layers className="w-7 h-7" />
                         </div>
                         <div className="space-y-1">
-                            <CardTitle className="text-2xl font-black italic tracking-tighter">Inventory Matrix</CardTitle>
-                            <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Deep-level structural item metadata</CardDescription>
+                            <CardTitle className="text-2xl font-black italic tracking-tighter">Item List</CardTitle>
+                            <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Detailed pricing and supplier information</CardDescription>
                         </div>
                     </div>
                 </CardHeader>
@@ -218,13 +218,13 @@ const SubMaterialDetails = () => {
                                 <TableRow className="border-border/40 hover:bg-transparent">
                                     <TableHead className="px-10 h-14">
                                         <button onClick={() => handleSort("name")} className="flex items-center gap-3 hover:text-primary transition-colors text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 italic">
-                                            Item Specification
+                                            Item Name
                                             <ArrowUpDown className={cn("w-3 h-3 transition-colors", queryParams.sortField === 'name' ? 'text-primary' : 'text-muted-foreground/20')} />
                                         </button>
                                     </TableHead>
-                                    <TableHead className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 italic">Supplier Ref</TableHead>
-                                    <TableHead className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 italic">Unit Protocol</TableHead>
-                                    <TableHead className="text-right pr-10 text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 italic">Controls</TableHead>
+                                    <TableHead className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 italic">Supplier</TableHead>
+                                    <TableHead className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 italic">Price/Rate</TableHead>
+                                    <TableHead className="text-right pr-10 text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 italic">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -241,7 +241,7 @@ const SubMaterialDetails = () => {
                                     ) : subMaterialTypes.length === 0 ? (
                                         <TableRow>
                                             <TableCell colSpan={4} className="py-20 text-center text-muted-foreground font-medium uppercase tracking-[0.2em] text-[10px]">
-                                                No items identified in current structural registry.
+                                                No items found for this material.
                                             </TableCell>
                                         </TableRow>
                                     ) : (
@@ -282,7 +282,7 @@ const SubMaterialDetails = () => {
                 </CardContent>
                 <div className="px-8 py-5 border-t border-border/50 flex items-center justify-between bg-muted/20">
                     <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-                        Inventory Sync &bull; {totalDocs} Items Registered
+                        {totalDocs} Items
                     </span>
                     <div className="flex items-center gap-2">
                         <Button variant="outline" size="sm" className="h-8 rounded-lg border-border/50 text-[10px] font-black uppercase tracking-widest" disabled={queryParams.page === 1} onClick={() => setQueryParams(p => ({ ...p, page: p.page - 1 }))}>
@@ -299,23 +299,23 @@ const SubMaterialDetails = () => {
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent className="sm:max-w-xl rounded-[2rem] p-0 overflow-hidden border-border/50 shadow-2xl">
                     <DialogHeader className="px-10 pt-10 pb-6 border-b border-border/50 bg-muted/20">
-                        <DialogTitle className="text-3xl font-black tracking-tight">{editingId ? "Refine Item" : "New Inventory Entry"}</DialogTitle>
-                        <CardDescription className="text-sm">Configure structural item specifications and valuation protocols.</CardDescription>
+                        <DialogTitle className="text-3xl font-black tracking-tight">{editingId ? "Edit Item" : "Add New Item"}</DialogTitle>
+                        <CardDescription className="text-sm">Edit name, price, and supplier.</CardDescription>
                     </DialogHeader>
                     <form onSubmit={handleSave} className="p-10 pb-6 space-y-8">
                         <div className="space-y-6">
                             <div className="space-y-2">
-                                <Label htmlFor="iName">Structural Nomenclature</Label>
+                                <Label htmlFor="iName">Item Name</Label>
                                 <Input id="iName" required value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} className="rounded-xl h-12 bg-muted/20 border-border/50 focus-visible:ring-primary/20" placeholder="e.g. Premium White Oak" />
                             </div>
                             <div className="grid grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <Label htmlFor="iPrice">{selectedRoom?.percentageType ? "Percentage %" : "Unit Value $"}</Label>
+                                    <Label htmlFor="iPrice">{selectedRoom?.percentageType ? "Percentage %" : "Price $"}</Label>
                                     <div className="relative">
                                         <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-xs">
                                             {selectedRoom?.percentageType ? "%" : "$"}
                                         </div>
-                                        <Input id="iPrice" type="number" step="0.01" required value={form.price} onChange={e => setForm(p => ({ ...p, price: e.target.value }))} className="pl-8 rounded-xl h-12 bg-muted/20 border-border/50 focus-visible:ring-primary/20" placeholder="0.00" />
+                                        <Input id="iPrice" type="number" step="0.01" required value={form.price} onChange={e => setForm(p => ({ ...p, price: e.target.value }))} className="!pl-10 rounded-xl h-12 bg-muted/20 border-border/50 focus-visible:ring-primary/20" placeholder="0.00" />
                                     </div>
                                 </div>
                                 <div className="space-y-2">
@@ -327,7 +327,7 @@ const SubMaterialDetails = () => {
                         <DialogFooter className="pt-6 border-t border-border/50">
                             <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl font-bold h-11">Discard</Button>
                             <Button type="submit" disabled={localLoading} className="rounded-xl font-bold px-10 h-11 shadow-lg shadow-primary/20">
-                                {localLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : "Commit Item"}
+                                {localLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : "Save Item"}
                             </Button>
                         </DialogFooter>
                     </form>
@@ -340,15 +340,15 @@ const SubMaterialDetails = () => {
                         <div className="w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center mb-6">
                             <Trash2 className="w-10 h-10 text-destructive" />
                         </div>
-                        <AlertDialogTitle className="text-3xl font-black tracking-tight">Revoke Entry?</AlertDialogTitle>
+                        <AlertDialogTitle className="text-3xl font-black tracking-tight">Delete Item?</AlertDialogTitle>
                         <AlertDialogDescription className="text-base font-medium leading-relaxed">
-                            This will permanently decommission this item from the active inventory registry. This operation is terminal.
+                            This will permanently delete this item. This action cannot be undone.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter className="mt-10 gap-4 sm:flex-row sm:justify-center">
-                        <AlertDialogCancel className="rounded-xl h-12 px-10 font-bold border-border/50">Maintain Policy</AlertDialogCancel>
+                        <AlertDialogCancel className="rounded-xl h-12 px-10 font-bold border-border/50">Cancel</AlertDialogCancel>
                         <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90 rounded-xl h-12 px-10 font-bold text-white shadow-lg shadow-destructive/20 border-none transition-all active:scale-[0.98]">
-                            {localLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Revoke Permanently"}
+                            {localLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Delete Permanently"}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

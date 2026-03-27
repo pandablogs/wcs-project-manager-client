@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import * as XLSX from "xlsx";
 import { toast } from "react-toastify";
 import { 
@@ -58,9 +59,25 @@ const MaterialList = () => {
   });
 
   const [importing, setImporting] = useState(false);
+  const location = useLocation();
+
+  // Parse search query from URL
+  const getSearchFromUrl = () => {
+    const params = new URLSearchParams(location.search);
+    return params.get('search') || "";
+  };
+
   const [expandedRooms, setExpandedRooms] = useState({});
   const [expandedMaterials, setExpandedMaterials] = useState({});
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(getSearchFromUrl());
+
+  // Update search when URL changes
+  useEffect(() => {
+    const urlSearch = getSearchFromUrl();
+    if (urlSearch !== searchQuery) {
+      setSearchQuery(urlSearch);
+    }
+  }, [location.search]);
 
   const toggleRoom = (roomId) => {
     setExpandedRooms((prev) => ({ ...prev, [roomId]: !prev[roomId] }));
@@ -87,7 +104,7 @@ const MaterialList = () => {
       setMaterials(materialsRes.data || []);
       setSubMaterials(subRes.data || []);
     } catch {
-      toast.error("Failed to load material metadata");
+      toast.error("Failed to load materials");
     } finally {
       setLoading(false);
     }
@@ -161,7 +178,7 @@ const MaterialList = () => {
       .filter((r) => r.roomName || r.materialName || r.subMaterialName);
 
     if (!importRows.length) {
-      toast.warning("No valid data detected in spreadsheet");
+      toast.warning("No valid data found in file");
       return;
     }
 
@@ -169,23 +186,28 @@ const MaterialList = () => {
     try {
       const res = await materialService.importMaterialList(importRows);
       if (res.status) {
-        toast.success("Catalog imported successfully");
+        toast.success("Materials imported successfully");
         setImportDialogOpen(false);
         fetchAll();
       } else {
         toast.error(res.message);
       }
     } catch {
-      toast.error("Cloud synchronization failed");
+      toast.error("Failed to import materials");
     } finally {
       setImporting(false);
     }
   };
 
-  const filteredRooms = rooms.filter(r => 
-    r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    getMaterialsByRoom(r._id).some(m => m.name.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const filteredRooms = rooms.filter(r => {
+    const search = searchQuery.toLowerCase();
+    const roomMatch = r.name.toLowerCase().includes(search);
+    const materialMatch = getMaterialsByRoom(r._id).some(m => 
+      m.name.toLowerCase().includes(search) || 
+      getSubMaterialsByRoomAndMaterial(r._id, m._id).some(s => s.name.toLowerCase().includes(search))
+    );
+    return roomMatch || materialMatch;
+  });
 
   return (
     <motion.div 
@@ -194,8 +216,8 @@ const MaterialList = () => {
       className="space-y-8 pb-12"
     >
       <PageHeader 
-        title="Material Master List" 
-        description="Comprehensive hierarchical view of all architectural resources and logistics."
+        title="Materials" 
+        description="Manage all materials, items, and room categories."
       >
         <Button onClick={() => setImportDialogOpen(true)} className="rounded-xl shadow-lg shadow-primary/20 h-10 px-6">
             <Upload className="w-4 h-4 mr-2" />
@@ -204,21 +226,21 @@ const MaterialList = () => {
       </PageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard title="Global Rooms" value={rooms.length} icon={Home} description="Operational spaces" delay={0.1} />
-        <StatCard title="Total Materials" value={materials.length} icon={Layers} description="Base classifications" delay={0.2} />
-        <StatCard title="Specifications" value={subMaterials.length} icon={Box} description="Inventory items" delay={0.3} />
+        <StatCard title="Rooms" value={rooms.length} icon={Home} description="Room categories" delay={0.1} />
+        <StatCard title="Total Materials" value={materials.length} icon={Layers} description="Material categories" delay={0.2} />
+        <StatCard title="Total Items" value={subMaterials.length} icon={Box} description="Available items" delay={0.3} />
       </div>
 
       <Card className="border-border/40 bg-card/30 backdrop-blur-md shadow-2xl overflow-hidden rounded-[2.5rem]">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-6 px-10 pt-10">
           <div className="space-y-1.5">
-            <CardTitle className="text-2xl font-black italic tracking-tighter">Inventory Matrix</CardTitle>
-            <CardDescription className="text-[10px] font-black uppercase tracking-widest opacity-60">Global Resource Index</CardDescription>
+            <CardTitle className="text-2xl font-black italic tracking-tighter">Material List</CardTitle>
+            <CardDescription className="text-[10px] font-black uppercase tracking-widest opacity-60">Manage materials and categories</CardDescription>
           </div>
           <div className="relative max-w-sm w-full">
             <SearchIcon className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-primary/40" />
             <Input 
-              placeholder="Search resource tree..." 
+              placeholder="Search materials..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="!pl-14 h-12 rounded-2xl bg-background/40 border-border/40 focus-visible:ring-primary/20 font-bold"
@@ -236,7 +258,7 @@ const MaterialList = () => {
               ))
             ) : filteredRooms.length === 0 ? (
               <div className="py-32 text-center text-muted-foreground font-black italic uppercase tracking-widest text-xs opacity-50">
-                Zero catalog entries identified in registry
+                No materials found
               </div>
             ) : (
               filteredRooms.map((room) => {
@@ -261,9 +283,9 @@ const MaterialList = () => {
                       <div className="flex-1">
                         <div className="flex items-center gap-4">
                             <span className="text-xl font-black tracking-tighter text-foreground uppercase italic">{room.name}</span>
-                            <Badge variant="outline" className="text-[10px] uppercase font-black tracking-widest text-primary border-primary/30 bg-primary/5 py-0.5 px-3 rounded-full italic">Room Entry</Badge>
+                            <Badge variant="outline" className="text-[10px] uppercase font-black tracking-widest text-primary border-primary/30 bg-primary/5 py-0.5 px-3 rounded-full italic">Room</Badge>
                         </div>
-                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mt-1 opacity-60">{roomMats.length} Resource Classifications Linked</p>
+                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mt-1 opacity-60">{roomMats.length} Material Categories</p>
                       </div>
                     </div>
 
@@ -297,9 +319,9 @@ const MaterialList = () => {
                                   <div className="flex-1">
                                     <div className="flex items-center gap-4">
                                         <span className="text-sm font-black text-foreground tracking-tight">{mat.name}</span>
-                                        <Badge variant="secondary" className="text-[9px] px-2 py-0 border border-border/50 font-black uppercase tracking-widest bg-muted/20">Protocol</Badge>
+                                        <Badge variant="secondary" className="text-[9px] px-2 py-0 border border-border/50 font-black uppercase tracking-widest bg-muted/20">Material</Badge>
                                     </div>
-                                    <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mt-0.5 opacity-60">{matSubs.length} Specification Nodes</p>
+                                    <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mt-0.5 opacity-60">{matSubs.length} Items</p>
                                   </div>
                                 </div>
 
@@ -328,12 +350,12 @@ const MaterialList = () => {
                                           </div>
                                           <div className="flex items-center gap-12">
                                             <div className="text-right min-w-[100px]">
-                                              <p className="text-[9px] font-black uppercase text-muted-foreground tracking-[0.2em] opacity-50">Unit-Cost</p>
+                                              <p className="text-[9px] font-black uppercase text-muted-foreground tracking-[0.2em] opacity-50">Price/Rate</p>
                                               <p className="text-sm font-black text-primary italic tracking-tight">${Number(sub.price).toLocaleString()}</p>
                                             </div>
                                             <div className="text-left min-w-[140px] border-l border-border/30 pl-8">
                                               <p className="text-[9px] font-black uppercase text-muted-foreground tracking-[0.2em] opacity-50">Supplier</p>
-                                              <p className="text-xs font-black text-foreground/70 truncate max-w-[140px] italic">{sub.supplier || 'UNASSIGNED'}</p>
+                                              <p className="text-xs font-black text-foreground/70 truncate max-w-[140px] italic">{sub.supplier || 'NOT ASSIGNED'}</p>
                                             </div>
                                           </div>
                                         </motion.div>
@@ -357,18 +379,18 @@ const MaterialList = () => {
             <div className="flex items-center gap-4">
                 <div className="h-3 w-3 rounded-full bg-primary animate-pulse" />
                 <div className="flex flex-col">
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground">Global Registry Online</span>
-                    <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">{filteredRooms.length} Operational Domains Synced</span>
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground">Registry Online</span>
+                    <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">{filteredRooms.length} rooms</span>
                 </div>
             </div>
             <div className="flex gap-4">
                 <div className="h-10 px-6 rounded-2xl bg-background border border-border/40 flex items-center justify-center gap-3 shadow-sm">
                     <Box className="w-4 h-4 text-primary opacity-60" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">{materials.length} Base Classes</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest">{materials.length} Categories</span>
                 </div>
                 <div className="h-10 px-6 rounded-2xl bg-primary text-white flex items-center justify-center gap-3 shadow-lg shadow-primary/20">
                     <Layers className="w-4 h-4 opacity-60" />
-                    <span className="text-[10px] font-black uppercase tracking-widest italic">{subMaterials.length} Final Target Specs</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest italic">{subMaterials.length} Items</span>
                 </div>
             </div>
         </div>
@@ -383,8 +405,8 @@ const MaterialList = () => {
                     <FileDown className="w-6 h-6" />
                 </div>
                 <div>
-                    <DialogTitle className="text-3xl font-black italic tracking-tighter">Mass Data Ingestion</DialogTitle>
-                    <CardDescription className="text-xs font-bold uppercase tracking-widest opacity-60">Synchronize enterprise material catalog</CardDescription>
+                    <DialogTitle className="text-3xl font-black italic tracking-tighter">Import Materials</DialogTitle>
+                    <CardDescription className="text-xs font-bold uppercase tracking-widest opacity-60">Upload a file to add multiple materials at once.</CardDescription>
                 </div>
             </div>
           </DialogHeader>
@@ -402,7 +424,7 @@ const MaterialList = () => {
               </div>
               <div className="relative z-0">
                 <p className="text-2xl font-black tracking-tighter text-foreground">{importFile ? importFile.name : "Select Spreadsheet"}</p>
-                <p className="text-[10px] font-black tracking-[0.3em] text-muted-foreground uppercase mt-2 opacity-60">XLSX, XLS, OR CSV STRUCTURE REQUIRED</p>
+                <p className="text-[10px] font-black tracking-[0.3em] text-muted-foreground uppercase mt-2 opacity-60">XLSX, XLS, OR CSV FILES ONLY</p>
               </div>
             </div>
 
@@ -417,7 +439,7 @@ const MaterialList = () => {
                         <div className="h-px flex-1 bg-gradient-to-r from-transparent to-border/40" />
                         <div className="flex items-center gap-3 px-6 py-2 rounded-full border border-border/40 bg-muted/40 backdrop-blur-sm">
                             <Database className="w-4 h-4 text-primary" />
-                            <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-foreground">Protocol Mapping Matrix</h4>
+                            <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-foreground">Map Columns</h4>
                         </div>
                         <div className="h-px flex-1 bg-gradient-to-l from-transparent to-border/40" />
                     </div>
@@ -434,7 +456,7 @@ const MaterialList = () => {
                                 onValueChange={(v) => setColumnMapping(prev => ({ ...prev, [key]: Number(v) }))}
                             >
                                 <SelectTrigger className="h-14 rounded-2xl bg-background/50 border-border/40 shadow-inner group hover:border-primary/40 transition-all">
-                                    <SelectValue placeholder="Identify Column Node..." />
+                                    <SelectValue placeholder="Select Column..." />
                                 </SelectTrigger>
                                 <SelectContent className="rounded-2xl border-border/40 bg-background/95 backdrop-blur-xl">
                                     {parsedData.headers.map((h, i) => (
@@ -452,7 +474,7 @@ const MaterialList = () => {
             </AnimatePresence>
           </div>
           <DialogFooter className="px-10 py-10 border-t border-border/10 bg-primary/[0.03]">
-            <Button variant="ghost" className="rounded-2xl font-black uppercase tracking-widest text-[10px] h-14 px-10 hover:bg-background/50" onClick={() => setImportDialogOpen(false)} disabled={importing}>Abort Entry</Button>
+            <Button variant="ghost" className="rounded-2xl font-black uppercase tracking-widest text-[10px] h-14 px-10 hover:bg-background/50" onClick={() => setImportDialogOpen(false)} disabled={importing}>Cancel</Button>
             <Button 
               className="rounded-2xl font-black uppercase tracking-widest text-[10px] h-14 px-10 shadow-2xl shadow-primary/30 border-none italic group relative overflow-hidden" 
               onClick={handleImportSubmit} 
@@ -460,7 +482,7 @@ const MaterialList = () => {
             >
               <span className="relative z-10 flex items-center justify-center gap-3">
                 {importing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Database className="w-5 h-5 group-hover:scale-125 transition-transform" />}
-                {importing ? "Injecting Data Core..." : "Finalize Data Ingestion"}
+                {importing ? "Importing Data..." : "Import Materials"}
               </span>
               <div className="absolute inset-0 bg-gradient-to-r from-primary via-blue-600 to-primary group-hover:scale-x-110 transition-transform origin-left" />
             </Button>

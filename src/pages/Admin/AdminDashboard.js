@@ -93,7 +93,7 @@ const AdminDashboard = () => {
                     value={stats.totalProjects ?? 0}
                     icon={Building2}
                     trend={12.5}
-                    description={`${activeProjects} nodes currently operational`}
+                    description={`${activeProjects} active projects`}
                     delay={0.1}
                 />
                 <StatCard
@@ -101,14 +101,14 @@ const AdminDashboard = () => {
                     value={stats.activeManagers ?? 0}
                     icon={Users}
                     trend={0}
-                    description="Verified project managers"
+                    description="Total managers"
                     delay={0.2}
                 />
                 <StatCard
                     title="Asset Catalog"
                     value={stats.materialCatalog ?? 0}
                     icon={Hammer}
-                    description="Standardized material units"
+                    description="Total materials"
                     delay={0.3}
                 />
                 <StatCard
@@ -116,7 +116,7 @@ const AdminDashboard = () => {
                     value={`$${((stats.totalBudget || stats.amountInvested || 0) / 1000).toFixed(0)}k`}
                     icon={DollarSign}
                     trend={-2.4}
-                    description="Aggregated budget commitment"
+                    description="Total budget"
                     delay={0.4}
                 />
             </div>
@@ -131,8 +131,8 @@ const AdminDashboard = () => {
                     <Card className="h-full border-border/40 bg-card/30 backdrop-blur-md shadow-2xl rounded-[2.5rem] overflow-hidden">
                         <CardHeader className="flex flex-row items-center justify-between pb-10 px-10 pt-10">
                             <div className="space-y-1">
-                                <CardTitle className="text-2xl font-black tracking-tighter">Operational Flux</CardTitle>
-                                <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Completion metrics: current vs baseline</CardDescription>
+                                <CardTitle className="text-2xl font-black tracking-tighter">Activity</CardTitle>
+                                <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Project progress comparison</CardDescription>
                             </div>
                             <div className="flex items-center gap-6">
                                 <div className="flex items-center gap-2">
@@ -182,8 +182,8 @@ const AdminDashboard = () => {
                 >
                     <Card className="h-full border-border/40 bg-card/30 backdrop-blur-md shadow-2xl rounded-[2.5rem] flex flex-col overflow-hidden">
                         <CardHeader className="px-10 pt-10 pb-6">
-                            <CardTitle className="text-2xl font-black tracking-tighter">Strategic Assets</CardTitle>
-                            <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Latest high-priority builds</CardDescription>
+                            <CardTitle className="text-2xl font-black tracking-tighter">Recent Projects</CardTitle>
+                            <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Recently added projects</CardDescription>
                         </CardHeader>
                         <CardContent className="flex-1 px-10 pb-6">
                             <div className="space-y-6">
@@ -194,7 +194,7 @@ const AdminDashboard = () => {
                                 ].map((p, i) => (
                                     <div key={p.id} className="flex items-center justify-between group cursor-pointer transition-all hover:translate-x-1">
                                         <div className="flex gap-4 items-center">
-                                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary border border-primary/20 shadow-md group-hover:scale-110 transition-transform">
+                                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center text-primary border border-primary/20 shadow-lg group-hover:scale-110 transition-transform">
                                                 <Building2 className="w-5 h-5" />
                                             </div>
                                             <div className="space-y-0.5">
@@ -209,8 +209,8 @@ const AdminDashboard = () => {
                                     </div>
                                 ))}
                             </div>
-                            <Button variant="ghost" className="w-full mt-10 h-14 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] text-primary hover:text-white hover:bg-primary transition-all group italic" onClick={() => navigate("/project-list")}>
-                                Portfolio Registry <ArrowRight className="w-4 h-4 ml-3 group-hover:translate-x-2 transition-transform" />
+                            <Button variant="default" className="w-full mt-10 h-14 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] bg-primary text-white hover:opacity-90 transition-all group italic" onClick={() => navigate("/project-list")}>
+                                All Projects <ArrowRight className="w-4 h-4 ml-3 group-hover:translate-x-2 transition-transform" />
                             </Button>
                         </CardContent>
                     </Card>

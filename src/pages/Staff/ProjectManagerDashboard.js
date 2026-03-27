@@ -49,7 +49,7 @@ const ProjectManagerDashboard = () => {
           {/* Enhanced Header */}
           <PageHeader 
             title={`Welcome back, ${firstName}`} 
-            description="Orchestrating architectural complexity and field operations across assigned real estate assets."
+            description="Manage your projects and team."
           >
             <div className="flex gap-3">
                <Button 
@@ -74,14 +74,14 @@ const ProjectManagerDashboard = () => {
               title="Assigned Portfolios"
               value={stats.assignedProjects ?? 4}
               trend={12}
-              description="Active operational nodes"
+              description="Active projects"
               icon={Briefcase}
               delay={0.1}
             />
             <StatCard 
-              title="Metric Thresholds"
+              title="Tasks"
               value={12}
-              description="Pending review items"
+              description="Items to review"
               icon={Activity}
               delay={0.2}
               trend="stable"
@@ -89,15 +89,15 @@ const ProjectManagerDashboard = () => {
             <StatCard 
               title="Catalog Access"
               value={stats.materialCatalog ?? 452}
-              description="Standardized units"
+              description="Total materials"
               icon={Box}
               delay={0.3}
             />
             <StatCard 
-              title="Efficiency Flux"
+              title="Progress"
               value="84%"
               trend={2.4}
-              description="Completion velocity"
+              description="Project pace"
               icon={TrendingUp}
               delay={0.4}
             />
@@ -110,8 +110,8 @@ const ProjectManagerDashboard = () => {
                    <CardHeader className="p-10 pb-6">
                       <div className="flex items-center justify-between">
                         <div className="space-y-1">
-                           <CardTitle className="text-2xl font-black italic tracking-tighter">Operational Flux</CardTitle>
-                           <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Real-time asset telemetry</CardDescription>
+                           <CardTitle className="text-2xl font-black italic tracking-tighter">Activity</CardTitle>
+                           <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Recent updates</CardDescription>
                         </div>
                         <Badge variant="outline" className="text-[10px] font-black italic border-primary/30 text-primary bg-primary/5 px-3 py-1 rounded-full uppercase tracking-widest">WCS NODE: {stats.nodeId || "LIVE"}</Badge>
                       </div>
@@ -123,7 +123,7 @@ const ProjectManagerDashboard = () => {
                         { time: "5h ago", msg: "Project Manager assigned to New Heights Phase II.", type: "Identity", icon: Briefcase },
                       ].map((item, i) => (
                         <div key={i} className="group relative flex items-center gap-6 p-5 rounded-2xl bg-primary/[0.02] hover:bg-primary/[0.05] border border-border/20 transition-all cursor-pointer">
-                           <div className="h-12 w-12 shrink-0 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary border border-primary/20 shadow-sm group-hover:scale-110 transition-transform">
+                           <div className="h-12 w-12 shrink-0 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center text-primary border border-primary/20 shadow-sm group-hover:scale-110 transition-transform">
                               <item.icon className="w-5 h-5" />
                            </div>
                            <div className="flex-1">
@@ -131,14 +131,14 @@ const ProjectManagerDashboard = () => {
                               <div className="flex items-center gap-3 mt-2">
                                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">{item.time}</span>
                                  <div className="w-1 h-1 rounded-full bg-primary/30" />
-                                 <span className="text-[9px] font-black uppercase tracking-[0.2em] text-primary italic">{item.type} SIGNATURE</span>
+                                 <span className="text-[9px] font-black uppercase tracking-[0.2em] text-primary italic">{item.type}</span>
                               </div>
                            </div>
                            <ArrowUpRight className="w-4 h-4 text-primary opacity-0 group-hover:opacity-40 transition-all -translate-y-1" />
                         </div>
                       ))}
                       <Button variant="ghost" className="w-full h-14 mt-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] text-primary hover:text-white hover:bg-primary transition-all group italic">
-                        PROTOCOL ARCHIVE <ChevronRight size={14} className="ml-2 group-hover:translate-x-1 transition-transform" />
+                        ALL ACTIVITY <ChevronRight size={14} className="ml-2 group-hover:translate-x-1 transition-transform" />
                       </Button>
                    </CardContent>
                 </Card>
@@ -148,8 +148,8 @@ const ProjectManagerDashboard = () => {
                 {/* Control Matrix */}
                 <Card className="rounded-[2.5rem] border-border/40 shadow-2xl overflow-hidden bg-card/30 backdrop-blur-md">
                    <CardHeader className="p-10 pb-6">
-                      <CardTitle className="text-2xl font-black italic tracking-tighter text-center">Control Matrix</CardTitle>
-                      <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60 text-center">Direct access protocols</CardDescription>
+                      <CardTitle className="text-2xl font-black italic tracking-tighter text-center">Quick Links</CardTitle>
+                      <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60 text-center">Easy access to all modules</CardDescription>
                    </CardHeader>
                    <CardContent className="px-10 pb-10 grid grid-cols-2 gap-4">
                       {[
@@ -166,7 +166,7 @@ const ProjectManagerDashboard = () => {
                            <div className="w-12 h-12 rounded-2xl bg-primary/5 group-hover:bg-primary/10 flex items-center justify-center transition-colors">
                               <link.icon size={20} className="text-primary/60 group-hover:text-primary transition-colors" />
                            </div>
-                           <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground group-hover:text-foreground">{link.label}</span>
+                           <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground group-hover:text-foreground">{link.label === "Registry" ? "Projects" : link.label === "Presets" ? "Templates" : link.label}</span>
                         </button>
                       ))}
                    </CardContent>
@@ -184,14 +184,14 @@ const ProjectManagerDashboard = () => {
                          <h4 className="text-2xl font-black tracking-tighter italic">WCS <span className="text-primary">ELITE</span></h4>
                       </div>
                       <p className="text-[10px] font-bold text-slate-400 leading-relaxed uppercase tracking-widest opacity-80">
-                         Executive architectural modeling enabled. Real-time resource synchronization active.
+                          Manage your projects and materials in one place.
                       </p>
                       <div className="space-y-4">
                          <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Utilization Registry</span>
-                            <span className="text-[10px] font-black text-primary italic">67% PROTOCOL</span>
+                             <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Project Progress</span>
+                             <span className="text-[10px] font-black text-primary italic">67% Complete</span>
                          </div>
-                         <div className="h-1.5 w-full bg-slate-800/50 rounded-full overflow-hidden shadow-inner">
+                         <div className="h-1.5 w-full bg-slate-800/50 rounded-full overflow-hidden shadow-lg">
                             <motion.div 
                                initial={{ width: 0 }} 
                                animate={{ width: "67%" }} 
@@ -200,7 +200,7 @@ const ProjectManagerDashboard = () => {
                             />
                          </div>
                       </div>
-                      <p className="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em] italic">SECURE CRYPT: WCS-X-9982</p>
+                       <p className="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em] italic">System ID: WCS-X-9982</p>
                    </div>
                 </div>
              </div>

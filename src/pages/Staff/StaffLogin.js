@@ -33,7 +33,7 @@ const StaffLogin = () => {
             setError("Please enter a valid email address.");
             return;
         }
-        
+
         let payload = {
             email: email,
             password: password,
@@ -47,7 +47,7 @@ const StaffLogin = () => {
             dispatch(setUser(response.user));
             localStorage.setItem("role_type", role);
             toast.success("Welcome back, Project Manager!");
-            
+
             setTimeout(() => {
                 navigate("/projectManager/dashboard");
                 setIsLoading(false)
@@ -68,7 +68,7 @@ const StaffLogin = () => {
                 <div className="absolute bottom-0 right-0 w-full h-[50%] bg-gradient-to-t from-blue-500/5 to-transparent" />
             </div>
 
-            <motion.div 
+            <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, ease: "easeOut" }}
@@ -99,10 +99,10 @@ const StaffLogin = () => {
                             )}
                             <div className="space-y-2.5">
                                 <Label htmlFor="email">Work Email</Label>
-                                <Input 
-                                    id="email" 
-                                    type="email" 
-                                    placeholder="pm@wcs-manager.com" 
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    placeholder="pm@wcs-manager.com"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     className="h-12 rounded-xl bg-background border-muted/50 focus-visible:ring-primary/20 focus-visible:border-primary transition-all px-4"
@@ -113,19 +113,19 @@ const StaffLogin = () => {
                                 <div className="flex items-center justify-between">
                                     <Label htmlFor="password">Staff Password</Label>
                                 </div>
-                                <Input 
-                                    id="password" 
-                                    type="password" 
-                                    placeholder="••••••••" 
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    placeholder="••••••••"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     className="h-12 rounded-xl bg-background border-muted/50 focus-visible:ring-primary/20 focus-visible:border-primary transition-all px-4"
                                     required
                                 />
                             </div>
-                            <Button 
-                                type="submit" 
-                                className="w-full h-14 rounded-xl text-base font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-[0.98] mt-6 bg-primary" 
+                            <Button
+                                type="submit"
+                                className="w-full h-14 rounded-xl text-base font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-[0.98] mt-6 bg-primary"
                                 disabled={isLoading}
                             >
                                 {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <LogIn className="w-5 h-5 mr-2" />}
@@ -134,7 +134,7 @@ const StaffLogin = () => {
                         </form>
                     </CardContent>
                 </Card>
-                
+
                 <p className="mt-10 text-center text-[11px] font-bold text-muted-foreground uppercase tracking-[0.25em]">
                     Internal Networking &bull; Secure Protocol 7
                 </p>

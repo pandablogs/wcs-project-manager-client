@@ -22,7 +22,7 @@ import MaterialPage from "./pages/Admin/MaterialPage";
 import Estimater from "./pages/Authenticated/Estimater";
 import ForgetPassword from "./components/common/ForgetPassword";
 
-import './App.css'; 
+import './App.css';
 import 'react-toastify/dist/ReactToastify.css';
 import Category from "./pages/Admin/Category";
 import MaterialDetails from "./pages/Admin/MaterialDetails";
@@ -32,12 +32,12 @@ import RehabGroups from "./pages/Admin/RehabGroups";
 
 export const ThemeContext = createContext({
   theme: "light",
-  setTheme: () => {},
+  setTheme: () => { },
 });
 
 export const LoadingContext = createContext({
   loading: false,
-  setLoading: () => {},
+  setLoading: () => { },
 });
 
 const nonAuthRoutes = [

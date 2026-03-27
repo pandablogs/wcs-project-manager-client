@@ -68,7 +68,7 @@ const MaterialDetails = () => {
             setcategoryTypes(data?.materials || []);
             setTotalDocs(data?.totalRecords || 0);
         } catch (err) {
-            toast.error("Cloud synchronization failed");
+            toast.error("Failed to load materials");
         } finally {
             setLoading(false);
         }
@@ -103,10 +103,10 @@ const MaterialDetails = () => {
         setLocalLoading(true);
         try {
             await materialService.deleteMaterial(deleteId);
-            toast.success("Category revoked successfully");
+            toast.success("Category deleted successfully");
             fetchMaterial();
         } catch (err) {
-            toast.error("Revocation protocol failed");
+            toast.error("Failed to delete category");
         } finally {
             setLocalLoading(false);
             setDeleteId(null);
@@ -120,15 +120,15 @@ const MaterialDetails = () => {
             const payload = { ...materialForm, roomId: id };
             if (editingId) {
                 await materialService.updateMaterial(editingId, materialForm);
-                toast.success("Category configuration updated");
+                toast.success("Category updated");
             } else {
                 await materialService.addMaterial(payload);
-                toast.success("New category registered");
+                toast.success("Category added");
             }
             fetchMaterial();
             setIsDialogOpen(false);
         } catch (err) {
-            toast.error("Data commitment failed");
+            toast.error("Failed to save category");
         } finally {
             setLocalLoading(false);
         }
@@ -151,21 +151,21 @@ const MaterialDetails = () => {
                 </Button>
                 <div className="flex items-center gap-3 px-4 rounded-xl border border-border/40 bg-background/30 backdrop-blur-md">
                     <Badge variant="secondary" className="px-2 py-0.5 font-black text-[9px] uppercase tracking-widest border-primary/30 bg-primary/5 text-primary italic">
-                        PROTOCOL
+                        ROOM
                     </Badge>
-                    <span className="text-[10px] font-black text-foreground uppercase tracking-[0.2em] italic">{selectedRoom?.name || 'SYNCING...'}</span>
+                    <span className="text-[10px] font-black text-foreground uppercase tracking-[0.2em] italic">{selectedRoom?.name || 'LOADING...'}</span>
                 </div>
             </div>
 
             <PageHeader 
-                title="Material Taxonomy" 
-                description={`Architecture-refined material classifications for the ${selectedRoom?.name || 'Active'} space.`}
+                title="Materials" 
+                description={`Manage material categories for the ${selectedRoom?.name || 'current'} room.`}
             >
                 <div className="flex gap-4">
                     <div className="relative w-64">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-primary w-4 h-4" />
                         <Input 
-                            placeholder="Filter registry..." 
+                            placeholder="Search categories..." 
                             value={queryParams.search}
                             onChange={(e) => setQueryParams(p => ({ ...p, search: e.target.value, page: 1 }))}
                             className="!pl-14 h-11 rounded-2xl bg-card/30 border-border/40 focus-visible:ring-primary/20 font-bold text-xs"
@@ -173,25 +173,25 @@ const MaterialDetails = () => {
                     </div>
                     <Button onClick={() => { setEditingId(null); setMaterialForm({ name: "" }); setIsDialogOpen(true); }} className="rounded-xl shadow-lg shadow-primary/20 h-11 px-8 bg-primary text-white hover:opacity-90 font-bold italic tracking-tight">
                         <Plus className="w-4 h-4 mr-2" />
-                        NEW CATEGORY
+                        ADD CATEGORY
                     </Button>
                 </div>
             </PageHeader>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard title="Taxonomy Count" value={totalDocs} icon={Layers} description="Registered classifications" delay={0.1} trend={null} />
-                <StatCard title="Value Protocol" value={selectedRoom?.percentageType ? "Percentage" : "Fixed USD"} icon={Boxes} description="Calculation method" delay={0.2} trend={null} />
+                <StatCard title="Total Categories" value={totalDocs} icon={Layers} description="Registered categories" delay={0.1} trend={null} />
+                <StatCard title="Pricing Type" value={selectedRoom?.percentageType ? "Percentage" : "Flat Price"} icon={Boxes} description="How costs are calculated" delay={0.2} trend={null} />
             </div>
 
             <Card className="border-border/40 bg-card/30 backdrop-blur-md shadow-2xl overflow-hidden rounded-[2.5rem]">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-10 px-10 pt-10">
                     <div className="flex items-center gap-5">
-                        <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary border border-primary/20 shadow-md">
+                        <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center text-primary border border-primary/20 shadow-lg">
                             <Package className="w-7 h-7" />
                         </div>
                         <div className="space-y-1">
-                            <CardTitle className="text-2xl font-black italic tracking-tighter">Taxonomy Matrix</CardTitle>
-                            <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Structural material hierarchy level II</CardDescription>
+                            <CardTitle className="text-2xl font-black italic tracking-tighter">Category List</CardTitle>
+                            <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Manage material groups</CardDescription>
                         </div>
                     </div>
                 </CardHeader>
@@ -202,11 +202,11 @@ const MaterialDetails = () => {
                                 <TableRow className="border-border/40 hover:bg-transparent">
                                     <TableHead className="px-10 h-14">
                                         <button onClick={() => handleSort("name")} className="flex items-center gap-3 hover:text-primary transition-colors text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 italic">
-                                            Classification Nomenclature
+                                            Category Name
                                             <ArrowUpDown className={cn("w-3 h-3 transition-colors", queryParams.sortField === 'name' ? 'text-primary' : 'text-muted-foreground/20')} />
                                         </button>
                                     </TableHead>
-                                    <TableHead className="text-right pr-10 text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 italic">Control Registry</TableHead>
+                                    <TableHead className="text-right pr-10 text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 italic">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -221,7 +221,7 @@ const MaterialDetails = () => {
                                     ) : categoryTypes.length === 0 ? (
                                         <TableRow>
                                             <TableCell colSpan={2} className="py-20 text-center text-muted-foreground font-medium uppercase tracking-[0.2em] text-[10px]">
-                                                No classifications registered for this room context.
+                                                No material categories found in this room.
                                             </TableCell>
                                         </TableRow>
                                     ) : (
@@ -253,7 +253,7 @@ const MaterialDetails = () => {
                 </CardContent>
                 <div className="px-8 py-5 border-t border-border/50 flex items-center justify-between bg-muted/20">
                     <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-                        Matrix Sync &bull; {totalDocs} Categories Mapped
+                        {totalDocs} Categories
                     </span>
                     <div className="flex items-center gap-2">
                         <Button variant="outline" size="sm" className="h-8 rounded-lg border-border/50 text-[10px] font-black uppercase tracking-widest" disabled={queryParams.page === 1} onClick={() => setQueryParams(p => ({ ...p, page: p.page - 1 }))}>
@@ -270,12 +270,12 @@ const MaterialDetails = () => {
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent className="sm:max-w-lg rounded-3xl p-0 overflow-hidden border-border/50 shadow-2xl">
                     <DialogHeader className="px-8 pt-8 pb-6 border-b border-border/50 bg-muted/20">
-                        <DialogTitle className="text-2xl font-black tracking-tight">{editingId ? "Refine Classification" : "New Classification"}</DialogTitle>
-                        <CardDescription>Primary structural labeling for the {selectedRoom?.name} domain.</CardDescription>
+                        <DialogTitle className="text-2xl font-black tracking-tight">{editingId ? "Edit Category" : "Add Category"}</DialogTitle>
+                        <CardDescription>Add a new material group to this room.</CardDescription>
                     </DialogHeader>
                     <form onSubmit={handleMaterialAddOrEdit} className="p-8 pb-6 space-y-6">
                         <div className="space-y-2">
-                            <Label htmlFor="cName">Category Nomenclature</Label>
+                            <Label htmlFor="cName">Category Name</Label>
                             <Input id="cName" required value={materialForm.name} onChange={e => setMaterialForm({ name: e.target.value })} className="rounded-xl h-12 bg-muted/20 border-border/50 focus-visible:ring-primary/20" placeholder="e.g. Architectural Millwork" />
                         </div>
                         <DialogFooter className="pt-4 border-t border-border/50">
@@ -294,15 +294,15 @@ const MaterialDetails = () => {
                         <div className="w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center mb-6">
                             <Trash2 className="w-10 h-10 text-destructive" />
                         </div>
-                        <AlertDialogTitle className="text-3xl font-black tracking-tight">Revoke Category?</AlertDialogTitle>
+                        <AlertDialogTitle className="text-3xl font-black tracking-tight">Delete Category?</AlertDialogTitle>
                         <AlertDialogDescription className="text-base font-medium leading-relaxed">
-                            This will permanently decommission this classification and all nested structural specifications. This operation is terminal.
+                            This will permanently delete this category and all its items. This action cannot be undone.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter className="mt-10 gap-4 sm:flex-row sm:justify-center">
-                        <AlertDialogCancel className="rounded-xl h-12 px-10 font-bold border-border/50">Maintain Archive</AlertDialogCancel>
+                        <AlertDialogCancel className="rounded-xl h-12 px-10 font-bold border-border/50">Cancel</AlertDialogCancel>
                         <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90 rounded-xl h-12 px-10 font-bold text-white shadow-lg shadow-destructive/20 border-none transition-all active:scale-[0.98]">
-                            {localLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Revoke Permanently"}
+                            {localLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Delete Permanently"}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

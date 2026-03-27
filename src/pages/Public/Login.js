@@ -62,11 +62,11 @@ const Login = () => {
         <div className="min-h-screen w-full flex items-center justify-center bg-slate-50 dark:bg-slate-950 relative overflow-hidden">
             <div className="absolute inset-0 z-0">
                 <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
-                <div className="absolute top-0 left-0 w-full h-full opacity-[0.03] dark:opacity-[0.05] pointer-events-none" 
-                     style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, gray 1px, transparent 0)', backgroundSize: '24px 24px' }}></div>
+                <div className="absolute top-0 left-0 w-full h-full opacity-[0.03] dark:opacity-[0.05] pointer-events-none"
+                    style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, gray 1px, transparent 0)', backgroundSize: '24px 24px' }}></div>
             </div>
 
-            <motion.div 
+            <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
@@ -94,10 +94,10 @@ const Login = () => {
                             )}
                             <div className="space-y-2">
                                 <Label htmlFor="email">Email</Label>
-                                <Input 
-                                    id="email" 
-                                    type="email" 
-                                    placeholder="name@example.com" 
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    placeholder="name@example.com"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     className="h-11 rounded-lg bg-background/50 border-muted focus-visible:ring-primary/30"
@@ -109,31 +109,31 @@ const Login = () => {
                                     <Label htmlFor="password">Password</Label>
                                     <Link to="/forget-password" data-sidebar="link" className="text-sm font-medium text-primary hover:underline">Forgot password?</Link>
                                 </div>
-                                <Input 
-                                    id="password" 
-                                    type="password" 
-                                    placeholder="••••••••" 
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    placeholder="••••••••"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     className="h-11 rounded-lg bg-background/50 border-muted focus-visible:ring-primary/30"
                                     required
                                 />
                             </div>
-                            <Button 
-                                type="submit" 
-                                className="w-full h-11 rounded-lg text-base font-medium shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-[0.98]" 
+                            <Button
+                                type="submit"
+                                className="w-full h-11 rounded-lg text-base font-medium shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-[0.98]"
                                 disabled={isLoading}
                             >
                                 {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Sign in"}
                             </Button>
                         </form>
-                        
+
                         <div className="mt-6 text-center text-sm text-muted-foreground">
                             <p>Don't have an account yet? <Link to="/signup" className="text-primary font-medium hover:underline">Sign up now</Link></p>
                         </div>
                     </CardContent>
                 </Card>
-                
+
                 <p className="mt-8 text-center text-xs text-muted-foreground">
                     © WCS Project Manager 2026
                 </p>

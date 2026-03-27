@@ -14,7 +14,7 @@ import {
 import { twMerge } from 'tailwind-merge';
 import { Button } from '../ui/Button';
 
-export const Navbar = ({ theme, setTheme, setMobileMenuOpen, isMobileMenuOpen, handleLogout }) => {
+export const Navbar = ({ theme, setTheme, setMobileMenuOpen, isMobileMenuOpen, handleLogout, navigate }) => {
   const [isProfileOpen, setProfileOpen] = useState(false);
   const [isNotificationsOpen, setNotificationsOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
@@ -39,6 +39,11 @@ export const Navbar = ({ theme, setTheme, setMobileMenuOpen, isMobileMenuOpen, h
               type="text"
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && searchValue.trim()) {
+                  navigate(`/project-list?search=${encodeURIComponent(searchValue.trim())}`);
+                }
+              }}
               className="h-11 w-full rounded-2xl border border-slate-200 bg-slate-50/50 !pl-16 pr-4 text-sm font-medium outline-none transition-all focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-500/10 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-100 dark:focus:bg-slate-900"
               placeholder="Search projects, materials..."
             />
@@ -125,10 +130,7 @@ export const Navbar = ({ theme, setTheme, setMobileMenuOpen, isMobileMenuOpen, h
                 </div>
                 
                 <div className="space-y-1">
-                  <button className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-900">
-                    <User size={16} /> My Profile
-                  </button>
-                  <button className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-900">
+                  <button onClick={() => navigate('/profile')} className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-900">
                     <Settings size={16} /> Account Settings
                   </button>
                 </div>

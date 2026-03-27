@@ -98,7 +98,11 @@ const Estimater = () => {
     const fetchRooms = async () => {
         try {
             const response = await materialService.getMaterialRoomAll();
-            setRoomTypes(response.data);
+            const fixedRooms = (response.data || []).map(r => ({ 
+                ...r, 
+                name: (r.name || "").toUpperCase() === "LEAVING ROOM" ? "LIVING ROOM" : r.name 
+            }));
+            setRoomTypes(fixedRooms);
         } catch (err) {
             toast.error("Failed to synchronize room categories");
         }
@@ -433,7 +437,7 @@ const Estimater = () => {
                         <FileDown className="w-4 h-4 mr-2" /> EXPORT XLSX
                     </Button>
                     <Button className="rounded-xl shadow-lg shadow-primary/20 h-11 px-8 bg-primary text-white hover:opacity-90 font-bold italic tracking-tight" onClick={saveProject}>
-                        <Save className="w-4 h-4 mr-2" /> {isEditMode ? "COMMIT REVISIONS" : "STAGE PROJECT"}
+                        <Save className="w-4 h-4 mr-2" /> {isEditMode ? "SAVE CHANGES" : "CREATE PROJECT"}
                     </Button>
                 </div>
             </PageHeader>
@@ -444,7 +448,7 @@ const Estimater = () => {
                     <Card className="border-border/40 bg-card/30 backdrop-blur-sm overflow-hidden">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-6">
                             <div className="flex items-center gap-4">
-                                <div className="p-3 rounded-2xl bg-primary/10 text-primary border border-primary/20">
+                                <div className="p-3 rounded-2xl bg-primary/10 text-white border border-primary/20">
                                     <Layout className="w-6 h-6" />
                                 </div>
                                 <div>
@@ -506,9 +510,9 @@ const Estimater = () => {
                                     <Button 
                                         onClick={handleAddRehabGroup} 
                                         disabled={!selectedRehabGroupId}
-                                        className="h-11 rounded-xl font-bold bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-white transition-all shadow-sm"
+                                        className="h-11 rounded-xl font-bold bg-primary text-white hover:opacity-90 transition-all shadow-lg shadow-primary/20 italic px-6"
                                     >
-                                        Infect Group <Plus className="w-4 h-4 ml-2" />
+                                        ADD GROUP <Plus className="w-4 h-4 ml-2" />
                                     </Button>
                                     <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider italic">
                                         Groups will be merged into current architectural stack.
@@ -531,7 +535,7 @@ const Estimater = () => {
                                     <CardHeader className="pb-6 border-b border-border/40 mx-8 px-0 flex flex-row items-center justify-between">
                                         <div className="flex items-center gap-5">
                                             <div className="h-14 w-14 rounded-2xl bg-primary/5 flex items-center justify-center border border-primary/10 shadow-inner">
-                                                <Package className="w-7 h-7 text-primary" />
+                                                <Package className="w-7 h-7 text-white" />
                                             </div>
                                             <div>
                                                 <CardTitle className="text-2xl font-black italic tracking-tight">{room.name}</CardTitle>
@@ -771,7 +775,7 @@ const Estimater = () => {
                                     className="w-full h-16 rounded-[1.5rem] bg-primary text-white text-lg font-black italic shadow-xl shadow-primary/30 hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 border-none group"
                                     onClick={saveProject}
                                 >
-                                    {isEditMode ? "COMMIT REVISIONS" : "GENERATE PROJECT"}
+                                    {isEditMode ? "SAVE CHANGES" : "GENERATE PROJECT"}
                                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                                 </Button>
                             </CardContent>

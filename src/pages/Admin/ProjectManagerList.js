@@ -146,8 +146,8 @@ const ProjectManagerList = () => {
             className="space-y-8 pb-12"
         >
             <PageHeader 
-                title="Project Managers" 
-                description="Manage your team of project supervisors and administrative staff."
+                title="Managers" 
+                description="Manage your team of project managers and staff."
             >
                 <Button onClick={handleAddClick} className="rounded-xl shadow-lg shadow-primary/20 h-10 px-6">
                     <Plus className="w-4 h-4 mr-2" />
@@ -175,13 +175,13 @@ const ProjectManagerList = () => {
             <Card className="border-border/40 bg-card/30 backdrop-blur-md shadow-2xl overflow-hidden rounded-[2rem]">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-6 px-10 pt-10">
                     <div className="space-y-1.5">
-                        <CardTitle className="text-2xl font-black italic tracking-tighter">Manager Directory</CardTitle>
-                        <CardDescription className="text-xs font-bold uppercase tracking-widest opacity-60">System Access Control</CardDescription>
+                        <CardTitle className="text-2xl font-black italic tracking-tighter">Managers</CardTitle>
+                        <CardDescription className="text-xs font-bold uppercase tracking-widest opacity-60">Manage staff access</CardDescription>
                     </div>
                     <div className="relative max-w-sm w-full">
                         <SearchIcon className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-primary/40" />
                         <Input 
-                            placeholder="Search operatives..." 
+                            placeholder="Search managers..." 
                             value={search}
                             onChange={handleSearchChange}
                             className="!pl-14 h-12 rounded-2xl bg-background/40 border-border/40 focus-visible:ring-primary/20 font-bold"
@@ -193,11 +193,11 @@ const ProjectManagerList = () => {
                         <Table>
                             <TableHeader className="bg-primary/5">
                                 <TableRow className="border-border/40 hover:bg-transparent">
-                                    <TableHead className="w-[80px] text-[10px] font-black uppercase tracking-[0.2em] pl-10 text-primary/60"># ID</TableHead>
-                                    <TableHead className="font-black text-[10px] uppercase tracking-widest">Full Identity</TableHead>
-                                    <TableHead className="font-black text-[10px] uppercase tracking-widest">Contact Logic</TableHead>
-                                    <TableHead className="font-black text-[10px] uppercase tracking-widest">Security Status</TableHead>
-                                    <TableHead className="text-right pr-10 font-black text-[10px] uppercase tracking-widest">Operations</TableHead>
+                                    <TableHead className="w-[80px] text-[10px] font-black uppercase tracking-[0.2em] pl-10 text-primary/60">ID</TableHead>
+                                    <TableHead className="font-black text-[10px] uppercase tracking-widest">Name</TableHead>
+                                    <TableHead className="font-black text-[10px] uppercase tracking-widest">Contact</TableHead>
+                                    <TableHead className="font-black text-[10px] uppercase tracking-widest">Status</TableHead>
+                                    <TableHead className="text-right pr-10 font-black text-[10px] uppercase tracking-widest">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -214,9 +214,9 @@ const ProjectManagerList = () => {
                                         ))
                                     ) : project_managerList.length === 0 ? (
                                         <TableRow>
-                                            <TableCell colSpan={5} className="text-center py-32 text-muted-foreground font-black italic uppercase tracking-widest text-xs opacity-50">
-                                                Zero managers detected in database
-                                            </TableCell>
+                                                <TableCell colSpan={5} className="text-center py-32 text-muted-foreground font-black italic uppercase tracking-widest text-xs opacity-50">
+                                                    No managers found
+                                                </TableCell>
                                         </TableRow>
                                     ) : (
                                         project_managerList.map((manager, idx) => (
@@ -233,8 +233,8 @@ const ProjectManagerList = () => {
                                                 </TableCell>
                                                 <TableCell>
                                                     <div className="flex items-center gap-4">
-                                                        <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary font-black text-sm border border-primary/20 shadow-inner group-hover:scale-110 transition-transform duration-500">
-                                                            {manager.firstName[0]}{manager.lastName[0]}
+                                                        <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center text-primary font-black text-sm border border-primary/20 shadow-lg group-hover:scale-110 transition-all duration-500">
+                                                            {manager.firstName[0].toUpperCase()}{manager.lastName[0].toUpperCase()}
                                                         </div>
                                                         <div className="flex flex-col">
                                                             <span className="font-black text-foreground tracking-tight">{manager.firstName} {manager.lastName}</span>
@@ -275,7 +275,7 @@ const ProjectManagerList = () => {
                     <div className="flex items-center gap-3">
                         <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
                         <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
-                            Registry synced: {project_managerList.length} entities indexed
+                            Total: {project_managerList.length} managers
                         </p>
                     </div>
                     <div className="flex items-center gap-3">
@@ -306,8 +306,8 @@ const ProjectManagerList = () => {
             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
                 <DialogContent className="sm:max-w-2xl rounded-3xl p-0 overflow-hidden border-border/50 shadow-2xl">
                     <DialogHeader className="px-8 pt-8 pb-6 border-b border-border/50 bg-muted/20">
-                        <DialogTitle className="text-2xl font-black tracking-tight">{selectedManager ? "Modify Manager" : "Onboard New Manager"}</DialogTitle>
-                        <CardDescription>System access for project supervisors.</CardDescription>
+                        <DialogTitle className="text-2xl font-black tracking-tight">{selectedManager ? "Edit Manager" : "Add New Manager"}</DialogTitle>
+                        <CardDescription>Manage project manager accounts.</CardDescription>
                     </DialogHeader>
                     <form onSubmit={handleSubmit} className="p-8 pb-6 space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

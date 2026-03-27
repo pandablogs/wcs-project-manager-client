@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Plus, 
   Search, 
@@ -41,14 +41,29 @@ const ProjectList = () => {
     const [deleteId, setDeleteId] = useState(null);
 
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // Parse search query from URL
+    const getSearchFromUrl = () => {
+        const params = new URLSearchParams(location.search);
+        return params.get('search') || "";
+    };
 
     const [queryParams, setQueryParams] = useState({
         page: 1,
         limit: 10,
         sortField: "",
         sortOrder: 0,
-        search: ""
+        search: getSearchFromUrl()
     });
+
+    // Update search when URL changes
+    useEffect(() => {
+        const urlSearch = getSearchFromUrl();
+        if (urlSearch !== queryParams.search) {
+            setQueryParams(prev => ({ ...prev, search: urlSearch, page: 1 }));
+        }
+    }, [location.search]);
 
     useEffect(() => {
         fetchProjects();
@@ -113,14 +128,14 @@ const ProjectList = () => {
             className="space-y-8 pb-12"
         >
             <PageHeader 
-                title="Project Portfolio" 
-                description="Monitor architectural complexity and financial allocation across active real estate assets."
+                title="Projects" 
+                description="View and manage all projects."
             >
                 <div className="flex gap-4">
                     <div className="relative w-72">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-primary w-4 h-4" />
                         <Input 
-                            placeholder="Filter registry portfolio..." 
+                            placeholder="Search projects..." 
                             value={queryParams.search}
                             onChange={(e) => setQueryParams(p => ({ ...p, search: e.target.value, page: 1 }))}
                             className="!pl-14 h-11 rounded-2xl bg-card/30 border-border/40 focus-visible:ring-primary/20 font-bold text-xs"
@@ -128,7 +143,7 @@ const ProjectList = () => {
                     </div>
                     <Button onClick={() => navigate('/project-estimater')} className="rounded-xl shadow-lg shadow-primary/20 h-11 px-8 bg-primary text-white hover:opacity-90 font-bold italic tracking-tight">
                         <Plus className="w-4 h-4 mr-2" />
-                        NEW INITIATIVE
+                        ADD PROJECT
                     </Button>
                 </div>
             </PageHeader>
@@ -142,12 +157,12 @@ const ProjectList = () => {
             <Card className="border-border/40 bg-card/30 backdrop-blur-md shadow-2xl overflow-hidden rounded-[2.5rem]">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-6 px-10 pt-10">
                     <div className="flex items-center gap-5">
-                        <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary border border-primary/20 shadow-xl">
+                        <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center text-primary border border-primary/20 shadow-xl">
                             <ClipboardList className="w-7 h-7" />
                         </div>
                         <div className="space-y-1">
-                            <CardTitle className="text-3xl font-black italic tracking-tighter">Operational Matrix</CardTitle>
-                            <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Live Asset Tracking Portfolio</CardDescription>
+                            <CardTitle className="text-3xl font-black italic tracking-tighter">Project List</CardTitle>
+                            <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Manage your active projects</CardDescription>
                         </div>
                     </div>
                     <div className="flex gap-3">
@@ -163,18 +178,18 @@ const ProjectList = () => {
                                 <TableRow className="border-border/40 hover:bg-transparent">
                                     <TableHead className="pl-10 h-16">
                                         <button onClick={() => handleSort("name")} className="flex items-center gap-2 hover:text-primary transition-colors text-[10px] font-black uppercase tracking-[0.2em] text-primary/60">
-                                            Project Identity
+                                            Project Name
                                             <ArrowUpDown className={cn("w-3 h-3 transition-colors", queryParams.sortField === 'name' ? 'text-primary' : 'text-primary/30')} />
                                         </button>
                                     </TableHead>
-                                    <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Architectural Density</TableHead>
+                                    <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Rooms & Materials</TableHead>
                                     <TableHead className="h-16">
                                         <button onClick={() => handleSort("totalBudget")} className="flex items-center gap-2 hover:text-primary transition-colors text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                                            Capital Commitment
+                                            Project Budget
                                             <ArrowUpDown className={cn("w-3 h-3 transition-colors", queryParams.sortField === 'totalBudget' ? 'text-primary' : 'text-muted-foreground/30')} />
                                         </button>
                                     </TableHead>
-                                    <TableHead className="text-right pr-10 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Control Core</TableHead>
+                                    <TableHead className="text-right pr-10 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -191,7 +206,7 @@ const ProjectList = () => {
                                     ) : projects.length === 0 ? (
                                         <TableRow>
                                             <TableCell colSpan={4} className="py-32 text-center text-muted-foreground font-black italic uppercase tracking-[0.3em] text-xs opacity-50">
-                                                Zero asset identifiers detected in registry
+                                                No projects found
                                             </TableCell>
                                         </TableRow>
                                     ) : (
@@ -215,7 +230,7 @@ const ProjectList = () => {
                                                                 <ExternalLink className="w-3.5 h-3.5 opacity-0 group-hover:opacity-40 -translate-y-1" />
                                                             </span>
                                                         </div>
-                                                        <span className="text-[10px] font-black text-primary/40 uppercase tracking-[0.2em] ml-5 italic">NODE ID: {project._id.slice(-8).toUpperCase()}</span>
+                                                        <span className="text-[10px] font-black text-primary/40 uppercase tracking-[0.2em] ml-5 italic">ID: {project._id.slice(-8).toUpperCase()}</span>
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>
@@ -232,7 +247,7 @@ const ProjectList = () => {
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/5 border border-primary/20 text-primary shadow-inner">
+                                                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/5 border border-primary/20 text-primary shadow-lg">
                                                         <DollarSign className="w-3 h-3 opacity-60" />
                                                         <span className="text-sm font-black tracking-tighter italic">{Number(project.totalBudget).toLocaleString()}</span>
                                                     </div>
@@ -263,7 +278,7 @@ const ProjectList = () => {
                         <div className="flex items-center gap-4">
                             <div className="h-3 w-3 rounded-full bg-primary animate-pulse" />
                             <span className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
-                                Registry Sync: {projects.length} of {totalDocs} Assets Online
+                                {projects.length} of {totalDocs} Projects Online
                             </span>
                         </div>
                         <div className="flex items-center gap-3">
@@ -296,15 +311,15 @@ const ProjectList = () => {
                         <div className="w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center mb-6">
                             <Trash2 className="w-10 h-10 text-destructive" />
                         </div>
-                        <AlertDialogTitle className="text-3xl font-black tracking-tighter italic">Archive Project?</AlertDialogTitle>
+                        <AlertDialogTitle className="text-3xl font-black tracking-tighter italic">Delete Project?</AlertDialogTitle>
                         <AlertDialogDescription className="text-sm font-black uppercase tracking-widest opacity-60 leading-relaxed">
-                            This will permanently decommission the project registration and all associated financial metadata. This protocol is terminal.
+                            This will permanently delete the project and all its data. This action cannot be undone.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter className="mt-10 gap-4 sm:flex-row sm:justify-center">
-                        <AlertDialogCancel className="rounded-2xl h-14 px-10 font-black uppercase tracking-widest text-[10px] border-border/40 hover:bg-muted/20">Maintain Policy</AlertDialogCancel>
+                        <AlertDialogCancel className="rounded-2xl h-14 px-10 font-black uppercase tracking-widest text-[10px] border-border/40 hover:bg-muted/20">Cancel</AlertDialogCancel>
                         <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90 rounded-2xl h-14 px-10 font-black uppercase tracking-widest text-[10px] text-white shadow-2xl shadow-destructive/30 border-none transition-all active:scale-[0.98] italic">
-                            {localLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Archive Permanently"}
+                            {localLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Delete Permanently"}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
