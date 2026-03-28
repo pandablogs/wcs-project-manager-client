@@ -445,15 +445,28 @@ const ProjectList = () => {
                                                     <TableCell>
                                                         <div className="flex flex-wrap gap-1 items-center max-w-[200px]">
                                                             {project.assignedTo && project.assignedTo.length > 0 ? (
-                                                                project.assignedTo.map((man) => (
-                                                                    <Badge 
-                                                                        key={man._id} 
-                                                                        variant="outline" 
-                                                                        className="bg-primary/5 hover:bg-primary/10 transition-colors border-primary/20 text-primary text-[9px] font-black uppercase px-2 py-0"
-                                                                    >
-                                                                        {man.firstName}
-                                                                    </Badge>
-                                                                ))
+                                                                project.assignedTo.map((man, idx) => {
+                                                                    let name = "Unknown";
+                                                                    let id = typeof man === "string" ? man : (man._id || idx);
+                                                                    
+                                                                    if (typeof man === "object" && man.firstName) {
+                                                                        name = man.firstName;
+                                                                    } else if (typeof man === "string" || typeof man === "object") {
+                                                                        const lookupId = typeof man === "object" ? man._id : man;
+                                                                        const found = availableManagers.find(m => m._id === lookupId);
+                                                                        if (found) name = found.firstName;
+                                                                    }
+                                                                    
+                                                                    return (
+                                                                        <Badge 
+                                                                            key={id} 
+                                                                            variant="outline" 
+                                                                            className="bg-primary/5 hover:bg-primary/10 transition-colors border-primary/20 text-primary text-[9px] font-black uppercase px-2 py-0"
+                                                                        >
+                                                                            {name}
+                                                                        </Badge>
+                                                                    );
+                                                                })
                                                             ) : (
                                                                 <span className="text-[10px] font-black text-muted-foreground uppercase opacity-40 italic tracking-tighter">Direct Management</span>
                                                             )}

@@ -34,6 +34,11 @@ import { Badge } from "../../components/ui/Badge";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/Select";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "../../components/ui/Table";
+import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/Popover";
+import { Checkbox } from "../../components/ui/Checkbox";
+import { ScrollArea } from "../../components/ui/ScrollArea";
+import { Separator } from "../../components/ui/Separator";
+import { Label } from "../../components/ui/Label";
 import { cn } from "../../lib/utils";
 
 const Estimater = () => {
@@ -58,6 +63,10 @@ const Estimater = () => {
 
     const roleType = getUserRole();
     const isClient = roleType === "user";
+    const isAdmin = roleType === "admin";
+
+    const [availableManagers, setAvailableManagers] = useState([]);
+    const [assignedTo, setAssignedTo] = useState([]);
 
     const getLineMarkupPercent = (subId) => markupBySubMaterial[subId] ?? markupPercent ?? 0;
 
@@ -69,17 +78,29 @@ const Estimater = () => {
                 fetchMaterials(),
                 fetchSubMaterials(),
                 fetchProfile(),
-                fetchRehabGroups()
+                fetchRehabGroups(),
+                ...(isAdmin ? [fetchManagers()] : [])
             ]);
             if (id) {
-                setIsEditMode(true);
+                setIsEditMode(true); // Must remain true!
                 setProjectId(id);
                 fetchProjectData(id);
             }
             setLocalLoading(false);
         };
         loadAll();
-    }, [id]);
+    }, [id, isAdmin]);
+
+    const fetchManagers = async () => {
+        try {
+            const res = await userServices.getPublicManagers();
+            if (res.status) {
+                setAvailableManagers(res.data || []);
+            }
+        } catch (error) {
+            console.error("Failed to fetch managers", error);
+        }
+    };
 
     const fetchRehabGroups = async () => {
         try {
@@ -175,6 +196,9 @@ const Estimater = () => {
                 setSelectedMaterials(selectedMatMap);
                 setMarkupPercent(project.markupPercent ?? 0);
                 setMarkupBySubMaterial(markupMap);
+                if (project.assignedTo && Array.isArray(project.assignedTo)) {
+                    setAssignedTo(project.assignedTo.map(m => m._id || m));
+                }
             }
         } catch (err) {
             toast.error("Critical error retrieving project data");
@@ -304,6 +328,7 @@ const Estimater = () => {
             totalBudget: totals.finalTotal,
             markupPercent: markupPercent ?? 0,
             createdBy: createdBy || {},
+            assignedTo: isAdmin ? availableManagers.filter(m => assignedTo.includes(m._id)) : undefined,
         };
 
         try {
@@ -481,7 +506,7 @@ const Estimater = () => {
                             </div>
                         </CardHeader>
                         <CardContent className="p-8">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className={cn("grid grid-cols-1 gap-8", isAdmin ? "md:grid-cols-3" : "md:grid-cols-2")}>
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Project Registry Name</label>
                                     <Input 
@@ -506,6 +531,77 @@ const Estimater = () => {
                                         />
                                     </div>
                                 </div>
+                                {isAdmin && (
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Assigned Management</label>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button 
+                                                    variant="outline" 
+                                                    className={cn(
+                                                        "w-full h-12 justify-between bg-background/50 border-border/50 rounded-[1rem] font-bold",
+                                                        assignedTo.length === 0 ? "text-muted-foreground" : "text-primary border-primary/40 shadow-sm shadow-primary/10"
+                                                    )}
+                                                >
+                                                    {assignedTo.length > 0 ? (
+                                                        <span className="flex items-center gap-2">
+                                                            <div className="h-2 w-2 shrink-0 rounded-full bg-emerald-500 animate-pulse" />
+                                                            {assignedTo.length} Selected
+                                                        </span>
+                                                    ) : (
+                                                        "Direct Management (System Admin)"
+                                                    )}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-72 p-0 rounded-[1.5rem] border-border/40 bg-card/95 backdrop-blur-xl shadow-2xl" align="end">
+                                                <div className="p-5 space-y-4">
+                                                    <div className="space-y-1">
+                                                        <h4 className="text-sm font-black italic tracking-tight">Project Assignment</h4>
+                                                        <p className="text-[9px] font-black uppercase tracking-[0.15em] opacity-40 italic">Select Managers</p>
+                                                    </div>
+                                                    <Separator className="bg-border/20" />
+                                                    <ScrollArea className="h-44 pr-3">
+                                                        <div className="space-y-1.5">
+                                                            {availableManagers.map((manager) => (
+                                                                <div key={manager._id} className="flex items-center justify-between group p-2 hover:bg-primary/5 rounded-xl transition-colors cursor-pointer" onClick={() => {
+                                                                    const isChecked = assignedTo.includes(manager._id);
+                                                                    setAssignedTo(prev => 
+                                                                        !isChecked 
+                                                                            ? [...prev, manager._id]
+                                                                            : prev.filter(id => id !== manager._id)
+                                                                    );
+                                                                }}>
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-black text-xs">
+                                                                            {manager.firstName[0]}
+                                                                        </div>
+                                                                        <div className="flex flex-col">
+                                                                            <span className="text-xs font-bold text-foreground leading-tight">{manager.firstName} {manager.lastName}</span>
+                                                                            <span className="text-[9px] font-black uppercase opacity-40 tracking-tighter mt-0.5">
+                                                                                {manager.role_type.replace('_', ' ')}
+                                                                                {manager.clients && manager.clients.length > 0 && ` • Clients: ${manager.clients.map(c => c.firstName).join(', ')}`}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <Checkbox 
+                                                                        checked={assignedTo.includes(manager._id)}
+                                                                        onCheckedChange={() => {}} 
+                                                                        className="h-4 w-4 rounded-md border-border/60 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                                                                    />
+                                                                </div>
+                                                            ))}
+                                                            {availableManagers.length === 0 && (
+                                                                <div className="text-center py-4 text-xs font-medium text-muted-foreground opacity-60">
+                                                                    No managers available
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </ScrollArea>
+                                                </div>
+                                            </PopoverContent>
+                                        </Popover>
+                                    </div>
+                                )}
                             </div>
                         </CardContent>
                     </Card>
