@@ -14,3 +14,16 @@ export const isTokenValid = () => {
         return false; // Invalid token
     }
 };
+
+export const getUserRole = () => {
+    const token = localStorage.getItem("_token");
+
+    if (!token) return null;
+
+    try {
+        const decoded = jwtDecode(token);
+        return decoded.role; // Extract role from JWT claims
+    } catch (error) {
+        return null;
+    }
+};

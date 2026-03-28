@@ -15,6 +15,7 @@ import { ToastContainer } from 'react-toastify';
 import ProjectManagerDashboard from "./pages/Staff/ProjectManagerDashboard"
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import Profile from "./pages/Authenticated/Profile";
+import ClientList from "./pages/Admin/ClientList";
 import ProjectManagerList from "./pages/Admin/ProjectManagerList";
 import ProjectList from "./pages/Admin/ProjectList";
 import MaterialPage from "./pages/Admin/MaterialPage";
@@ -61,7 +62,8 @@ const authRoutes = [
   { path: "/material/:id/:matId", element: <SubMaterialDetails />, roles: ["admin", "user"] },
   { path: "/project-estimater", element: <Estimater />, roles: ["admin", "project_manager", "user"] },
   { path: "/project-estimater/:id", element: <Estimater />, roles: ["admin", "project_manager", "user"] },
-  { path: "/project-list", element: <ProjectList />, roles: ["admin", "project_manager", "user"] }
+  { path: "/project-list", element: <ProjectList />, roles: ["admin", "project_manager", "user"] },
+  { path: "/client-list", element: <ClientList />, roles: ["admin", "project_manager"] }
 ];
 
 const App = () => {

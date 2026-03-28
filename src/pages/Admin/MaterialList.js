@@ -20,6 +20,7 @@ import {
   Database
 } from "lucide-react";
 import materialService from "../../services/materialServices";
+import { getUserRole } from "../../utils/helpers";
 import { Button } from "../../components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../components/ui/Card";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "../../components/ui/Table";
@@ -70,6 +71,9 @@ const MaterialList = () => {
   const [expandedRooms, setExpandedRooms] = useState({});
   const [expandedMaterials, setExpandedMaterials] = useState({});
   const [searchQuery, setSearchQuery] = useState(getSearchFromUrl());
+
+  const roleType = getUserRole();
+  const isClient = roleType === "user";
 
   // Update search when URL changes
   useEffect(() => {
@@ -219,10 +223,12 @@ const MaterialList = () => {
         title="Materials" 
         description="Manage all materials, items, and room categories."
       >
-        <Button onClick={() => setImportDialogOpen(true)} className="rounded-xl shadow-lg shadow-primary/20 h-10 px-6">
-            <Upload className="w-4 h-4 mr-2" />
-            Bulk Import
-        </Button>
+        {!isClient && (
+            <Button onClick={() => setImportDialogOpen(true)} className="rounded-xl shadow-lg shadow-primary/20 h-10 px-6">
+                <Upload className="w-4 h-4 mr-2" />
+                Bulk Import
+            </Button>
+        )}
       </PageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -345,7 +351,7 @@ const MaterialList = () => {
                                             <div className="h-1.5 w-1.5 rounded-full bg-primary/60 shadow-[0_0_8px_rgba(var(--primary),0.5)]" />
                                             <div className="flex flex-col">
                                                 <span className="text-xs font-black text-foreground/80 tracking-tight">{sub.name}</span>
-                                                <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">{sub._id.slice(-8).toUpperCase()}</span>
+
                                             </div>
                                           </div>
                                           <div className="flex items-center gap-12">

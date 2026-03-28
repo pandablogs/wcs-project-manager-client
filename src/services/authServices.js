@@ -7,6 +7,8 @@ const authServices = {
     forgotPassword: (data) => axiosService.apis("POST", "/api/forgot-password", data),
     resetPassword: (data) => axiosService.apis("POST", "/api/reset-password", data),
     changePassword: (data) => axiosService.apis("POST", "/api/change-password", data),
+    getPublicManagers: () => axiosService.apis("GET", "/api/public-managers"),
+    getAllClients: (params) => axiosService.apis("GET", "/api/get-all-clients", params),
 };
 
 export default authServices;

@@ -46,6 +46,7 @@ import { setUser as setReduxUser } from "../redux/slices/userSlice";
 import userServices from "../services/userServices";
 import materialService from "../services/materialServices";
 import { cn } from "../lib/utils";
+import { getUserRole } from "../utils/helpers";
 
 const AuthLayout = ({ children }) => {
   const navigate = useNavigate();
@@ -76,11 +77,7 @@ const AuthLayout = ({ children }) => {
   const reduxLoading = useSelector(state => state.project_manager?.loading || state.user?.loading);
 
   const roleType = useMemo(() => {
-    try {
-      return localStorage.getItem("role_type");
-    } catch {
-      return null;
-    }
+    return getUserRole();
   }, []);
 
   // Sync search query with URL if search param exists
@@ -134,7 +131,7 @@ const AuthLayout = ({ children }) => {
         }
       } catch (error) {
         // Fallback to hardcoded values if API fails
-        const roleType = localStorage.getItem("role_type");
+        const roleType = getUserRole();
         const isAdmin = roleType === "admin";
         setUser({
           name: isAdmin ? "Admin User" : "Project Manager",
@@ -201,7 +198,7 @@ const AuthLayout = ({ children }) => {
         } catch {
           loginHistory = [];
         }
-        
+
         if (!sessionStorage.getItem('wcs_session_logged') && roleType && user.id) {
           loginHistory.unshift({ time: new Date().toISOString(), role: roleType, userId: user.id });
           loginHistory = loginHistory.slice(0, 5); // Keep last 5 logins
@@ -220,19 +217,19 @@ const AuthLayout = ({ children }) => {
 
         const combined = [
           ...loginNotifs,
-          ...projectNotifs, 
+          ...projectNotifs,
           ...materialNotifs
         ]
           .sort((a, b) => new Date(b.time) - new Date(a.time))
           .slice(0, 10);
 
         setNotifications(combined);
-        
+
         // Only show red dot if the latest CHANGE (project/material) is different from the last seen one
         const latestChangeNotif = [...projectNotifs, ...materialNotifs].sort((a, b) => new Date(b.time) - new Date(a.time))[0];
         const latestChangeId = latestChangeNotif?.id || null;
         const lastSeenChangeId = localStorage.getItem('wcs_last_seen_change_id');
-        
+
         if (latestChangeId && latestChangeId !== lastSeenChangeId) {
           setUnreadCount(1);
         } else {
@@ -258,10 +255,17 @@ const AuthLayout = ({ children }) => {
   const isAdmin = roleType === "admin";
 
   const navItems = useMemo(() => {
+    const dashboardUrl = roleType === "admin"
+      ? "/admin/dashboard"
+      : roleType === "project_manager"
+        ? "/projectManager/dashboard"
+        : "/user/dashboard";
+
     return isAdmin
       ? [
-        { title: "Dashboard", url: "/admin/dashboard", icon: LayoutDashboard },
+        { title: "Dashboard", url: dashboardUrl, icon: LayoutDashboard },
         { title: "Projects", url: "/project-list", icon: Building2 },
+        { title: "Clients", url: "/client-list", icon: Users },
         { title: "Project Managers", url: "/admin/project-manager-list", icon: Users },
         { title: "Room Categories", url: "/category", icon: DoorOpen },
         { title: "Materials", url: "/materials", icon: Hammer },
@@ -269,12 +273,13 @@ const AuthLayout = ({ children }) => {
         { title: "Rehab Groups", url: "/rehab-groups", icon: ListChecks },
       ]
       : [
-        { title: "Dashboard", url: "/projectManager/dashboard", icon: LayoutDashboard },
+        { title: "Dashboard", url: dashboardUrl, icon: LayoutDashboard },
         { title: "Projects", url: "/project-list", icon: Building2 },
+        { title: "Clients", url: "/client-list", icon: Users },
         { title: "Material Catalogue", url: "/material-list", icon: ListChecks },
         { title: "Rehab Groups", url: "/rehab-groups", icon: ListChecks },
       ];
-  }, [isAdmin]);
+  }, [isAdmin, roleType]);
 
   const handleLogout = () => {
     try {
@@ -326,7 +331,9 @@ const AuthLayout = ({ children }) => {
               <span className="font-bold text-xl tracking-tight text-sidebar-foreground leading-none">
                 WCS <span className="text-primary font-black">PM</span>
               </span>
-              <span className="text-[10px] font-medium text-sidebar-foreground/50 uppercase tracking-[0.2em] leading-none">Manager</span>
+              <span className="text-[10px] font-medium text-sidebar-foreground/50 uppercase tracking-[0.2em] leading-none">
+                {roleType === 'admin' ? 'Admin' : roleType === 'project_manager' ? 'Manager' : 'Client'}
+              </span>
             </div>
           </SidebarHeader>
           <SidebarContent className="px-3 py-2">

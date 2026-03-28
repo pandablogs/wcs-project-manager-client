@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { useEffect, useState } from 'react';
 import materialService from '../../services/materialServices';
 import { toast } from 'react-toastify';
+import { getUserRole } from "../../utils/helpers";
 import { 
   Plus, 
   LayoutGrid, 
@@ -267,7 +268,7 @@ const ProjectManagerDashboard = () => {
                       {[
                         { label: "Catalog", icon: Box, path: "/material-list" },
                         { label: "Templates", icon: Layers, path: "/rehab-groups" },
-                        { label: "Overview", icon: LayoutDashboard, path: "/projectManager/dashboard" },
+                        { label: "Overview", icon: LayoutDashboard, path: "/user/dashboard" },
                         { label: "Projects", icon: ListTodo, path: "/project-list" },
                       ].map((item, i) => (
                         <button 

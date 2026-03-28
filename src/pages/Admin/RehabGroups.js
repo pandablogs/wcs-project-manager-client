@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import materialService from "../../services/materialServices";
 import rehabGroupService from "../../services/rehabGroupServices";
+import { getUserRole } from "../../utils/helpers";
 import { Button } from "../../components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../components/ui/Card";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "../../components/ui/Table";
@@ -52,6 +53,9 @@ const RehabGroups = () => {
   const [addQty, setAddQty] = useState(1);
   const [deleteId, setDeleteId] = useState(null);
   const routerLocation = useLocation();
+
+  const roleType = getUserRole();
+  const isClient = roleType === "user";
 
   useEffect(() => {
     fetchGroups();
@@ -223,10 +227,12 @@ const RehabGroups = () => {
         title="Room Templates"
         description="Create sets of materials to quickly add them to your projects."
       >
-        <Button onClick={openCreate} className="rounded-xl shadow-lg shadow-primary/20 h-11 px-8 bg-primary text-white hover:opacity-90 font-bold italic tracking-tight">
-          <Plus className="w-4 h-4 mr-2" />
-          ADD TEMPLATE
-        </Button>
+        {!isClient && (
+          <Button onClick={openCreate} className="rounded-xl shadow-lg shadow-primary/20 h-11 px-8 bg-primary text-white hover:opacity-90 font-bold italic tracking-tight">
+            <Plus className="w-4 h-4 mr-2" />
+            ADD TEMPLATE
+          </Button>
+        )}
       </PageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -265,9 +271,11 @@ const RehabGroups = () => {
                     <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl bg-background border border-border/40 shadow-sm hover:border-primary/50 hover:text-primary transition-all" onClick={() => openEdit(group)}>
                       <Edit2 className="w-4 h-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl bg-background border border-border/40 shadow-sm hover:border-destructive/50 hover:text-destructive transition-all" onClick={() => setDeleteId(group._id)}>
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    {!isClient && (
+                      <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl bg-background border border-border/40 shadow-sm hover:border-destructive/50 hover:text-destructive transition-all" onClick={() => setDeleteId(group._id)}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
                   </div>
 
                   <CardHeader className="p-10 pb-6">

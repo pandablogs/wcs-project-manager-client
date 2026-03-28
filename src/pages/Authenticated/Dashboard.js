@@ -279,7 +279,7 @@ const Dashboard = () => {
                         </CardHeader>
                         <CardContent className="p-8 pt-0 grid grid-cols-2 gap-3">
                             {[
-                                { name: "Dashboard", icon: LayoutDashboard, path: "/admin/dashboard" },
+                                { name: "Dashboard", icon: LayoutDashboard, path: user?.role_type === "admin" ? "/admin/dashboard" : user?.role_type === "project_manager" ? "/projectManager/dashboard" : "/user/dashboard" },
                                 { name: "Projects", icon: Briefcase, path: "/project-list" },
                                 { name: "Estimator", icon: Calculator, path: "/project-estimater" },
                                 { name: "Materials", icon: Package, path: "/material-list" },

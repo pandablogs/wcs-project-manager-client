@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from "react";
-import userServices from "../../services/userServices";
+ import React, { useEffect, useState } from "react";
+ import { useDispatch } from "react-redux";
+ import { setUser } from "../../redux/slices/userSlice";
+ import userServices from "../../services/userServices";
 import { toast } from "react-toastify";
 import {
   User,
@@ -36,15 +38,17 @@ import { PageHeader } from "../../components/ui/PageHeader";
 import { Avatar, AvatarFallback, AvatarImage } from "../../components/ui/Avatar";
 
 const Profile = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [localLoading, setLocalLoading] = useState(false);
-  const [securityLoading, setSecurityLoading] = useState(false);
+   const [isLoading, setIsLoading] = useState(false);
+   const [localLoading, setLocalLoading] = useState(false);
+   const [securityLoading, setSecurityLoading] = useState(false);
+   const dispatch = useDispatch();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
   });
+  const [profile, setProfile] = useState(null);
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
@@ -69,6 +73,7 @@ const Profile = () => {
       setIsLoading(true);
       const response = await userServices.getProfile();
       if (response?.user) {
+        setProfile(response.user);
         setFormData({
           firstName: response.user.firstName || "",
           lastName: response.user.lastName || "",
@@ -91,6 +96,11 @@ const Profile = () => {
     try {
       setLocalLoading(true);
       const response = await userServices.updateProfile(formData);
+      if (response?.status && response?.user) {
+          // Synchronize with Redux and localStorage to maintain architectural consistency
+          dispatch(setUser(response.user));
+          localStorage.setItem("user", JSON.stringify(response.user));
+      }
       toast.success(response.message || "Profile architecture updated.");
     } catch (error) {
       toast.error("Failed to commit profile revisions.");
@@ -182,6 +192,33 @@ const Profile = () => {
               </div>
             </CardContent>
           </Card>
+          
+          {profile?.role_type === "user" && profile?.assigned_manager && (
+            <Card className="rounded-[2.5rem] border-primary/20 shadow-xl overflow-hidden bg-primary/5 backdrop-blur-sm">
+                <CardHeader className="p-8 pb-4 border-b border-primary/10">
+                    <div className="flex items-center gap-3">
+                        <Shield className="w-5 h-5 text-primary" />
+                        <CardTitle className="text-sm font-black italic tracking-tighter">Your Manager</CardTitle>
+                    </div>
+                </CardHeader>
+                <CardContent className="p-8 space-y-4">
+                    <div className="flex flex-col">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-primary/60 mb-1">Assigned Manager</span>
+                        <span className="text-sm font-black italic">{profile.assigned_manager.firstName} {profile.assigned_manager.lastName}</span>
+                    </div>
+                    <div className="flex flex-col">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-primary/60 mb-1">Manager Directives</span>
+                        <span className="text-[10px] text-muted-foreground font-bold">{profile.assigned_manager.email}</span>
+                    </div>
+                    <div className="pt-2">
+                        <div className="px-3 py-1.5 rounded-xl bg-primary/10 border border-primary/20 inline-flex items-center gap-2">
+                            <RefreshCcw className="w-3 h-3 text-primary animate-spin-slow" />
+                            <span className="text-[9px] font-black uppercase tracking-widest text-primary">Managed by Professional</span>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+          )}
 
           <Card className="rounded-[2rem] border-border/40 bg-muted/20">
             <CardContent className="p-8 space-y-4">

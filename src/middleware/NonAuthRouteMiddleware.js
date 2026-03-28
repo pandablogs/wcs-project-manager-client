@@ -1,8 +1,8 @@
 import { Navigate } from "react-router-dom";
-import { isTokenValid } from "../utils/helpers"; // Import the token validation function
+import { isTokenValid, getUserRole } from "../utils/helpers";
 
 const NonAuthRouteMiddleware = ({ children }) => {
-    const roleType = localStorage.getItem("role_type");
+    const roleType = getUserRole();
 
     if (isTokenValid() && roleType) {
         if (roleType === "user") {

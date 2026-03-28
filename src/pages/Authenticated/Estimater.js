@@ -4,6 +4,7 @@ import userServices from "../../services/userServices";
 import rehabGroupService from "../../services/rehabGroupServices";
 import { toast } from "react-toastify";
 import { useParams, useNavigate } from "react-router-dom";
+import { getUserRole } from "../../utils/helpers";
 import * as XLSX from "xlsx";
 import { 
   FileDown, 
@@ -54,6 +55,9 @@ const Estimater = () => {
 
     const { id } = useParams();
     const navigate = useNavigate();
+
+    const roleType = getUserRole();
+    const isClient = roleType === "user";
 
     const getLineMarkupPercent = (subId) => markupBySubMaterial[subId] ?? markupPercent ?? 0;
 
@@ -368,6 +372,7 @@ const Estimater = () => {
         const totals = calculateTotal;
         sheetData.push(["ESTIMATE SUMMARY"]);
         sheetData.push(["Actual Total", "", "", "", "", "", `$${totals.actualTotal.toFixed(2)}`]);
+        sheetData.push([`Markup Total (INC. ${totals.markupPercent}%)`, "", "", "", "", "", `+ $${totals.markupAmount.toFixed(2)}`]);
         if (totals.percentageMarkup > 0) {
             sheetData.push([`Added Pct (${totals.percentageMarkup}%)`, "", "", "", "", "", `+ $${totals.percentageAddAmount.toFixed(2)}`]);
         }
@@ -425,6 +430,7 @@ const Estimater = () => {
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pb-24 space-y-8">
             <AnimatePresence>
+
                 {localLoading && (
                     <motion.div 
                         initial={{ opacity: 0 }} 
@@ -448,9 +454,14 @@ const Estimater = () => {
                     <Button variant="outline" className="rounded-xl border-border/40 bg-background/50 backdrop-blur-sm h-11 px-5 shadow-sm hover:bg-muted transition-all" onClick={handleExportToExcel}>
                         <FileDown className="w-4 h-4 mr-2" /> EXPORT XLSX
                     </Button>
-                    <Button className="rounded-xl shadow-lg shadow-primary/20 h-11 px-8 bg-primary text-white hover:opacity-90 font-bold italic tracking-tight" onClick={saveProject}>
-                        <Save className="w-4 h-4 mr-2" /> {isEditMode ? "SAVE CHANGES" : "CREATE PROJECT"}
-                    </Button>
+                    {!isClient && (
+                        <Button 
+                            className="rounded-xl shadow-lg shadow-primary/20 h-11 px-8 bg-primary text-white hover:opacity-90 font-bold italic tracking-tight" 
+                            onClick={saveProject}
+                        >
+                            <Save className="w-4 h-4 mr-2" /> {isEditMode ? "SAVE CHANGES" : "CREATE PROJECT"}
+                        </Button>
+                    )}
                 </div>
             </PageHeader>
 
@@ -476,7 +487,8 @@ const Estimater = () => {
                                     <Input 
                                         value={projectName}
                                         onChange={(e) => setProjectName(e.target.value)}
-                                        className="h-12 text-lg font-bold bg-background/50 border-border/50 rounded-[1rem] focus-visible:ring-primary/20"
+                                        disabled={isClient}
+                                        className="h-12 text-lg font-bold bg-background/50 border-border/50 rounded-[1rem] focus-visible:ring-primary/20 disabled:opacity-60"
                                         placeholder="e.g. Oakwood Estate Phase I"
                                     />
                                 </div>
@@ -489,7 +501,8 @@ const Estimater = () => {
                                             min="0"
                                             value={markupPercent}
                                             onChange={(e) => setMarkupPercent(Math.max(0, parseFloat(e.target.value) || 0))}
-                                            className="h-12 text-lg font-bold bg-background/50 border-border/50 rounded-[1rem] focus-visible:ring-primary/20 pr-10"
+                                            disabled={isClient}
+                                            className="h-12 text-lg font-bold bg-background/50 border-border/50 rounded-[1rem] focus-visible:ring-primary/20 pr-10 disabled:opacity-60"
                                         />
                                     </div>
                                 </div>
@@ -498,7 +511,7 @@ const Estimater = () => {
                     </Card>
 
                     {/* Rehab Groups Quick-Add */}
-                    {rehabGroups.length > 0 && (
+                    {rehabGroups.length > 0 && !isClient && (
                         <Card className="border-border/40 bg-card/30 backdrop-blur-sm">
                             <CardHeader className="py-4">
                                 <div className="flex items-center gap-3">
@@ -508,8 +521,8 @@ const Estimater = () => {
                             </CardHeader>
                             <CardContent className="px-8 pb-8 pt-0">
                                 <div className="flex flex-wrap items-center gap-4">
-                                    <Select value={selectedRehabGroupId} onValueChange={setSelectedRehabGroupId}>
-                                        <SelectTrigger className="w-[300px] h-11 bg-background/40 border-border/40 rounded-xl">
+                                    <Select value={selectedRehabGroupId} onValueChange={setSelectedRehabGroupId} disabled={isClient}>
+                                        <SelectTrigger className="w-[300px] h-11 bg-background/40 border-border/40 rounded-xl disabled:opacity-60">
                                             <SelectValue placeholder="Select component group..." />
                                         </SelectTrigger>
                                         <SelectContent className="rounded-xl border-border/40 shadow-2xl">
@@ -522,11 +535,12 @@ const Estimater = () => {
                                     </Select>
                                     <Button 
                                         onClick={handleAddRehabGroup} 
-                                        disabled={!selectedRehabGroupId}
-                                        className="h-11 rounded-xl font-bold bg-primary text-white hover:opacity-90 transition-all shadow-lg shadow-primary/20 italic px-6"
+                                        disabled={!selectedRehabGroupId || isClient}
+                                        className="h-11 rounded-xl font-bold bg-primary text-white hover:opacity-90 transition-all shadow-lg shadow-primary/20 italic px-6 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         ADD GROUP <Plus className="w-4 h-4 ml-2" />
                                     </Button>
+
                                     <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider italic">
                                         Groups will be merged into current architectural stack.
                                     </p>
@@ -568,16 +582,16 @@ const Estimater = () => {
                                         <div className="space-y-12">
                                             {/* Add Material Dropdown */}
                                             {materials.filter(m => m.roomId?._id === room._id).length > 
-                                             (selectedMaterials[room._id]?.length || 0) && (
+                                             (selectedMaterials[room._id]?.length || 0) && !isClient && (
                                                 <div className="flex justify-center -mt-4 mb-4">
-                                                    <Select onValueChange={(val) => {
+                                                    <Select disabled={isClient} onValueChange={(val) => {
                                                         setSelectedMaterials(prev => ({
                                                             ...prev,
                                                             [room._id]: [...(prev[room._id] || []), val]
                                                         }));
                                                     }}>
                                                         <SelectTrigger 
-                                                            className="w-auto h-11 px-10 rounded-full border-none bg-primary text-white text-[11px] font-black uppercase tracking-[0.2em] hover:opacity-90 transition-all shadow-xl shadow-primary/20 scale-100 hover:scale-[1.05] active:scale-[0.95]"
+                                                            className="w-auto h-11 px-10 rounded-full border-none bg-primary text-white text-[11px] font-black uppercase tracking-[0.2em] hover:opacity-90 transition-all shadow-xl shadow-primary/20 scale-100 hover:scale-[1.05] active:scale-[0.95] disabled:opacity-50 disabled:pointer-events-none"
                                                         >
                                                             <SelectValue placeholder="DEPLOY MATERIAL COMPONENT" />
                                                         </SelectTrigger>
@@ -609,7 +623,7 @@ const Estimater = () => {
                                                                 <h5 className="text-lg font-black tracking-tight underline decoration-primary/30 underline-offset-8">{mat?.name}</h5>
                                                             </div>
                                                             <div className="flex items-center gap-2">
-                                                                {subs.length > selSubs.length && (
+                                                                {subs.length > selSubs.length && !isClient && (
                                                                     <Select onValueChange={(val) => {
                                                                         setSelectedSubMaterials(prev => ({
                                                                             ...prev,
@@ -628,19 +642,21 @@ const Estimater = () => {
                                                                         </SelectContent>
                                                                     </Select>
                                                                 )}
-                                                                <Button 
-                                                                    variant="ghost" 
-                                                                    size="icon" 
-                                                                    className="h-8 w-8 rounded-lg text-rose-500 hover:bg-rose-500/10"
-                                                                    onClick={() => {
-                                                                        setSelectedMaterials(prev => ({
-                                                                            ...prev,
-                                                                            [room._id]: prev[room._id].filter(id => id !== matId)
-                                                                        }));
-                                                                    }}
-                                                                >
-                                                                    <Trash2 className="w-4 h-4" />
-                                                                </Button>
+                                                                {!isClient && (
+                                                                    <Button 
+                                                                        variant="ghost" 
+                                                                        size="icon" 
+                                                                        className="h-8 w-8 rounded-lg text-rose-500 hover:bg-rose-500/10"
+                                                                        onClick={() => {
+                                                                            setSelectedMaterials(prev => ({
+                                                                                ...prev,
+                                                                                [room._id]: prev[room._id].filter(id => id !== matId)
+                                                                            }));
+                                                                        }}
+                                                                    >
+                                                                        <Trash2 className="w-4 h-4" />
+                                                                    </Button>
+                                                                )}
                                                             </div>
                                                         </div>
 
@@ -660,7 +676,7 @@ const Estimater = () => {
                                                                         ) : (
                                                                             <TableHead className="text-right pr-6 w-32">Pct %</TableHead>
                                                                         )}
-                                                                        <TableHead className="w-12"></TableHead>
+                                                                        {!isClient && <TableHead className="w-12"></TableHead>}
                                                                     </TableRow>
                                                                 </TableHeader>
                                                                 <TableBody>
@@ -681,7 +697,8 @@ const Estimater = () => {
                                                                                                 type="number" 
                                                                                                 value={qty || ""}
                                                                                                 onChange={(e) => handleQuantityChange(s._id, parseInt(e.target.value) || 0)}
-                                                                                                className="h-9 w-20 mx-auto text-center font-black rounded-lg bg-background/50 border-border/40 focus-visible:ring-primary/20"
+                                                                                                disabled={isClient}
+                                                                                                className="h-9 w-24 px-1 mx-auto text-center font-black rounded-lg bg-background/50 border-border/40 focus-visible:ring-primary/20 disabled:opacity-60"
                                                                                             />
                                                                                         </TableCell>
                                                                                         <TableCell className="text-center text-muted-foreground font-mono italic text-xs">${baseAmt.toFixed(2)}</TableCell>
@@ -691,7 +708,8 @@ const Estimater = () => {
                                                                                 min="0"
                                                                                 value={markup}
                                                                                 onChange={(e) => setMarkupBySubMaterial(prev => ({ ...prev, [s._id]: Math.max(0, parseFloat(e.target.value) || 0) }))}
-                                                                                className="h-9 w-24 mx-auto text-center font-black rounded-lg bg-background/50 border-border/40 focus-visible:ring-primary/20"
+                                                                                disabled={isClient}
+                                                                                className="h-9 w-24 px-1 mx-auto text-center font-black rounded-lg bg-background/50 border-border/40 focus-visible:ring-primary/20 disabled:opacity-60"
                                                                             />
                                                                                         </TableCell>
                                                                                         <TableCell className="text-right pr-6 font-black text-emerald-600 dark:text-emerald-400">
@@ -701,19 +719,21 @@ const Estimater = () => {
                                                                                 ) : (
                                                                                     <TableCell className="text-right pr-6 font-black text-primary">{s.price}%</TableCell>
                                                                                 )}
-                                                                                <TableCell className="pr-2">
-                                                                                    <Button 
-                                                                                        variant="ghost" 
-                                                                                        size="icon" 
-                                                                                        className="h-7 w-7 rounded-md opacity-0 group-hover:opacity-100 hover:text-rose-500"
-                                                                                        onClick={() => setSelectedSubMaterials(prev => ({
-                                                                                            ...prev,
-                                                                                            [matId]: prev[matId].filter(id => id !== s._id)
-                                                                                        }))}
-                                                                                    >
-                                                                                        <Trash2 className="w-3.5 h-3.5" />
-                                                                                    </Button>
-                                                                                </TableCell>
+                                                                                {!isClient && (
+                                                                                    <TableCell className="pr-2">
+                                                                                        <Button 
+                                                                                            variant="ghost" 
+                                                                                            size="icon" 
+                                                                                            className="h-7 w-7 rounded-md opacity-0 group-hover:opacity-100 hover:text-rose-500"
+                                                                                            onClick={() => setSelectedSubMaterials(prev => ({
+                                                                                                ...prev,
+                                                                                                [matId]: prev[matId].filter(id => id !== s._id)
+                                                                                            }))}
+                                                                                        >
+                                                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                                                        </Button>
+                                                                                    </TableCell>
+                                                                                )}
                                                                             </TableRow>
                                                                         )
                                                                     })}
@@ -750,6 +770,11 @@ const Estimater = () => {
                                     <div className="flex justify-between items-center px-1">
                                         <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                                             <TrendingUp className="w-3.5 h-3.5" /> Markup Total
+                                            {calculateTotal.markupPercent > 0 && (
+                                                <span className="text-[9px] lowercase text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded-md ml-1 font-black tracking-widest">
+                                                    INC. {calculateTotal.markupPercent}%
+                                                </span>
+                                            )}
                                         </span>
                                         <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400 italic">+ ${calculateTotal.markupAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                                     </div>
@@ -799,19 +824,21 @@ const Estimater = () => {
                                             <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                                             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">Final Capital Allocation</span>
                                         </div>
-                                        <p className="text-5xl font-black text-foreground tracking-tighter tabular-nums drop-shadow-xl">
+                                        <p className="text-3xl lg:text-4xl font-black text-foreground tracking-tighter tabular-nums drop-shadow-xl">
                                             ${calculateTotal.finalTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                         </p>
                                     </div>
                                 </div>
 
-                                <Button 
-                                    className="w-full h-14 rounded-2xl bg-primary text-white text-base font-black italic shadow-xl shadow-primary/30 hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 group border-none"
-                                    onClick={saveProject}
-                                >
-                                    {isEditMode ? "SAVE CHANGES" : "GENERATE PROJECT"}
-                                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                                </Button>
+                                {!isClient && (
+                                    <Button 
+                                        className="w-full h-14 rounded-2xl bg-primary text-white text-base font-black italic shadow-xl shadow-primary/30 hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 group border-none"
+                                        onClick={saveProject}
+                                    >
+                                        {isEditMode ? "SAVE CHANGES" : "GENERATE PROJECT"}
+                                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                    </Button>
+                                )}
                             </CardContent>
                             <CardFooter className="bg-muted/30 p-8 flex items-start gap-3">
                                 <Info className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />

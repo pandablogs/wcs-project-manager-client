@@ -1,13 +1,15 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from 'react-toastify';
-import { UserPlus, Loader2, Mail, Lock, Phone, User, ArrowLeft } from "lucide-react";
+import { UserPlus, Loader2, Mail, Lock, Phone, User, ArrowLeft, Users } from "lucide-react";
 import authServices from '../../services/authServices';
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import { Label } from "../../components/ui/Label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/Select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/Card";
 import { motion } from "framer-motion";
+import { useEffect } from "react";
 
 const SignUp = () => {
     const navigate = useNavigate();
@@ -17,15 +19,31 @@ const SignUp = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [assignedManager, setAssignedManager] = useState("");
+    const [managers, setManagers] = useState([]);
     const [error, setError] = useState("");
     const [role, setRole] = useState("user");
     const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        const fetchManagers = async () => {
+            try {
+                const response = await authServices.getPublicManagers();
+                if (response.status) {
+                    setManagers(response.data);
+                }
+            } catch (error) {
+                console.error("Failed to fetch managers", error);
+            }
+        };
+        fetchManagers();
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
 
-        if (!firstName || !lastName || !phone || !email || !password || !confirmPassword) {
+        if (!firstName || !lastName || !phone || !email || !password || !confirmPassword || !assignedManager) {
             setError("All fields are required.");
             return;
         }
@@ -47,6 +65,7 @@ const SignUp = () => {
             email: email,
             password: password,
             role_type: role,
+            assigned_manager: assignedManager
         }
 
         try {
@@ -186,6 +205,31 @@ const SignUp = () => {
                                             required
                                         />
                                     </div>
+                                </div>
+                                <div className="space-y-2 md:col-span-2">
+                                    <Label htmlFor="assignedManager">Assigned Project Manager</Label>
+                                    <div className="relative">
+                                        <Users className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10" />
+                                        <Select value={assignedManager} onValueChange={setAssignedManager} required>
+                                            <SelectTrigger className="!pl-14 h-11 rounded-xl bg-background/50 border-border/50 w-full">
+                                                <SelectValue placeholder="Select a manager" />
+                                            </SelectTrigger>
+                                            <SelectContent className="rounded-xl border-border/50 shadow-xl overflow-hidden">
+                                                {managers.length > 0 ? (
+                                                    managers.map((m) => (
+                                                        <SelectItem key={m._id} value={m._id} className="focus:bg-primary/10 focus:text-primary transition-colors cursor-pointer">
+                                                            {m.firstName} {m.lastName}
+                                                        </SelectItem>
+                                                    ))
+                                                ) : (
+                                                    <SelectItem value="no-managers" disabled className="text-muted-foreground italic">
+                                                        No managers available
+                                                    </SelectItem>
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <p className="text-[10px] text-muted-foreground font-medium pl-1">Selecting a manager is mandatory for account activation.</p>
                                 </div>
                             </div>
 
