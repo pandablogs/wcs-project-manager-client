@@ -1,14 +1,14 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  LayoutDashboard, 
-  Calculator, 
-  ListTodo, 
-  Tags, 
-  Box, 
-  Layers, 
+import {
+  ChevronLeft,
+  ChevronRight,
+  LayoutDashboard,
+  Calculator,
+  ListTodo,
+  Tags,
+  Box,
+  Layers,
   Users,
   LogOut,
   UserCircle
@@ -22,8 +22,8 @@ const SidebarItem = ({ icon: Icon, label, href, isActive, isCollapsed, onClick }
     onClick={onClick}
     className={twMerge(
       'group relative flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-bold transition-all duration-300',
-      isActive 
-        ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/25 dark:shadow-brand-500/10' 
+      isActive
+        ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/25 dark:shadow-brand-500/10'
         : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-slate-200'
     )}
   >
@@ -33,7 +33,7 @@ const SidebarItem = ({ icon: Icon, label, href, isActive, isCollapsed, onClick }
     )}>
       <Icon size={18} strokeWidth={isCollapsed && isActive ? 2.5 : 2} />
     </span>
-    
+
     {!isCollapsed && (
       <span className="truncate transition-opacity duration-300">{label}</span>
     )}
@@ -80,7 +80,7 @@ export const Sidebar = ({ isCollapsed, setCollapsed, navItems, handleLogout }) =
           <img src={logo} alt="WCS" className="h-9 w-auto" />
           {!isCollapsed && (
             <div className="flex flex-col">
-              <span className="text-sm font-black tracking-tighter text-slate-900 dark:text-white uppercase">WCS PM</span>
+              <span className="text-sm font-black tracking-tighter text-slate-900 dark:text-white uppercase">PMC</span>
               <span className="text-[10px] font-bold text-brand-500 uppercase tracking-widest mt-[-2px]">Manager</span>
             </div>
           )}
@@ -94,12 +94,12 @@ export const Sidebar = ({ isCollapsed, setCollapsed, navItems, handleLogout }) =
           </button>
         )}
         {isCollapsed && (
-           <button
-             onClick={() => setCollapsed(!isCollapsed)}
-             className="flex h-8 w-8 mx-auto items-center justify-center rounded-xl bg-slate-50 text-slate-500 hover:bg-brand-50 hover:text-brand-600 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-brand-500/10 dark:hover:text-brand-400 transition-all shadow-sm"
-           >
-             <ChevronRight size={16} />
-           </button>
+          <button
+            onClick={() => setCollapsed(!isCollapsed)}
+            className="flex h-8 w-8 mx-auto items-center justify-center rounded-xl bg-slate-50 text-slate-500 hover:bg-brand-50 hover:text-brand-600 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-brand-500/10 dark:hover:text-brand-400 transition-all shadow-sm"
+          >
+            <ChevronRight size={16} />
+          </button>
         )}
       </div>
 

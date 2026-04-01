@@ -329,7 +329,7 @@ const AuthLayout = ({ children }) => {
             </div>
             <div className="flex flex-col gap-0.5">
               <span className="font-bold text-xl tracking-tight text-sidebar-foreground leading-none">
-                WCS <span className="text-primary font-black">PM</span>
+                PMC <span className="text-primary font-black"></span>
               </span>
               <span className="text-[10px] font-medium text-sidebar-foreground/50 uppercase tracking-[0.2em] leading-none">
                 {roleType === 'admin' ? 'Admin' : roleType === 'project_manager' ? 'Manager' : 'Client'}
